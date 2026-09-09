@@ -15,6 +15,7 @@
 - [ ] Docs: spec, Mermaid ER diagram, demo script
 
 ## Added later by request
+- [ ] Mobile play: Game Boy-inspired handheld shell with touch D-pad + A/B buttons
 - [ ] Agent integrations (MCP): @lovable.dev/mcp-js server exposing app tools
       (leaderboard, player stats, match lookup). Ask public-vs-OAuth consent.
 
