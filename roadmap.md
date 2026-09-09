@@ -16,6 +16,9 @@
 
 ## Added later by request
 - [ ] Mobile play: Game Boy-inspired handheld shell with touch D-pad + A/B buttons
+- [ ] Classic mode: recreate Robert Epps' original Alien Force gameplay as a
+      separate mode next to the remastered arena (BLOCKED: waiting on the
+      user's gameplay footage to match real movement/firing/levels)
 - [ ] Agent integrations (MCP): @lovable.dev/mcp-js server exposing app tools
       (leaderboard, player stats, match lookup). Ask public-vs-OAuth consent.
 
