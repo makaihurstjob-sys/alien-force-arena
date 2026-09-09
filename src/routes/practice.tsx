@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { RetroFrame } from "@/components/RetroFrame";
+import { useCallback, useRef, useState } from "react";
+import { GameBoyShell } from "@/components/GameBoyShell";
 import { ARENA, ARENA_LAYOUTS, PVP_RULES } from "@/game/config";
 import { botInput } from "@/game/bot";
 import { createMatch, startRound, step, type PlayerSeed } from "@/game/engine";
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/practice")({
       {
         name: "description",
         content:
-          "Local offline practice: fly a top-down ship, dodge obstacles and land the one shot you are allowed to have in play.",
+          "Local offline practice on a Game Boy-style handheld: fly a top-down ship, dodge obstacles and land the one shot you are allowed to have in play.",
       },
       { property: "og:title", content: "Practice Arena — Alien Force Arena" },
       { property: "og:description", content: "Local offline practice against a training bot." },
@@ -33,14 +33,14 @@ const PLAYERS: PlayerSeed[] = [
 
 function Practice() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [layoutId, setLayoutId] = useState(ARENA_LAYOUTS[0]!.id);
-  const layoutRef = useRef(layoutId);
-  layoutRef.current = layoutId;
+  const [layoutIndex, setLayoutIndex] = useState(0);
+  const layoutRef = useRef(ARENA_LAYOUTS[0]!.id);
+  layoutRef.current = ARENA_LAYOUTS[layoutIndex]!.id;
 
-  const stateRef = useRef<GameState>(createMatch(PLAYERS, layoutId));
+  const stateRef = useRef<GameState>(createMatch(PLAYERS, layoutRef.current));
   const { inputRef } = useKeyboardInput();
 
-  // HUD values are mirrored into React state a few times a second, not every frame.
+  // HUD values mirror into React state ~6x a second, not every frame.
   const [hud, setHud] = useState(() => readHud(stateRef.current));
   const hudTimer = useRef(0);
 
@@ -48,19 +48,11 @@ function Practice() {
     const state = stateRef.current;
     const layout = layoutRef.current;
 
-    // A finished round auto-restarts unless the match is over.
-    if (state.phase === "round_over" && state.phaseTimerMs <= 0 && !state.matchWinner) {
+    if (state.phase === "round_over" && state.phaseTimerMs <= 0 && state.matchWinner === null) {
       startRound(state, PLAYERS, layout);
     }
 
-    step(
-      state,
-      {
-        you: inputRef.current,
-        bot: botInput(state, "bot", layout),
-      },
-      layout,
-    );
+    step(state, { you: inputRef.current, bot: botInput(state, "bot", layout) }, layout);
 
     if (++hudTimer.current % 10 === 0) setHud(readHud(state));
   }, [inputRef]);
@@ -72,96 +64,87 @@ function Practice() {
   const getState = useCallback(() => stateRef.current, []);
   useGameLoop(getState, tick, draw, canvasRef, true);
 
-  const reset = () => {
+  const restart = () => {
+    stateRef.current = createMatch(PLAYERS, layoutRef.current);
+    setHud(readHud(stateRef.current));
+  };
+
+  const nextLayout = () => {
+    const next = (layoutIndex + 1) % ARENA_LAYOUTS.length;
+    setLayoutIndex(next);
+    layoutRef.current = ARENA_LAYOUTS[next]!.id;
     stateRef.current = createMatch(PLAYERS, layoutRef.current);
     setHud(readHud(stateRef.current));
   };
 
   const you = hud.ships.find((s) => s.id === "you");
-  const accuracy = useMemo(
-    () => (you && you.shots > 0 ? Math.round((you.hits / you.shots) * 100) : 0),
-    [you],
-  );
+  const accuracy = you && you.shots > 0 ? Math.round((you.hits / you.shots) * 100) : 0;
 
   return (
-    <main className="min-h-screen bg-background px-3 py-6 font-mono text-foreground">
-      <div className="mx-auto max-w-[860px] space-y-4">
-        <div className="flex items-center justify-between">
-          <Link to="/" className="text-xs uppercase tracking-widest text-primary hover:underline">
+    <main className="min-h-screen bg-background px-3 py-4 font-mono text-foreground">
+      <div className="mx-auto max-w-[560px] space-y-4">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+          <Link
+            to="/"
+            className="truncate text-xs uppercase tracking-widest text-primary hover:underline"
+          >
             &lt; Main menu
           </Link>
-          <span className="text-xs uppercase tracking-widest text-muted-foreground">
-            Offline practice — not connected to any server
+          <span className="shrink-0 text-[10px] uppercase tracking-widest text-muted-foreground">
+            Offline practice
           </span>
         </div>
 
-        <RetroFrame title={`Arena — ${hud.matchWinner === null ? "Live" : "Match over"}`}>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-            <span className="text-team-a">YOU {hud.score[0]}</span>
-            <span className="text-hud">
-              Round {hud.round} · first to {PVP_RULES.roundsToWinMatch}
-            </span>
-            <span className="text-team-b">BOT {hud.score[1]}</span>
-          </div>
-
-          <canvas
-            ref={canvasRef}
-            width={ARENA.width}
-            height={ARENA.height}
-            className="block h-auto w-full border-2 border-panel-shadow bg-[#0d1117]"
-            style={{ imageRendering: "pixelated" }}
-          />
-
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <span
-              className={
-                you?.canFire ? "font-bold text-team-a" : "font-bold text-muted-foreground"
-              }
-            >
-              {you?.canFire ? "● READY TO FIRE" : "○ SHOT IN FLIGHT"}
-            </span>
-            <span className="text-card-foreground">
-              Shots {you?.shots ?? 0} · Hits {you?.hits ?? 0} · Accuracy {accuracy}%
-            </span>
-            <div className="flex items-center gap-2">
-              <select
-                value={layoutId}
-                onChange={(e) => {
-                  setLayoutId(e.target.value);
-                  stateRef.current = createMatch(PLAYERS, e.target.value);
-                }}
-                className="border-2 border-panel-shadow bg-input px-2 py-1 text-card-foreground"
-                aria-label="Arena layout"
-              >
-                {ARENA_LAYOUTS.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={reset}
-                className="border-2 border-panel-shadow bg-panel-light px-3 py-1 font-bold uppercase text-card-foreground shadow-panel"
-              >
-                Restart
-              </button>
+        <GameBoyShell
+          inputRef={inputRef}
+          onStart={restart}
+          onSelect={nextLayout}
+          statusLight={hud.matchWinner === null}
+          statusLabel={you?.canFire ? "Ready" : "Reloading"}
+          screen={
+            <div>
+              <div className="flex items-center justify-between px-2 py-1 text-[10px] uppercase tracking-widest">
+                <span className="text-team-a">You {hud.score[0]}</span>
+                <span className="text-hud">
+                  R{hud.round}/{PVP_RULES.roundsToWinMatch} · {ARENA_LAYOUTS[layoutIndex]!.name}
+                </span>
+                <span className="text-team-b">Bot {hud.score[1]}</span>
+              </div>
+              <canvas
+                ref={canvasRef}
+                width={ARENA.width}
+                height={ARENA.height}
+                className="block h-auto w-full touch-none"
+                style={{ imageRendering: "pixelated" }}
+              />
+              <div className="flex items-center justify-between px-2 py-1 text-[10px] uppercase tracking-widest">
+                <span className={you?.canFire ? "text-team-a" : "text-muted-foreground"}>
+                  {you?.canFire ? "● Fire ready" : "○ Shot in flight"}
+                </span>
+                <span className="text-[#8d97a6]">
+                  {you?.shots ?? 0}S / {you?.hits ?? 0}H / {accuracy}%
+                </span>
+              </div>
+              {hud.matchWinner !== null && (
+                <p className="bg-[#182130] py-1 text-center text-[10px] font-bold uppercase tracking-widest text-hud">
+                  {hud.matchWinner === 0 ? "You win — press start" : "Bot wins — press start"}
+                </p>
+              )}
             </div>
-          </div>
+          }
+        />
 
-          {hud.matchWinner !== null && (
-            <p className="mt-3 border-2 border-panel-shadow bg-panel-light p-2 text-center text-sm font-bold text-card-foreground">
-              {hud.matchWinner === 0 ? "YOU WIN THE MATCH" : "BOT WINS THE MATCH"} — press Restart
-            </p>
-          )}
-        </RetroFrame>
-
-        <RetroFrame title="Controls">
-          <p className="text-sm text-card-foreground">
-            <b>W / ↑</b> thrust · <b>S / ↓</b> reverse · <b>A / ←</b> and <b>D / →</b> turn ·{" "}
-            <b>Space</b> fire. Only one shot can be in the air at a time — the ring around your ship
-            tells you when the next one is available.
+        <div className="border-2 border-panel-shadow bg-panel p-3 text-xs text-card-foreground">
+          <p className="font-bold uppercase tracking-widest">Controls</p>
+          <p className="mt-1">
+            D-pad or WASD / arrows to turn, thrust and reverse. <b>A</b>, <b>B</b> or{" "}
+            <b>Space</b> to fire. <b>Start</b> restarts the match, <b>Select</b> switches arena.
           </p>
-        </RetroFrame>
+          <p className="mt-2">
+            Only one of your shots can be in the air at a time — the ring around your ship is solid
+            when the next shot is available.
+          </p>
+        </div>
       </div>
     </main>
   );
