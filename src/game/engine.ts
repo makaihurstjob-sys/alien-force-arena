@@ -41,6 +41,8 @@ export function startRound(state: GameState, players: PlayerSeed[], layoutId: st
   state.phase = "countdown";
   state.phaseTimerMs = PVP_RULES.countdownSeconds * 1000;
   state.lastRoundWinner = null;
+  state.round++;
+
   spawnShips(state, players, layoutId);
 }
 
