@@ -5,6 +5,24 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
+ * Alien Force Arena — retro Windows-era design tokens.
+ * Beveled grey panels, CRT-dark arena, phosphor green / alert red teams.
+ */
+@theme inline {
+  --color-panel: var(--panel);
+  --color-panel-light: var(--panel-light);
+  --color-panel-shadow: var(--panel-shadow);
+  --color-titlebar: var(--titlebar);
+  --color-titlebar-foreground: var(--titlebar-foreground);
+  --color-team-a: var(--team-a);
+  --color-team-b: var(--team-b);
+  --color-hud: var(--hud);
+  --font-mono: "Courier New", ui-monospace, monospace;
+  --shadow-panel: 3px 3px 0 0 var(--panel-shadow);
+}
+
+
+/*
  * Design system definition.
  *
  * The @theme inline block maps CSS custom properties to Tailwind utility
