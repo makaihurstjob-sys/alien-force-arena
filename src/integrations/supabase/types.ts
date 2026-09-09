@@ -428,7 +428,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      complete_match: {
+        Args: { p_match_id: string; p_winning_team: number }
+        Returns: undefined
+      }
+      elo_delta: {
+        Args: {
+          matches_played: number
+          rating_a: number
+          rating_b: number
+          score_a: number
+        }
+        Returns: number
+      }
+      snapshot_leaderboard: { Args: { p_date?: string }; Returns: number }
     }
     Enums: {
       event_type:
