@@ -1,4 +1,4 @@
-﻿import { createServer } from 'node:http';
+import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -20,7 +20,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto(`http://127.0.0.1:${server.address().port}/alien-force-classic/`);
+  await page.goto(process.env.PAGES_URL || `http://127.0.0.1:${server.address().port}/alien-force-classic/`);
   await page.getByRole('button', { name: 'Play Classic', exact: true }).click();
   await page.getByRole('button', { name: 'Start: Pause', exact: true }).click();
   await page.waitForTimeout(150);
