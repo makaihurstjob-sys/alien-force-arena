@@ -69,3 +69,40 @@ it("continues moving after release and reverses without stopping", () => {
   tickClassic(s, idle, 1 / 60, () => 1);
   expect(s.player.x).toBeGreaterThan(afterReverse);
 });
+
+describe("enemy progression", () => {
+  it("never fires enemy shots on level 1 even when the random roll favors firing", () => {
+    const s = createClassic();
+    for (let frame = 0; frame < 120; frame++) tickClassic(s, idle, 1 / 60, () => 0);
+    expect(s.shots.filter((shot) => shot.owner !== 0)).toHaveLength(0);
+    expect(s.enemies.every((enemy) => !enemy.canFire)).toBe(true);
+  });
+  it("introduces a mix of shooters and non-shooters on level 2", () => {
+    const s = createClassic();
+    s.phase = "level_clear";
+    s.timer = 0;
+    tickClassic(s, idle);
+    expect(s.level).toBe(2);
+    expect(s.enemies.some((enemy) => enemy.canFire)).toBe(true);
+    expect(s.enemies.some((enemy) => !enemy.canFire)).toBe(true);
+    tickClassic(s, idle, 1 / 60, () => 0);
+    expect(s.shots.some((shot) => shot.owner !== 0)).toBe(true);
+    expect(
+      s.shots.every((shot) => s.enemies.find((enemy) => enemy.id === shot.owner)?.canFire),
+    ).toBe(true);
+  });
+  it("makes one decision while passing through an intersection", () => {
+    const s = createClassic();
+    s.enemies = [{ id: 1, x: 212, y: 212, direction: "down" }];
+    let calls = 0;
+    const random = () => {
+      calls++;
+      return 0.9;
+    };
+    tickClassic(s, idle, 1 / 60, random);
+    const firstCalls = calls;
+    tickClassic(s, idle, 1 / 60, random);
+    expect(calls).toBe(firstCalls);
+    expect(s.enemies[0]!.x).toBeGreaterThan(212);
+  });
+});

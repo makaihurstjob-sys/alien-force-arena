@@ -51,3 +51,17 @@ S and keypad 5 no longer stop the ship.
 The previously recorded scoring is 100 points per enemy and a level-clear bonus
 of 500 times the level cleared. Enemy firing onset, shot penalty, life reset behavior,
 and timing remain provisional. Earlier browser validation above predates this control correction.
+
+
+## Enemy progression pass
+
+Re-read Aforce.hlp from the original archive ZIP: it describes simple early enemies,
+increasing intelligence at higher levels, and the later introduction of return fire.
+The RGB Classic Games description (https://www.classicdosgames.com/game/Alien_Force.html)
+specifies no return fire on level 1 and some shooters beginning on level 2.
+Implemented those firing thresholds. The current shooter count (level minus one,
+capped at the wave size), pursuit probability, enemy count, and speeds are provisional.
+AI now makes one decision per intersection passage and chooses in-bounds directions.
+Level 1 mostly wanders; pursuit increases with level. That probability curve is a
+playable approximation, not a recovered original algorithm. Exact video URL requested
+again for side-by-side fidelity checks. User's no-stop correction remains authoritative.

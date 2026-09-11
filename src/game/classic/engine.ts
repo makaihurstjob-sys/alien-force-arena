@@ -23,10 +23,11 @@ export const vectors: Record<Direction, [number, number]> = {
   right: [1, 0],
 };
 export type Actor = { id: number; x: number; y: number; direction: Direction };
+export type Enemy = Actor & { canFire?: boolean; lastDecision?: string };
 type Shot = Actor & { owner: number };
 export type ClassicState = {
   player: Actor;
-  enemies: Actor[];
+  enemies: Enemy[];
   shots: Shot[];
   score: number;
   lives: number;
@@ -45,12 +46,14 @@ export type ClassicInput = {
 };
 const lane = (n: number) => CLASSIC.margin + n * CLASSIC.spacing;
 const nearest = (v: number) => lane(Math.round((v - CLASSIC.margin) / CLASSIC.spacing));
-function wave(level: number): Actor[] {
+function wave(level: number): Enemy[] {
   return Array.from({ length: Math.min(10, 5 + level) }, (_, i) => ({
     id: i + 1,
     x: lane(i),
     y: lane(0),
     direction: "down",
+    // Firing begins after level 1; the exact original shooter mix is unverified.
+    canFire: i < Math.min(10, Math.max(0, level - 1)),
   }));
 }
 export function createClassic(): ClassicState {
@@ -143,17 +146,32 @@ export function tickClassic(
       Math.abs(enemy.x - nearest(enemy.x)) < 1 && Math.abs(enemy.y - nearest(enemy.y)) < 1;
     let turn: Direction | null = null;
     if (atCrossing) {
-      turn =
-        random() < 0.5
-          ? s.player.x < enemy.x
-            ? "left"
-            : "right"
-          : s.player.y < enemy.y
-            ? "up"
-            : "down";
+      const crossing = `${nearest(enemy.x)},${nearest(enemy.y)}`;
+      if (enemy.lastDecision !== crossing) {
+        enemy.lastDecision = crossing;
+        const legal = (Object.keys(vectors) as Direction[]).filter((direction) => {
+          const [dx, dy] = vectors[direction];
+          return (
+            enemy.x + dx >= lane(0) &&
+            enemy.x + dx <= lane(CLASSIC.cells) &&
+            enemy.y + dy >= lane(0) &&
+            enemy.y + dy <= lane(CLASSIC.cells)
+          );
+        });
+        // Progressive pursuit is an approximation; original probabilities are unverified.
+        const pursuit = Math.min(0.8, 0.1 + (s.level - 1) * 0.07);
+        const chasing = legal.filter((direction) => {
+          const [dx, dy] = vectors[direction];
+          return dx * (s.player.x - enemy.x) + dy * (s.player.y - enemy.y) > 0;
+        });
+        const choices = random() < pursuit && chasing.length ? chasing : legal;
+        turn = choices[Math.min(choices.length - 1, Math.floor(random() * choices.length))] ?? null;
+      }
+    } else {
+      delete enemy.lastDecision;
     }
     moveActor(enemy, turn, (CLASSIC.enemySpeed + Math.min(s.level - 1, 10) * 4) * dt);
-    if (random() < dt * 0.35) fire(s, enemy);
+    if (s.level > 1 && enemy.canFire && random() < dt * 0.35) fire(s, enemy);
   }
   // Substeps keep fast shots from skipping a ship between simulation ticks.
   const survivors: Shot[] = [];
