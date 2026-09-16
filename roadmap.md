@@ -2,8 +2,9 @@
 
 ## In progress
 - [x] Central tuning config, engine (one-projectile rule), renderer, practice bot
-- [ ] Home screen + playable practice arena (canvas, controls, HUD)
-- [ ] Tests: one-projectile rule, round end
+- [x] Home screen + playable practice arena (canvas, controls, HUD)
+- [x] Practice pause/resume, automatic pause on focus loss, match results and rematch
+- [x] Tests: one-projectile rule, countdown, round end, draws, match win, round reset
 
 ## Next
 - [ ] Enable Lovable Cloud (auth + Postgres)
@@ -15,14 +16,24 @@
 - [ ] Docs: spec, Mermaid ER diagram, demo script
 
 ## Added later by request
-- [ ] Mobile play: Game Boy-inspired handheld shell with touch D-pad + A/B buttons
-- [ ] Classic mode: recreate Robert Epps' original Alien Force gameplay as a
-      separate mode next to the remastered arena (BLOCKED: waiting on the
-      user's gameplay footage to match real movement/firing/levels)
+- [x] Mobile play: Game Boy-inspired handheld shell with touch D-pad + A/B buttons
+- [x] Playable video-informed Classic mode: grid lanes, waves, lives, score, pause, touch controls
+- [ ] Verify Classic timings, AI, scoring and original rules (see docs/classic-reference.md)
 - [ ] Agent integrations (MCP): @lovable.dev/mcp-js server exposing app tools
       (leaderboard, player stats, match lookup). Ask public-vs-OAuth consent.
 
 ## Known gaps / needs verification
-- Original 1990 Alien Force could not be run or inspected from this environment;
+- Supplied original-game footage has now been inspected; exact
   movement speeds, projectile behaviour, hitboxes and arena layouts are
   reconstructions marked UNVERIFIED in src/game/config.ts.
+
+## September 16 preview setup
+- [x] Original-style Options ? Level dialog with OK/Cancel
+- [x] Equal Classic difficulty across levels using the level-one baseline
+- [x] Owner-supplied Windows Bold throughout UI and canvas text
+- [x] Prepared lobby UI and tested Supabase RPC migration (menu entry hidden)
+- [ ] Add Create Room under Options when multiplayer is available; only Level is shown now
+- [ ] Apply lobby migration and enable guest authentication remotely
+- [ ] Connect authoritative online matches; private rooms stay unranked
+- [ ] Permanent accounts and separate ranked ratings after result validation
+See docs/multiplayer.md for setup, verified behavior, and remaining work.

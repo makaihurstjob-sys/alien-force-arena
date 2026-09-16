@@ -18,10 +18,16 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState, layoutId
   ctx.strokeStyle = "#182130";
   ctx.lineWidth = 1;
   for (let x = 0; x <= ARENA.width; x += 40) {
-    ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, ARENA.height); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, 0);
+    ctx.lineTo(x + 0.5, ARENA.height);
+    ctx.stroke();
   }
   for (let y = 0; y <= ARENA.height; y += 40) {
-    ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(ARENA.width, y + 0.5); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, y + 0.5);
+    ctx.lineTo(ARENA.width, y + 0.5);
+    ctx.stroke();
   }
 
   // obstacles: beveled "Windows button" look
@@ -65,7 +71,7 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState, layoutId
     ctx.setLineDash([]);
 
     ctx.fillStyle = "#c8d2e0";
-    ctx.font = "10px 'Courier New', monospace";
+    ctx.font = "10px 'Windows Bold', monospace";
     ctx.textAlign = "center";
     ctx.fillText(ship.name, ship.x, ship.y - SHIP.radius - 12);
   }
@@ -94,7 +100,7 @@ function overlayText(ctx: CanvasRenderingContext2D, text: string) {
   ctx.fillStyle = "rgba(13,17,23,0.55)";
   ctx.fillRect(0, 0, ARENA.width, ARENA.height);
   ctx.fillStyle = "#ffe066";
-  ctx.font = "bold 40px 'Courier New', monospace";
+  ctx.font = "bold 40px 'Windows Bold', monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(text, ARENA.width / 2, ARENA.height / 2);

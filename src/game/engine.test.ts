@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { createMatch, step, type PlayerSeed } from "./engine";
+import { createMatch, startRound, step, type PlayerSeed } from "./engine";
 import { PROJECTILE, PVP_RULES, TICK_HZ } from "./config";
 import { EMPTY_INPUT, type GameState } from "./types";
 
@@ -49,6 +49,51 @@ describe("one-projectile rule", () => {
 });
 
 describe("round resolution", () => {
+  it("does not move or fire during the countdown", () => {
+    const state = createMatch(PLAYERS);
+    const x = state.ships[0]!.x;
+    step(state, { a: { ...FIRE, thrust: true } });
+    expect(state.ships[0]!.x).toBe(x);
+    expect(state.projectiles).toHaveLength(0);
+  });
+
+  it("draws on an equal-survivor timeout without awarding points", () => {
+    const state = createMatch(PLAYERS);
+    skipCountdown(state);
+    state.phaseTimerMs = 1;
+    step(state, {});
+    expect(state.phase).toBe("round_over");
+    expect(state.lastRoundWinner).toBeNull();
+    expect(state.score).toEqual([0, 0]);
+  });
+
+  it("awards a match once and freezes combat after the winning round", () => {
+    const state = createMatch(PLAYERS);
+    skipCountdown(state);
+    state.score[0] = PVP_RULES.roundsToWinMatch - 1;
+    state.ships[1]!.alive = false;
+    step(state, {});
+    expect(state.matchWinner).toBe(0);
+    for (let i = 0; i < 300; i++) step(state, { a: FIRE });
+    expect(state.score[0]).toBe(PVP_RULES.roundsToWinMatch);
+    expect(state.ships[0]!.shots).toBe(0);
+    expect(state.phaseTimerMs).toBe(0);
+  });
+
+  it("respawns players and clears shots while preserving cumulative stats", () => {
+    const state = createMatch(PLAYERS);
+    skipCountdown(state);
+    step(state, { a: FIRE });
+    state.ships[1]!.alive = false;
+    step(state, {});
+    startRound(state, PLAYERS, "cross");
+    expect(state.round).toBe(2);
+    expect(state.score).toEqual([1, 0]);
+    expect(state.projectiles).toHaveLength(0);
+    expect(state.ships.every((ship) => ship.alive && ship.canFire)).toBe(true);
+    expect(state.ships[0]!.shots).toBe(1);
+  });
+
   it("ends the round and scores when a team is wiped out", () => {
     const state = createMatch(PLAYERS, "cross");
     skipCountdown(state);

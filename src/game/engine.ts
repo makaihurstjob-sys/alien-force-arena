@@ -10,8 +10,16 @@
  * projectile hits something, hits a wall/obstacle, or expires.
  */
 
-import { ARENA, ARENA_LAYOUTS, PROJECTILE, PVP_RULES, SHIP, TICK_MS, type ArenaLayout } from "./config";
-import type { GameEvent, GameState, PlayerInput, Projectile, Ship } from "./types";
+import {
+  ARENA,
+  ARENA_LAYOUTS,
+  PROJECTILE,
+  PVP_RULES,
+  SHIP,
+  TICK_MS,
+  type ArenaLayout,
+} from "./config";
+import type { GameState, PlayerInput, Projectile, Ship } from "./types";
 
 export type PlayerSeed = { id: string; name: string; team: 0 | 1 };
 
@@ -97,7 +105,7 @@ export function step(
   }
 
   if (state.phase === "round_over") {
-    state.phaseTimerMs -= TICK_MS;
+    state.phaseTimerMs = Math.max(0, state.phaseTimerMs - TICK_MS);
     return state;
   }
 
@@ -166,7 +174,12 @@ export function step(
           dead = true;
           const shooter = state.ships.find((s) => s.id === p.ownerId);
           if (shooter) shooter.hits++;
-          state.events.push({ type: "hit", playerId: p.ownerId, targetId: ship.id, tick: state.tick });
+          state.events.push({
+            type: "hit",
+            playerId: p.ownerId,
+            targetId: ship.id,
+            tick: state.tick,
+          });
           if (PVP_RULES.oneHitElimination) {
             ship.alive = false;
             state.events.push({
@@ -260,8 +273,12 @@ export function hitsObstacle(cx: number, cy: number, r: number, layout: ArenaLay
 }
 
 export function circlesOverlap(
-  ax: number, ay: number, ar: number,
-  bx: number, by: number, br: number,
+  ax: number,
+  ay: number,
+  ar: number,
+  bx: number,
+  by: number,
+  br: number,
 ): boolean {
   return (ax - bx) ** 2 + (ay - by) ** 2 <= (ar + br) ** 2;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createClassic, tickClassic, moveActor, CLASSIC } from "./engine";
+import { createClassic, tickClassic, moveActor, CLASSIC, type Direction } from "./engine";
 const idle = { direction: null, fire: false };
 describe("classic simulation", () => {
   it("buffers a perpendicular turn until an intersection", () => {
@@ -71,25 +71,81 @@ it("continues moving after release and reverses without stopping", () => {
 });
 
 describe("enemy progression", () => {
+  it.each([
+    [12.75, 52, "left"],
+    [411.25, 52, "right"],
+    [52, 12.75, "up"],
+    [52, 411.25, "down"],
+  ] as [number, number, Direction][])(
+    "turns away from a wall approached at (%s, %s)",
+    (x, y, direction) => {
+      const s = createClassic();
+      s.invulnerable = Infinity;
+      s.enemies = [{ id: 1, x, y, direction }];
+      for (let frame = 0; frame < 120; frame++) tickClassic(s, idle, 1 / 60, () => 0.9);
+      const enemy = s.enemies[0]!;
+      expect(Math.hypot(enemy.x - x, enemy.y - y)).toBeGreaterThan(10);
+      expect(enemy.x).toBeGreaterThanOrEqual(12);
+      expect(enemy.x).toBeLessThanOrEqual(412);
+      expect(enemy.y).toBeGreaterThanOrEqual(12);
+      expect(enemy.y).toBeLessThanOrEqual(412);
+    },
+  );
+  it.each([1, 2, 6, 11, 20])("keeps moving on lanes through crossings at level %s", (level) => {
+    const s = createClassic();
+    s.level = level;
+    s.invulnerable = Infinity;
+    let seed = 12345;
+    const random = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32;
+    const stationary = new Map<number, number>();
+    let maxStationary = 0,
+      minPosition = Infinity,
+      maxPosition = -Infinity,
+      maxLaneError = 0;
+    for (let frame = 0; frame < 3600; frame++) {
+      const before = s.enemies.map((e) => ({ ...e }));
+      tickClassic(s, idle, 1 / 60, random);
+      for (const enemy of s.enemies) {
+        const previous = before.find((e) => e.id === enemy.id)!;
+        const stopped = Math.hypot(enemy.x - previous.x, enemy.y - previous.y) < 1e-7;
+        stationary.set(enemy.id, stopped ? (stationary.get(enemy.id) ?? 0) + 1 : 0);
+        maxStationary = Math.max(maxStationary, stationary.get(enemy.id)!);
+        minPosition = Math.min(minPosition, enemy.x, enemy.y);
+        maxPosition = Math.max(maxPosition, enemy.x, enemy.y);
+        const laneError = (value: number) =>
+          Math.abs((value - 12) / 40 - Math.round((value - 12) / 40));
+        maxLaneError = Math.max(maxLaneError, Math.min(laneError(enemy.x), laneError(enemy.y)));
+      }
+    }
+    expect(maxStationary).toBeLessThan(2);
+    expect(minPosition).toBeGreaterThanOrEqual(12);
+    expect(maxPosition).toBeLessThanOrEqual(412);
+    expect(maxLaneError).toBeLessThan(1e-7);
+  });
   it("never fires enemy shots on level 1 even when the random roll favors firing", () => {
     const s = createClassic();
     for (let frame = 0; frame < 120; frame++) tickClassic(s, idle, 1 / 60, () => 0);
     expect(s.shots.filter((shot) => shot.owner !== 0)).toHaveLength(0);
     expect(s.enemies.every((enemy) => !enemy.canFire)).toBe(true);
   });
-  it("introduces a mix of shooters and non-shooters on level 2", () => {
-    const s = createClassic();
-    s.phase = "level_clear";
-    s.timer = 0;
-    tickClassic(s, idle);
-    expect(s.level).toBe(2);
-    expect(s.enemies.some((enemy) => enemy.canFire)).toBe(true);
-    expect(s.enemies.some((enemy) => !enemy.canFire)).toBe(true);
-    tickClassic(s, idle, 1 / 60, () => 0);
-    expect(s.shots.some((shot) => shot.owner !== 0)).toBe(true);
-    expect(
-      s.shots.every((shot) => s.enemies.find((enemy) => enemy.id === shot.owner)?.canFire),
-    ).toBe(true);
+  it("keeps enemy count, movement and firing identical across levels", () => {
+    const low = createClassic(1),
+      high = createClassic(20);
+    low.invulnerable = high.invulnerable = Infinity;
+    for (let frame = 0; frame < 600; frame++) {
+      tickClassic(low, idle, 1 / 60, () => 0.25);
+      tickClassic(high, idle, 1 / 60, () => 0.25);
+    }
+    expect(high.enemies).toEqual(low.enemies);
+    expect(high.shots).toEqual(low.shots);
+    high.phase = "level_clear";
+    high.timer = 0;
+    tickClassic(high, idle);
+    expect(high.level).toBe(21);
+    expect(high.enemies).toEqual(createClassic().enemies);
+  });
+  it.each([0, -1, 1.5, NaN, Infinity, 1000])("rejects invalid selected level %s", (level) => {
+    expect(() => createClassic(level)).toThrow(RangeError);
   });
   it("makes one decision while passing through an intersection", () => {
     const s = createClassic();

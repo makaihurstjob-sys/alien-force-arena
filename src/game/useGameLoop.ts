@@ -57,12 +57,28 @@ export function useKeyboardInput(enabled = true) {
     const set = (code: string, down: boolean) => {
       const i = inputRef.current;
       switch (code) {
-        case "ArrowUp": case "KeyW": i.thrust = down; break;
-        case "ArrowDown": case "KeyS": i.reverse = down; break;
-        case "ArrowLeft": case "KeyA": i.left = down; break;
-        case "ArrowRight": case "KeyD": i.right = down; break;
-        case "Space": i.fire = down; setPressedFire(down); break;
-        default: return;
+        case "ArrowUp":
+        case "KeyW":
+          i.thrust = down;
+          break;
+        case "ArrowDown":
+        case "KeyS":
+          i.reverse = down;
+          break;
+        case "ArrowLeft":
+        case "KeyA":
+          i.left = down;
+          break;
+        case "ArrowRight":
+        case "KeyD":
+          i.right = down;
+          break;
+        case "Space":
+          i.fire = down;
+          setPressedFire(down);
+          break;
+        default:
+          return;
       }
     };
     const down = (e: KeyboardEvent) => {
@@ -72,9 +88,16 @@ export function useKeyboardInput(enabled = true) {
       set(e.code, true);
     };
     const up = (e: KeyboardEvent) => set(e.code, false);
+    const reset = () => {
+      inputRef.current = { thrust: false, reverse: false, left: false, right: false, fire: false };
+      setPressedFire(false);
+    };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
+    window.addEventListener("blur", reset);
     return () => {
+      reset();
+      window.removeEventListener("blur", reset);
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
     };

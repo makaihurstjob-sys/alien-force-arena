@@ -18,10 +18,10 @@
   --color-team-a: var(--team-a);
   --color-team-b: var(--team-b);
   --color-hud: var(--hud);
-  --font-mono: "Courier New", ui-monospace, monospace;
+  --font-mono: "Windows Bold", monospace;
+  --font-sans: "Windows Bold", sans-serif;
   --shadow-panel: 3px 3px 0 0 var(--panel-shadow);
 }
-
 
 /*
  * Design system definition.
@@ -171,4 +171,15 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+}
+
+@font-face {
+  font-family: "Windows Bold";
+  src: url("./assets/fonts/windows-bold.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+body {
+  font-family: "Windows Bold", monospace;
 }

@@ -46,24 +46,26 @@ export type ClassicInput = {
 };
 const lane = (n: number) => CLASSIC.margin + n * CLASSIC.spacing;
 const nearest = (v: number) => lane(Math.round((v - CLASSIC.margin) / CLASSIC.spacing));
-function wave(level: number): Enemy[] {
-  return Array.from({ length: Math.min(10, 5 + level) }, (_, i) => ({
+function wave(): Enemy[] {
+  return Array.from({ length: 6 }, (_, i) => ({
     id: i + 1,
     x: lane(i),
     y: lane(0),
     direction: "down",
-    // Firing begins after level 1; the exact original shooter mix is unverified.
-    canFire: i < Math.min(10, Math.max(0, level - 1)),
+    // Keep the current level-one baseline at every selected level.
+    canFire: false,
   }));
 }
-export function createClassic(): ClassicState {
+export function createClassic(level = 1): ClassicState {
+  if (!Number.isInteger(level) || level < 1 || level > 999)
+    throw new RangeError("Level must be between 1 and 999");
   return {
     player: { id: 0, x: lane(10), y: lane(10), direction: "left" },
-    enemies: wave(1),
+    enemies: wave(),
     shots: [],
     score: 0,
     lives: CLASSIC.lives,
-    level: 1,
+    level,
     phase: "playing",
     timer: 0,
     invulnerable: CLASSIC.invulnerability,
@@ -107,7 +109,7 @@ function loseLife(s: ClassicState) {
     return;
   }
   s.player = { id: 0, x: lane(10), y: lane(10), direction: "left" };
-  s.enemies = wave(s.level);
+  s.enemies = wave();
   s.invulnerable = CLASSIC.invulnerability;
 }
 export function tickClassic(
@@ -121,7 +123,7 @@ export function tickClassic(
     s.timer -= dt;
     if (s.timer <= 0) {
       s.level++;
-      s.enemies = wave(s.level);
+      s.enemies = wave();
       s.shots = [];
       s.phase = "playing";
       s.invulnerable = CLASSIC.invulnerability;
@@ -142,36 +144,60 @@ export function tickClassic(
   moveActor(s.player, input.reverse ? null : input.direction, CLASSIC.playerSpeed * dt);
   if (input.fire) fire(s, s.player);
   for (const enemy of s.enemies) {
-    const atCrossing =
-      Math.abs(enemy.x - nearest(enemy.x)) < 1 && Math.abs(enemy.y - nearest(enemy.y)) < 1;
-    let turn: Direction | null = null;
-    if (atCrossing) {
-      const crossing = `${nearest(enemy.x)},${nearest(enemy.y)}`;
-      if (enemy.lastDecision !== crossing) {
-        enemy.lastDecision = crossing;
-        const legal = (Object.keys(vectors) as Direction[]).filter((direction) => {
-          const [dx, dy] = vectors[direction];
-          return (
-            enemy.x + dx >= lane(0) &&
-            enemy.x + dx <= lane(CLASSIC.cells) &&
-            enemy.y + dy >= lane(0) &&
-            enemy.y + dy <= lane(CLASSIC.cells)
-          );
-        });
-        // Progressive pursuit is an approximation; original probabilities are unverified.
-        const pursuit = Math.min(0.8, 0.1 + (s.level - 1) * 0.07);
-        const chasing = legal.filter((direction) => {
-          const [dx, dy] = vectors[direction];
-          return dx * (s.player.x - enemy.x) + dy * (s.player.y - enemy.y) > 0;
-        });
-        const choices = random() < pursuit && chasing.length ? chasing : legal;
-        turn = choices[Math.min(choices.length - 1, Math.floor(random() * choices.length))] ?? null;
+    // Stop exactly at each crossing before choosing a turn. A proximity check
+    // can consume a decision before moveActor is close enough to accept it.
+    let remaining = CLASSIC.enemySpeed * dt;
+    while (remaining > 1e-7) {
+      const atCrossing =
+        Math.abs(enemy.x - nearest(enemy.x)) < 1e-7 && Math.abs(enemy.y - nearest(enemy.y)) < 1e-7;
+      let turn: Direction | null = null;
+      if (atCrossing) {
+        enemy.x = nearest(enemy.x);
+        enemy.y = nearest(enemy.y);
+        const crossing = `${nearest(enemy.x)},${nearest(enemy.y)}`;
+        const [headingX, headingY] = vectors[enemy.direction];
+        const blocked =
+          enemy.x + headingX < lane(0) ||
+          enemy.x + headingX > lane(CLASSIC.cells) ||
+          enemy.y + headingY < lane(0) ||
+          enemy.y + headingY > lane(CLASSIC.cells);
+        if (enemy.lastDecision !== crossing || blocked) {
+          enemy.lastDecision = crossing;
+          const legal = (Object.keys(vectors) as Direction[]).filter((direction) => {
+            const [dx, dy] = vectors[direction];
+            return (
+              enemy.x + dx >= lane(0) &&
+              enemy.x + dx <= lane(CLASSIC.cells) &&
+              enemy.y + dy >= lane(0) &&
+              enemy.y + dy <= lane(CLASSIC.cells)
+            );
+          });
+          // Difficulty stays constant while original gameplay is being matched.
+          const pursuit = 0.1;
+          const chasing = legal.filter((direction) => {
+            const [dx, dy] = vectors[direction];
+            return dx * (s.player.x - enemy.x) + dy * (s.player.y - enemy.y) > 0;
+          });
+          const choices = random() < pursuit && chasing.length ? chasing : legal;
+          turn =
+            choices[Math.min(choices.length - 1, Math.floor(random() * choices.length))] ?? null;
+        }
+      } else {
+        delete enemy.lastDecision;
       }
-    } else {
-      delete enemy.lastDecision;
+      if (turn) enemy.direction = turn;
+      const [dx, dy] = vectors[enemy.direction];
+      const position = dx ? enemy.x : enemy.y;
+      const sign = dx || dy;
+      const index = (position - CLASSIC.margin) / CLASSIC.spacing;
+      const nextIndex = sign > 0 ? Math.floor(index + 1e-7) + 1 : Math.ceil(index - 1e-7) - 1;
+      const distance = Math.min(remaining, Math.abs(lane(nextIndex) - position));
+      enemy.x += dx * distance;
+      enemy.y += dy * distance;
+      remaining -= distance;
+      if (distance > 1e-7) delete enemy.lastDecision;
     }
-    moveActor(enemy, turn, (CLASSIC.enemySpeed + Math.min(s.level - 1, 10) * 4) * dt);
-    if (s.level > 1 && enemy.canFire && random() < dt * 0.35) fire(s, enemy);
+    if (enemy.canFire && random() < dt * 0.35) fire(s, enemy);
   }
   // Substeps keep fast shots from skipping a ship between simulation ticks.
   const survivors: Shot[] = [];
@@ -203,7 +229,7 @@ export function tickClassic(
   if (playerHit || s.enemies.some((e) => Math.hypot(e.x - s.player.x, e.y - s.player.y) < 12))
     loseLife(s);
   if (s.phase === "playing" && s.enemies.length === 0) {
-    s.score += CLASSIC.levelBonus * s.level;
+    s.score += CLASSIC.levelBonus;
     s.phase = "level_clear";
     s.timer = CLASSIC.transition;
     s.shots = [];

@@ -1,4 +1,5 @@
 .classic-controller {
+  display: none;
   max-width: 620px;
   margin-inline: auto;
   padding: 20px 16px 16px;
@@ -11,6 +12,12 @@
   color: #eee;
   user-select: none;
   -webkit-user-select: none;
+}
+/* Touch devices retain the handheld controls, including landscape/tablets. */
+@media (pointer: coarse) {
+  .classic-controller {
+    display: block;
+  }
 }
 .classic-controller button,
 .classic-controller a {
@@ -181,5 +188,41 @@
   .classic-round {
     width: 50px;
     height: 50px;
+  }
+}
+
+.classic-mobile-stats {
+  display: none;
+}
+@media (pointer: coarse) {
+  .classic-mobile-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    padding: 0 4px;
+  }
+  .classic-mobile-lives {
+    display: flex;
+    gap: 4px;
+    min-width: 16px;
+  }
+  .classic-mobile-lives > span {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-size: 69px 52px;
+    background-position: -1px -1px;
+    image-rendering: pixelated;
+  }
+  .classic-shot-status {
+    font-size: 11px;
+  }
+  .classic-desktop-stats,
+  .classic-keyboard-instructions {
+    display: none;
   }
 }

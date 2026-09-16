@@ -9,6 +9,7 @@ function App() {
   return (
     <main className="min-h-screen bg-background p-6 font-mono text-foreground flex items-center justify-center">
       <div className="max-w-lg space-y-6 text-center">
+          <img src="./branding/alien-force-logo.jpg" alt="Alien Force logo" width="100" height="100" className="mx-auto mb-4 [image-rendering:pixelated]" />
         <h1 className="text-3xl">Alien Force Classic</h1>
         <p>Navigate the grid, dodge enemies, and clear each wave.</p>
         <button className="border-2 bg-gray-300 px-8 py-4 text-black text-xl" onClick={() => setPlaying(true)}>Play Classic</button>

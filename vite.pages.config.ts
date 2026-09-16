@@ -5,8 +5,9 @@ import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   root: "pages",
+  envDir: "..",
   base: "./",
-  publicDir: false,
+  publicDir: "../public",
   plugins: [react(), tailwindcss()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   build: { outDir: "../dist-pages", emptyOutDir: true, sourcemap: false },

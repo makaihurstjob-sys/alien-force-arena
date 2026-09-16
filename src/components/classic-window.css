@@ -1,0 +1,304 @@
+.classic-window {
+  position: relative;
+  border: 2px solid #000;
+  padding: 3px;
+  background: #c0c0c0;
+  box-shadow:
+    inset 2px 2px #fff,
+    inset -2px -2px #808080;
+  color: #000;
+}
+.classic-titlebar {
+  height: 38px;
+  display: flex;
+  border: 1px solid #000;
+  font-family: "Windows Bold", monospace;
+}
+.classic-caption {
+  flex: 1;
+  min-width: 0;
+  background: #0000b0;
+  color: #fff;
+  text-align: center;
+  font-size: 24px;
+  line-height: 36px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.classic-caption-button {
+  width: 38px;
+  flex-shrink: 0;
+  background: #c0c0c0;
+  border: 0;
+  box-shadow:
+    inset 2px 2px #fff,
+    inset -2px -2px #808080;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.classic-caption-button:first-child {
+  border-right: 2px solid #000;
+}
+.classic-caption-button:nth-last-child(-n + 2) {
+  border-left: 2px solid #000;
+}
+.classic-caption-button:active {
+  box-shadow:
+    inset 2px 2px #808080,
+    inset -2px -2px #fff;
+}
+.classic-menu-glyph {
+  width: 24px;
+  height: 6px;
+  border: 1px solid #000;
+  background: #fff;
+  box-shadow: inset -1px -1px #808080;
+}
+.classic-down-glyph,
+.classic-up-glyph {
+  width: 14px;
+  height: 8px;
+  background: #000;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.classic-up-glyph {
+  transform: rotate(180deg);
+}
+.classic-menubar {
+  display: flex;
+  background: #fff;
+  border: 1px solid #000;
+  border-top: 0;
+  font:
+    28px/36px "Windows Bold",
+    monospace;
+}
+.classic-menu-anchor {
+  position: relative;
+}
+.classic-menu-anchor > button {
+  padding: 0 18px;
+}
+.classic-menubar u,
+.classic-dropdown u {
+  text-underline-offset: 3px;
+}
+.classic-menubar button[aria-expanded="true"] {
+  background: #0000b0;
+  color: #fff;
+}
+.classic-dropdown {
+  position: absolute;
+  z-index: 30;
+  min-width: 270px;
+  width: max-content;
+  max-width: calc(100vw - 44px);
+  border: 2px solid #000;
+  background: #fff;
+  box-shadow: 2px 2px #808080;
+  font:
+    28px/36px "Windows Bold",
+    monospace;
+  padding: 0;
+}
+.classic-window-menu {
+  top: 41px;
+  left: 3px;
+  width: 334px;
+}
+.classic-dropdown button,
+.classic-dropdown a {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0 28px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.classic-dropdown a:has(span) {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.classic-dropdown button:hover:not(:disabled),
+.classic-dropdown a:hover,
+.classic-dropdown button:focus-visible,
+.classic-dropdown a:focus-visible {
+  background: #0000b0;
+  color: #fff;
+  outline: none;
+}
+.classic-dropdown button:disabled {
+  color: #808080;
+}
+.classic-dropdown hr {
+  border: 0;
+  border-top: 2px solid #000;
+  margin: 6px 0;
+}
+.classic-help {
+  padding: 10px 16px;
+  font-size: 20px;
+  line-height: 1.5;
+}
+.classic-window.is-maximized {
+  position: fixed;
+  inset: 8px;
+  z-index: 50;
+  overflow: auto;
+}
+.classic-window.is-maximized canvas {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100dvh - 110px);
+  margin-inline: auto;
+}
+.classic-window.is-minimized {
+  max-width: 340px;
+}
+.classic-shell:has(.is-minimized) > :not(.classic-window) {
+  display: none;
+}
+@media (max-width: 480px) {
+  .classic-titlebar {
+    height: 32px;
+  }
+  .classic-caption {
+    font-size: 20px;
+    line-height: 30px;
+  }
+  .classic-caption-button {
+    width: 32px;
+  }
+  .classic-menubar {
+    font-size: 22px;
+    line-height: 32px;
+  }
+  .classic-menu-anchor > button {
+    padding-inline: 12px;
+  }
+  .classic-dropdown {
+    min-width: 180px;
+    font-size: 22px;
+    line-height: 32px;
+  }
+  .classic-window-menu {
+    top: 35px;
+  }
+  .classic-dropdown button,
+  .classic-dropdown a {
+    padding-inline: 14px;
+  }
+  .classic-menu-anchor:last-child .classic-dropdown {
+    right: 0;
+  }
+}
+
+/* Keep touch controls reachable when the game window is maximized. */
+.classic-shell:has(.is-maximized) {
+  position: fixed;
+  inset: 8px;
+  z-index: 50;
+  max-width: none;
+  overflow: auto;
+  background: var(--background);
+  padding: 4px;
+}
+.classic-window.is-maximized {
+  position: relative;
+  inset: auto;
+  overflow: visible;
+}
+
+.classic-options-dialog {
+  position: fixed;
+  margin: auto;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 30px 24px;
+  border: 8px solid #0000b0;
+  background: white;
+  color: black;
+  font:
+    24px/1.4 "Windows Bold",
+    monospace;
+  text-align: center;
+}
+.classic-options-dialog::backdrop {
+  background: transparent;
+}
+.classic-options-dialog input {
+  border: 2px solid black;
+  background: white;
+  color: black;
+  padding: 4px;
+}
+.classic-level-input {
+  display: block;
+  width: 78px;
+  margin: 24px auto;
+}
+.classic-dialog-actions {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 24px;
+}
+.classic-options-dialog button {
+  background: #c0c0c0;
+  border: 2px solid black;
+  padding: 6px 16px;
+  box-shadow:
+    inset 2px 2px white,
+    inset -3px -3px #808080;
+}
+.classic-options-dialog button:active {
+  box-shadow: inset 2px 2px #808080;
+}
+.classic-options-dialog button:disabled {
+  color: #666;
+}
+.classic-options-dialog :focus-visible {
+  outline: 2px dotted black;
+  outline-offset: 2px;
+}
+.classic-lobby {
+  font-size: 18px;
+}
+.classic-lobby p,
+.classic-lobby form {
+  margin-block: 16px;
+}
+.classic-lobby label {
+  display: block;
+}
+.classic-lobby input {
+  width: 110px;
+  margin: 8px;
+  text-transform: uppercase;
+}
+.classic-lobby-note {
+  font-size: 16px;
+}
+
+.classic-dropdown [data-controller-selected="true"] {
+  background: #0000b0;
+  color: white;
+}
+.classic-options-dialog [data-controller-selected="true"] {
+  outline: 2px dashed #0000b0;
+  outline-offset: 3px;
+}
+@media (pointer: coarse) {
+  .classic-titlebar > .classic-caption-button:nth-last-child(-n + 2) {
+    display: none;
+  }
+  .classic-options-dialog {
+    top: 100px;
+    bottom: auto;
+    z-index: 60;
+  }
+}

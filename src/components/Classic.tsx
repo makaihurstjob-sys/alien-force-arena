@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import ClassicWindow, { type MenuController } from "./ClassicWindow";
+import spriteSheetUrl from "@/assets/classic/original-sprites.bmp?url";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   createClassic,
   tickClassic,
@@ -8,17 +10,45 @@ import {
 import "@/routes/classic-controls.css";
 import { renderClassic } from "@/game/classic/render";
 export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
+  const [mobileArena, setMobileArena] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(pointer: coarse)");
+    const update = () => setMobileArena(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  const menuController = useRef<MenuController>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const game = useRef(createClassic());
   const input = useRef<ClassicInput>({ direction: null, fire: false });
   const [paused, setPaused] = useState(false);
-  const [stats, setStats] = useState({ score: 0, level: 1, lives: 3, over: false });
+  const [awayPaused, setAwayPaused] = useState(false);
+  const away = useRef(false);
+  const resumeFromAway = useCallback(() => {
+    away.current = false;
+    setAwayPaused(false);
+  }, []);
+  const [windowBlocked, setWindowBlocked] = useState(false);
+  const simulationPaused = paused || awayPaused || windowBlocked;
+  const pauseRef = useRef(simulationPaused);
+  useEffect(() => {
+    pauseRef.current = simulationPaused;
+    if (simulationPaused) input.current = { direction: null, fire: false };
+  }, [simulationPaused]);
+  const [stats, setStats] = useState({
+    score: 0,
+    level: 1,
+    lives: 3,
+    over: false,
+    shotInPlay: false,
+  });
   useEffect(() => {
     const keys: Record<string, Direction> = {
       ArrowUp: "up",
       KeyW: "up",
       ArrowDown: "down",
-
+      KeyS: "down",
       ArrowLeft: "left",
       KeyA: "left",
       ArrowRight: "right",
@@ -30,11 +60,13 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
       input.current = { direction: null, fire: false };
     };
     const down = (e: KeyboardEvent) => {
+      if (windowBlocked) return;
       if ((e.target as HTMLElement).closest("input,textarea,select,[contenteditable=true]")) return;
       if ((e.target as HTMLElement).closest("button,a") && ["Space", "Enter"].includes(e.code))
         return;
       const d = keys[e.code];
       if (d || e.code === "Space") e.preventDefault();
+      if (d || e.code === "Space" || e.code === "KeyR") resumeFromAway();
       if (d) {
         held.delete(e.code);
         held.set(e.code, d);
@@ -42,7 +74,10 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
       }
       if (e.code === "Space") input.current.fire = true;
       if (e.code === "KeyR" && !e.repeat) input.current.reverse = true;
-      if ((e.code === "Escape" || e.code === "KeyP") && !e.repeat) setPaused((p) => !p);
+      if ((e.code === "Escape" || e.code === "KeyP") && !e.repeat) {
+        if (away.current) resumeFromAway();
+        else setPaused((p) => !p);
+      }
     };
     const up = (e: KeyboardEvent) => {
       held.delete(e.code);
@@ -51,7 +86,8 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
     };
     const blur = () => {
       clear();
-      setPaused(true);
+      away.current = true;
+      setAwayPaused(true);
     };
     const visibility = () => {
       if (document.hidden) blur();
@@ -67,7 +103,7 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
       window.removeEventListener("blur", blur);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [paused]);
+  }, [windowBlocked, resumeFromAway]);
   useEffect(() => {
     input.current = { direction: null, fire: false };
     let raf = 0,
@@ -78,67 +114,99 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
       accumulator += Math.min(now - last, 100);
       last = now;
       while (accumulator >= 1000 / 60) {
-        if (!paused) {
+        if (!pauseRef.current) {
           tickClassic(game.current, input.current);
           input.current.reverse = false;
         }
         accumulator -= 1000 / 60;
       }
       const ctx = canvas.current?.getContext("2d");
-      if (ctx) renderClassic(ctx, game.current, paused);
+      if (ctx) renderClassic(ctx, game.current, pauseRef.current);
       if (now - hud > 100) {
         const s = game.current;
-        setStats({ score: s.score, level: s.level, lives: s.lives, over: s.phase === "game_over" });
+        setStats({
+          score: s.score,
+          level: s.level,
+          lives: s.lives,
+          over: s.phase === "game_over",
+          shotInPlay: s.shots.some((shot) => shot.owner === 0),
+        });
         hud = now;
       }
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [paused]);
-  const restart = () => {
-    game.current = createClassic();
+  }, []);
+  const restart = (level = 1) => {
+    game.current = createClassic(level);
     input.current = { direction: null, fire: false };
     setPaused(false);
+    resumeFromAway();
     canvas.current?.focus();
   };
   return (
     <main className="min-h-screen bg-background p-4 font-mono text-foreground">
-      <div className="mx-auto max-w-4xl space-y-4">
-        <a href={menuHref}>Main menu</a>
-        <h1 className="text-2xl">Alien Force - Classic</h1>
-        <div className="border-2 border-gray-400 bg-gray-300 p-1 text-black">
-          <div className="bg-blue-900 px-2 py-1 text-white">Alien Force</div>
-          <div className="flex gap-5 p-2">
-            <button onClick={restart}>New game</button>
-            <button
-              onClick={() => {
-                setPaused((p) => !p);
-                canvas.current?.focus();
-              }}
-            >
-              {paused ? "Resume" : "Pause"}
-            </button>
-          </div>
+      <div className="classic-shell mx-auto max-w-4xl space-y-4">
+        <ClassicWindow
+          controllerRef={menuController}
+          paused={simulationPaused}
+          onPause={() => {
+            resumeFromAway();
+            setPaused(!simulationPaused);
+          }}
+          onInteractionChange={setWindowBlocked}
+          onRestart={() => restart()}
+          level={stats.level}
+          onLevelChange={restart}
+          menuHref={menuHref}
+        >
           <canvas
             ref={canvas}
             tabIndex={0}
-            onPointerDown={() => canvas.current?.focus()}
-            width={620}
+            onPointerDown={() => {
+              resumeFromAway();
+              canvas.current?.focus();
+            }}
+            width={mobileArena ? 424 : 620}
             height={424}
-            className="w-full bg-black"
+            className="block w-full bg-black [image-rendering:pixelated]"
             aria-label="Classic Alien Force playfield"
           />
+        </ClassicWindow>
+        <div className="classic-mobile-stats" aria-label="Game status">
+          <span>Level {stats.level}</span>
+          <span>Score {stats.score}</span>
+          <span className="classic-mobile-lives" aria-label={`Lives ${stats.lives}`}>
+            {Array.from({ length: stats.lives }, (_, index) => (
+              <span
+                key={index}
+                aria-hidden="true"
+                style={{ backgroundImage: `url(${spriteSheetUrl})` }}
+              />
+            ))}
+          </span>
+          <span className="classic-shot-status">
+            {stats.over ? "GAME OVER" : stats.shotInPlay ? "SHOT IN PLAY" : "SHOT READY"}
+          </span>
         </div>
-        <p>
-          Level {stats.level} | Score {stats.score} | Lives {stats.lives}
-          {stats.over ? " | Game over - select New game to retry." : ""}
-        </p>
-        <p className="text-sm">
-          Arrows: steer through lanes. R: reverse. Space: fire. P / Escape: pause. Your ship keeps
-          moving when you release a direction.
-        </p>
-        <section className="classic-controller" aria-label="Game Boy touch controls">
+        <section
+          className="classic-controller"
+          aria-label="Game Boy touch controls"
+          onPointerDownCapture={(e) => {
+            if (!(e.target as HTMLElement).closest('[aria-label^="Start:"]')) resumeFromAway();
+          }}
+          onClickCapture={(e) => {
+            if (!(e.target as HTMLElement).closest('[aria-label^="Start:"]')) resumeFromAway();
+          }}
+          onKeyDownCapture={(e) => {
+            if (
+              ["Enter", "Space"].includes(e.code) &&
+              !(e.target as HTMLElement).closest('[aria-label^="Start:"]')
+            )
+              resumeFromAway();
+          }}
+        >
           <div className="classic-controller-main">
             <div className="classic-dpad" role="group" aria-label="Direction pad">
               {(["up", "left", "down", "right"] as const).map((direction) => (
@@ -149,6 +217,10 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
                   onPointerDown={(e) => {
                     e.preventDefault();
                     e.currentTarget.setPointerCapture(e.pointerId);
+                    if (windowBlocked) {
+                      menuController.current?.move(direction);
+                      return;
+                    }
                     input.current.direction = direction;
                   }}
                   onPointerUp={() => {
@@ -161,7 +233,10 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
                     if (input.current.direction === direction) input.current.direction = null;
                   }}
                   onClick={(e) => {
-                    if (e.detail === 0) input.current.direction = direction;
+                    if (e.detail === 0) {
+                      if (windowBlocked) menuController.current?.move(direction);
+                      else input.current.direction = direction;
+                    }
                   }}
                 >
                   {{ up: "\u25b2", left: "\u25c0", down: "\u25bc", right: "\u25b6" }[direction]}
@@ -175,6 +250,10 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
                   className="classic-round"
                   aria-label="B: Reverse"
                   onClick={() => {
+                    if (windowBlocked) {
+                      menuController.current?.back();
+                      return;
+                    }
                     input.current.direction = null;
                     input.current.reverse = true;
                   }}
@@ -190,6 +269,10 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
                   onPointerDown={(e) => {
                     e.preventDefault();
                     e.currentTarget.setPointerCapture(e.pointerId);
+                    if (windowBlocked) {
+                      menuController.current?.select();
+                      return;
+                    }
                     input.current.fire = true;
                   }}
                   onPointerUp={() => {
@@ -202,7 +285,12 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
                     input.current.fire = false;
                   }}
                   onKeyDown={(e) => {
-                    if (e.code === "Space" || e.code === "Enter") input.current.fire = true;
+                    if (e.code === "Space" || e.code === "Enter") {
+                      if (windowBlocked) {
+                        e.preventDefault();
+                        menuController.current?.select();
+                      } else input.current.fire = true;
+                    }
                   }}
                   onKeyUp={() => {
                     input.current.fire = false;
@@ -218,34 +306,41 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
             </div>
           </div>
           <div className="classic-system-buttons">
-            <a href={menuHref} className="classic-system">
-              <span aria-hidden="true">&#9473;</span>MENU
-            </a>
             <button
               className="classic-system"
-              aria-label="Select: Reverse"
-              onClick={() => {
-                input.current.reverse = true;
-              }}
+              aria-label="Menu"
+              onClick={() => menuController.current?.menu()}
             >
-              <span aria-hidden="true">&#9473;</span>SELECT<small>REVERSE</small>
+              <span aria-hidden="true">&#9473;</span>MENU
             </button>
             <button
               className="classic-system"
-              aria-label={paused ? "Start: Resume" : "Start: Pause"}
+              aria-label="Select: Confirm"
               onClick={() => {
-                setPaused((p) => !p);
+                menuController.current?.select();
+              }}
+            >
+              <span aria-hidden="true">&#9473;</span>SELECT
+            </button>
+            <button
+              className="classic-system"
+              aria-label={paused || awayPaused ? "Start: Resume" : "Start: Pause"}
+              onClick={() => {
+                if (away.current) resumeFromAway();
+                else setPaused((p) => !p);
                 canvas.current?.focus();
               }}
             >
               <span aria-hidden="true">&#9473;</span>START
-              <small>{paused ? "RESUME" : "PAUSE"}</small>
             </button>
           </div>
         </section>
-        <p className="text-xs text-muted-foreground">
-          Video-informed reconstruction. Movement speed, enemy AI, and the firing penalty are
-          provisional; this is not yet an exact recreation.
+        <p className="classic-desktop-stats">
+          Level {stats.level} | Score {stats.score} | Lives {stats.lives}
+          {stats.over ? " | Game over - select New game to retry." : ""}
+        </p>
+        <p className="classic-keyboard-instructions text-sm">
+          Arrows / WASD: steer through lanes. R: reverse. Space: fire. P / Escape: pause.
         </p>
       </div>
     </main>

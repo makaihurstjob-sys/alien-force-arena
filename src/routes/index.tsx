@@ -27,6 +27,7 @@ function Home() {
     <main className="min-h-screen bg-background px-4 py-10 font-mono text-foreground">
       <div className="mx-auto max-w-3xl space-y-6">
         <header className="text-center">
+          <img src="/branding/alien-force-logo.jpg" alt="Alien Force logo" width="100" height="100" className="mx-auto mb-4 [image-rendering:pixelated]" />
           <h1 className="text-3xl font-bold uppercase tracking-[0.3em] text-primary sm:text-4xl">
             Alien Force Arena
           </h1>
@@ -37,6 +38,11 @@ function Home() {
 
         <RetroFrame title="Main Menu">
           <div className="grid gap-3 text-card-foreground sm:grid-cols-2">
+            <MenuButton
+              to="/classic"
+              label="Classic"
+              hint="Grid-and-lane survival, based on the reference video"
+            />
             <MenuButton to="/practice" label="Practice" hint="Local 1v1 vs a training bot" />
             <MenuButton
               label="Play Online"
@@ -64,7 +70,7 @@ function Home() {
           </ul>
           <p className="mt-3 border-t border-panel-shadow pt-3 text-xs text-muted-foreground">
             PvP rules above are adjustable design choices, not verified rules from the original 1990
-            game. We were not able to run or inspect the original executable, so movement speed,
+            game. Classic mode now follows the supplied gameplay video. Exact movement speed,
             projectile speed, hitbox sizes and arena layouts are reconstructions — all of them are
             centralised in one settings file for tuning.
           </p>

@@ -1,0 +1,4 @@
+Windows Bold Regular, Version 1.0
+Copyright feketetetete 2024
+Embedded license identifier: FontStruct Non-Commercial License
+Source: owner-supplied windows-bold[1].ttf ZIP attachment.
