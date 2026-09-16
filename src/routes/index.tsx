@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { EnemyShipBackdrop } from "@/components/EnemyShipBackdrop";
 import { RetroFrame } from "@/components/RetroFrame";
 
 export const Route = createFileRoute("/")({
@@ -24,8 +25,9 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   return (
-    <main className="min-h-screen bg-background px-4 py-10 font-mono text-foreground">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <main className="relative isolate min-h-screen bg-background px-4 py-10 font-mono text-foreground">
+      <EnemyShipBackdrop />
+      <div className="relative z-10 mx-auto max-w-3xl space-y-6">
         <header className="text-center">
           <img src="/branding/alien-force-logo.jpg" alt="Alien Force logo" width="100" height="100" className="mx-auto mb-4 [image-rendering:pixelated]" />
           <h1 className="text-3xl font-bold uppercase tracking-[0.3em] text-primary sm:text-4xl">
