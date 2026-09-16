@@ -1,3 +1,11 @@
+.classic-canvas {
+  aspect-ratio: 620 / 424;
+}
+@media (pointer: coarse) {
+  .classic-canvas {
+    aspect-ratio: 1 / 1;
+  }
+}
 .classic-controller {
   display: none;
   max-width: 620px;

@@ -170,7 +170,7 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
             }}
             width={mobileArena ? 424 : 620}
             height={424}
-            className="block w-full bg-black [image-rendering:pixelated]"
+            className="classic-canvas block w-full bg-black [image-rendering:pixelated]"
             aria-label="Classic Alien Force playfield"
           />
         </ClassicWindow>

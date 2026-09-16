@@ -12,4 +12,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    // Allow the Tailscale preview hostname through Vite's dev-server Host header check.
+    server: { allowedHosts: [".ts.net"] },
+  },
 });
