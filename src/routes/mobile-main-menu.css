@@ -1,9 +1,6 @@
 .home-menu {
   background: #111315;
-}
-.home-menu.menu-loading {
-  height: 100svh;
-  overflow: hidden;
+  overflow: clip;
 }
 .home-menu .enemy-ship-backdrop {
   transition: opacity 900ms ease;
@@ -17,19 +14,16 @@
 .menu-reveal {
   transition:
     opacity 850ms ease,
-    transform 850ms ease,
     visibility 850ms;
 }
 .menu-loading .menu-reveal {
   opacity: 0;
   visibility: hidden;
-  transform: translateY(12px);
   pointer-events: none;
 }
 .menu-loaded .menu-reveal {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
 }
 @media (prefers-reduced-motion: reduce) {
   .home-menu .enemy-ship-backdrop,
