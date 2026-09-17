@@ -1,21 +1,30 @@
-# Classic on GitHub Pages
+# Public Alien Force testing
 
 Public URL: https://makaihurstjob-sys.github.io/alien-force-classic/
-Publishing repository: makaihurstjob-sys/alien-force-classic (compiled assets only).
-Development repository remains private.
+Source: makaihurstjob-sys/alien-force-arena-redux, branch main.
+Published assets: makaihurstjob-sys/alien-force-classic, branch main.
 
-Build with `npm run build:pages`. Output is `dist-pages/`; the relative asset URLs
-support GitHub project subpaths. The standalone entry uses the same Classic
-component, engine, renderer, and controls as the main application, with no backend.
-The full application's normal build remains separate.
+The owner authorized main as the ongoing integration and public testing branch.
+Commit tested source updates to main and push origin main. Publish the matching
+static build as part of each update; a source push alone does not deploy Pages.
+Run from the source repository:
 
-To update, build and test, then copy the new output to the publishing checkout,
-remove obsolete assets there, preserve `.git` and `.nojekyll`, commit, and push main.
-GitHub Pages publishes the root of main. Never put environment files or source maps
-in the publishing repository.
+```powershell
+./scripts/publish-pages.ps1 -PublishCheckout "../alien-force-public-release"
+```
 
-Validation: production static build, 14 simulation tests, TypeScript, and an Edge
-mobile smoke test at a project subpath passed. The browser check covers entry,
-pause/resume, action controls, menu navigation, overflow, and runtime errors.
-Run `node scripts/smoke-pages-local.mjs` with Playwright available; optionally set
-PLAYWRIGHT_MODULE to the module's file URL. The test uses installed Microsoft Edge.
+The script validates the publishing remote and clean checkout, pulls main,
+builds, copies only compiled output, commits and pushes the public assets.
+No private server credentials or environment files belong in the public repo.
+VITE Supabase URL and publishable key are public client configuration.
+Verify the Pages deployment and public URL after publishing.
+
+The static entry now includes the shared responsive menu, Classic, Practice,
+and Supabase rooms. The base path is /alien-force-classic/ and invite links
+preserve it. The generated 404.html allows direct Classic/Practice navigation
+on GitHub Pages (the host may return HTTP 404 while the app renders).
+
+Test with separate browsers/devices: create, share, join, ready, leave, and
+host closure. Browser profiles share an anonymous identity between their tabs;
+separate devices should have separate identities regardless of IP or Tailscale.
+Rooms currently support lobby testing only, not synchronized multiplayer combat.

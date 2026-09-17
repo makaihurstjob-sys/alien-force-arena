@@ -2,10 +2,10 @@
 
 ## Claude handoff: preview on Mac or another workspace
 
-Use the latest `wip/lobby-migration` branch. In a new workspace:
+Use the latest `main` branch. In a new workspace:
 
 ```sh
-git clone --branch wip/lobby-migration https://github.com/makaihurstjob-sys/alien-force-arena-redux.git
+git clone --branch main https://github.com/makaihurstjob-sys/alien-force-arena-redux.git
 cd alien-force-arena-redux
 bun install --frozen-lockfile
 bun run dev --host 127.0.0.1 --port 5175 --strictPort
