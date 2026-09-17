@@ -102,13 +102,13 @@ async def main():
                 await touch.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": bounds["x"] + bounds["width"] / 2, "y": bounds["y"] + bounds["height"] / 2, "id": 1}]})
                 await g.wait_for_timeout(duration)
                 await touch.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
-            await press_touch("Thrust", 350)
+            await press_touch("Move up", 650)
             await press_touch("Fire", 150)
             await g.wait_for_timeout(200)
             after = snapshots["host"][-1]["state"]["ships"][1]
-            assert after["x"] < before["x"], (before, after)
+            assert after["y"] < before["y"], (before, after)
             assert after["shots"] > before["shots"], (before, after)
-            print("PASS: mobile thrust and fire reach host simulation", flush=True)
+            print("PASS: mobile lane steering and fire reach host simulation", flush=True)
 
             # Deliberately drop the guest network. Both clients must pause; score must freeze.
             await mobile.set_offline(True)

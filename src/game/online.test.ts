@@ -126,7 +126,7 @@ describe("online host simulation", () => {
     expect(isDuelSnapshot({ state: {} }, ["host", "guest"])).toBe(false);
   });
 
-  it("interpolates the short turn across the angle seam but never revives a hit ship", () => {
+  it("keeps Classic turns cardinal and never revives a hit ship", () => {
     const host = new DuelHost("match", players);
     const before = structuredClone(host.state);
     const after = structuredClone(before);
@@ -135,8 +135,8 @@ describe("online host simulation", () => {
     after.ships[0]!.x += 20;
     after.ships[1]!.alive = false;
     const shown = interpolateDuel(before, after, 0.5);
-    expect(shown.ships[0]!.x).toBe(before.ships[0]!.x + 10);
-    expect(shown.ships[0]!.angle).toBeCloseTo(Math.PI);
+    expect(shown.ships[0]!.x).toBe(after.ships[0]!.x);
+    expect(shown.ships[0]!.angle).toBe(after.ships[0]!.angle);
     expect(shown.ships[1]!.alive).toBe(false);
   });
 });

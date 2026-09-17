@@ -115,7 +115,7 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
         crypto.randomUUID(),
         room.members.map((m) => ({
           id: m.player_id,
-          name: m.team === 0 ? "GREEN" : "RED",
+          name: m.team === 0 ? "WHITE" : "ORANGE",
           team: m.team === 0 ? 0 : 1,
         })),
       );
@@ -166,7 +166,7 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
         if (disposed) return;
         // The unguessable room UUID is returned only to room members by the lobby RPC.
         // This is an unranked, peer-trusted prototype, not a ranked security boundary.
-        channel = db.channel(`duel-v1:${roomId}`, {
+        channel = db.channel(`duel-classic-v2:${roomId}`, {
           config: { broadcast: { self: false, ack: false }, presence: { key: player } },
         });
         channel.on("presence", { event: "sync" }, () => {

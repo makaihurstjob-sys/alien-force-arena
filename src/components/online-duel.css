@@ -47,14 +47,14 @@
   font-size: 12px;
 }
 .duel-green {
-  color: #3ee08a;
+  color: #ffffff;
 }
 .duel-red {
-  color: #ff8585;
+  color: #ffb000;
 }
 .duel-arena {
   position: relative;
-  width: min(100%, calc((100dvh - 390px) * 4 / 3));
+  width: min(100%, calc((100dvh - 390px)));
   min-width: 240px;
   margin: auto;
 }
@@ -198,7 +198,7 @@
     position: relative;
   }
   .duel-arena {
-    width: min(60%, calc((100dvh - 200px) * 4 / 3));
+    width: min(60%, calc((100dvh - 200px)));
     min-width: 200px;
   }
   .duel-controls {

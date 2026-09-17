@@ -10,7 +10,7 @@ function getSpriteSheet() {
   return spriteSheet?.complete && spriteSheet.naturalWidth > 0 ? spriteSheet : null;
 }
 import { CLASSIC, type Actor, type ClassicState } from "./engine";
-export function renderClassic(ctx: CanvasRenderingContext2D, s: ClassicState, paused: boolean) {
+export function renderClassic(ctx: CanvasRenderingContext2D, s: ClassicState, paused: boolean, showPlayer = true) {
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, 620, 424);
   ctx.strokeStyle = "#ccc";
@@ -38,7 +38,7 @@ export function renderClassic(ctx: CanvasRenderingContext2D, s: ClassicState, pa
     );
   };
   for (const e of s.enemies) ship(e);
-  if (s.invulnerable === 0 || Math.floor(s.elapsed * 10) % 2 === 0) ship(s.player);
+  if (showPlayer && (s.invulnerable === 0 || Math.floor(s.elapsed * 10) % 2 === 0)) ship(s.player);
   for (const b of s.shots) {
     ctx.fillStyle = b.owner === 0 ? "white" : "#ffb000";
     ctx.fillRect(b.x - 2, b.y - 2, 4, 4);

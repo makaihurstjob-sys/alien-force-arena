@@ -32,7 +32,8 @@ results, or touch ratings. Browser clients cannot invoke `complete_match`.
 
 From the main menu, Create Room, share the link, and join from another browser
 profile or device. Both players select Ready; the host selects Start match.
-Green is the host and red is the guest. WASD/arrows turn, thrust and reverse;
+White is the host and orange is the guest. WASD/arrows steer through Classic lanes;
+R/B reverses direction;
 Space fires. The match screen also has multi-touch directional and fire buttons.
 One hit eliminates a ship, only one projectile per player may be in flight, and
 the first player to win three rounds wins. Draws award neither player a point.
@@ -42,7 +43,12 @@ The host browser runs the existing fixed 60 Hz arena simulation. Supabase
 Realtime Broadcast carries 20 Hz inputs and snapshots, and rendering interpolates
 positions between snapshots. No movement frames are written to Postgres. Lobby
 membership and readiness still use the authenticated RPC and two-second polling.
-This uses the Practice arena rules, not the Classic survival/enemy-wave mode.
+This uses Classic?s 424px arena, original sprites, constant movement, lane-intersection
+turns, player speed, and cardinal bullet speed. Both ships are human-controlled;
+there are no AI waves or survival points in the duel. Ship-to-ship collisions
+eliminate both pilots for a drawn round. First-to-three scoring is the PvP layer.
+The Classic v2 channel isolates this ruleset from older Practice-based clients.
+Both devices must refresh after this update.
 
 Inputs expire after 350 ms without a fresh packet. Missing peer heartbeats after
 1.5 seconds, a hidden game tab, or a disconnected transport pauses the simulation.

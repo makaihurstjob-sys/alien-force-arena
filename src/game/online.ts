@@ -1,10 +1,10 @@
-import { createMatch, startRound, step, type PlayerSeed } from "./engine";
+import { createMatch, startRound, step, type PlayerSeed } from "./classic/duel";
 import { EMPTY_INPUT, type GameState, type PlayerInput } from "./types";
 
 export const PEER_TIMEOUT_MS = 1500;
 export const INPUT_TIMEOUT_MS = 350;
 export const DISCONNECT_LIMIT_MS = 30000;
-export const DUEL_LAYOUT = "cross";
+export const DUEL_LAYOUT = "classic";
 
 export type PilotPacket = {
   playerId: string;
@@ -38,6 +38,7 @@ export function isPilotPacket(value: unknown): value is PilotPacket {
     (p.matchId === null || typeof p.matchId === "string") &&
     (p.returnFrom === null || typeof p.returnFrom === "string") &&
     !!p.input &&
+    (p.input.turnaround === undefined || typeof p.input.turnaround === "boolean") &&
     Object.keys(EMPTY_INPUT).every((k) => typeof p.input[k as keyof PlayerInput] === "boolean")
   );
 }
@@ -106,7 +107,7 @@ export class DuelHost {
     readonly matchId: string,
     readonly players: PlayerSeed[],
   ) {
-    this.state = createMatch(players, DUEL_LAYOUT);
+    this.state = createMatch(players);
   }
 
   receive(packet: PilotPacket, now: number) {
@@ -139,7 +140,7 @@ export class DuelHost {
     this.missingSince = null;
     if (this.state.matchWinner !== null) return;
     if (this.state.phase === "round_over" && this.state.phaseTimerMs <= 0) {
-      startRound(this.state, this.players, DUEL_LAYOUT);
+      startRound(this.state, this.players);
     }
     const inputs = Object.fromEntries(
       this.players.map((p) => {
@@ -147,7 +148,7 @@ export class DuelHost {
         return [p.id, now - peer.receivedAt <= INPUT_TIMEOUT_MS ? peer.packet.input : EMPTY_INPUT];
       }),
     );
-    step(this.state, inputs, DUEL_LAYOUT);
+    step(this.state, inputs);
   }
 
   get rematchVotes() {
@@ -179,15 +180,12 @@ export function interpolateDuel(
     ships: next.ships.map((ship) => {
       const before = previous.ships.find((s) => s.id === ship.id);
       if (!before || !before.alive || !ship.alive) return ship;
-      const turn = Math.atan2(
-        Math.sin(ship.angle - before.angle),
-        Math.cos(ship.angle - before.angle),
-      );
+      if (ship.angle !== before.angle) return ship;
       return {
         ...ship,
         x: before.x + (ship.x - before.x) * t,
         y: before.y + (ship.y - before.y) * t,
-        angle: before.angle + turn * t,
+        angle: ship.angle,
       };
     }),
     projectiles: next.projectiles.map((shot) => {

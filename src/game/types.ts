@@ -1,6 +1,7 @@
 /** Shared game types. Used by the client renderer and (later) the server. */
 
 export type PlayerInput = {
+  turnaround?: boolean;
   thrust: boolean;
   reverse: boolean;
   left: boolean;
@@ -30,6 +31,7 @@ export type Ship = {
   canFire: boolean;
   shots: number;
   hits: number;
+  turnaroundHeld?: boolean;
 };
 
 export type Projectile = {

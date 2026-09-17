@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
-import { ARENA, PVP_RULES } from "@/game/config";
-import { DUEL_LAYOUT, interpolateDuel } from "@/game/online";
-import { render } from "@/game/render";
+import { PVP_RULES } from "@/game/config";
+import { interpolateDuel } from "@/game/online";
+import { renderClassicDuel } from "@/game/classic/duel-render";
+import { CLASSIC } from "@/game/classic/engine";
 import { EMPTY_INPUT, type PlayerInput } from "@/game/types";
 import type { useOnlineDuel } from "@/game/useOnlineDuel";
 import "./online-duel.css";
@@ -16,6 +17,8 @@ const mapping: Record<string, keyof PlayerInput> = {
   ArrowRight: "right",
   KeyD: "right",
   Space: "fire",
+  KeyR: "turnaround",
+  KeyB: "turnaround",
 };
 
 export function OnlineDuel({
@@ -82,10 +85,9 @@ export function OnlineDuel({
       const frameState = display.current;
       const ctx = canvas.current?.getContext("2d");
       if (ctx && frameState)
-        render(
+        renderClassicDuel(
           ctx,
           interpolateDuel(frameState.previous, frameState.current, (now - frameState.at) / 50),
-          DUEL_LAYOUT,
         );
       frame = requestAnimationFrame(draw);
     };
@@ -151,23 +153,23 @@ export function OnlineDuel({
     >
       <header className="duel-scoreboard">
         <span className="duel-green">
-          Green <b>{state.score[0]}</b>
+          White <b>{state.score[0]}</b>
         </span>
         <span>
           Round {state.round}
           <small>First to {PVP_RULES.roundsToWinMatch}</small>
         </span>
         <span className="duel-red">
-          <b>{state.score[1]}</b> Red
+          <b>{state.score[1]}</b> Orange
         </span>
       </header>
       <div className="duel-arena">
         <canvas
           ref={canvas}
-          width={ARENA.width}
-          height={ARENA.height}
+          width={CLASSIC.size}
+          height={CLASSIC.size}
           tabIndex={0}
-          aria-label={`Arena. You control the ${you.team === 0 ? "green" : "red"} ship.`}
+          aria-label={`Arena. You control the ${you.team === 0 ? "white" : "orange"} ship.`}
         />
         {(snapshot.ended || paused) && (
           <div className="duel-overlay" role="status">
@@ -181,7 +183,7 @@ export function OnlineDuel({
       </div>
       <div className="duel-status">
         <span className={you.team === 0 ? "duel-green" : "duel-red"}>
-          You are {you.team === 0 ? "GREEN" : "RED"}
+          You are {you.team === 0 ? "WHITE" : "ORANGE"}
         </span>
         <span>
           {!you.alive ? "Eliminated this round" : you.canFire ? "Shot ready" : "Shot in flight"}
@@ -206,16 +208,17 @@ export function OnlineDuel({
         !snapshot.ended && (
           <div className="duel-controls" aria-label="Touch controls">
             <div className="duel-dpad">
-              {control("thrust", "Thrust", "▲")}
-              {control("left", "Turn left", "◀")}
-              {control("right", "Turn right", "▶")}
-              {control("reverse", "Reverse", "▼")}
+              {control("thrust", "Move up", "▲")}
+              {control("left", "Move left", "◀")}
+              {control("right", "Move right", "▶")}
+              {control("reverse", "Move down", "▼")}
             </div>
             <p>
-              WASD / arrows to fly
+              WASD / arrows to steer
               <br />
-              Space to fire
+              Space to fire / R to reverse
             </p>
+            {control("turnaround", "Reverse direction", "REV")}
             {control("fire", "Fire", "FIRE")}
           </div>
         )
