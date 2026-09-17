@@ -98,7 +98,7 @@ export function PlayerProfile() {
       });
       if (!response.ok) throw new Error("Unable to check Discord sign-in. Please try again.");
       const settings = await response.json();
-      if (!settings.external?.discord) throw new Error("Discord sign-in is not enabled yet. You can still change your display name below.");
+      if (!settings.external?.discord) return;
       const { error } = await db.auth.signInWithOAuth({ provider: "discord", options: {
         redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
       } });
