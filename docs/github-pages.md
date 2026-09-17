@@ -1,7 +1,7 @@
 # Public Alien Force testing
 
 Public URL: https://makaihurstjob-sys.github.io/alien-force-classic/
-Source: makaihurstjob-sys/alien-force-arena-redux, branch main.
+Source: makaihurstjob-sys/alien-force-arena, branch main.
 Published assets: makaihurstjob-sys/alien-force-classic, branch main.
 
 The owner authorized main as the ongoing integration and public testing branch.
@@ -28,3 +28,8 @@ Test with separate browsers/devices: create, share, join, ready, leave, and
 host closure. Browser profiles share an anonymous identity between their tabs;
 separate devices should have separate identities regardless of IP or Tailscale.
 Rooms currently support lobby testing only, not synchronized multiplayer combat.
+
+Public verification September 16, 2026: two independent browser contexts joined
+the same room as 2/2 players using the published invite URL, both Ready states
+propagated, copy-link and spinner passed, and both test players left afterward.
+This verifies separate browser identities, not physical phone hardware.

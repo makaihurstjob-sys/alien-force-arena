@@ -5,8 +5,8 @@
 Use the latest `main` branch. In a new workspace:
 
 ```sh
-git clone --branch main https://github.com/makaihurstjob-sys/alien-force-arena-redux.git
-cd alien-force-arena-redux
+git clone --branch main https://github.com/makaihurstjob-sys/alien-force-arena.git
+cd alien-force-arena
 bun install --frozen-lockfile
 bun run dev --host 127.0.0.1 --port 5175 --strictPort
 ```
