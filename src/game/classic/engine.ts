@@ -40,6 +40,10 @@ export type ClassicState = {
   elapsed: number;
   shotsFired: number;
   hits: number;
+  startLevel: number;
+  crashes: number;
+  shotDeaths: number;
+  levelsCleared: number;
 };
 export type ClassicInput = {
   direction: Direction | null;
@@ -75,6 +79,10 @@ export function createClassic(level = 1): ClassicState {
     elapsed: 0,
     shotsFired: 0,
     hits: 0,
+    startLevel: level,
+    crashes: 0,
+    shotDeaths: 0,
+    levelsCleared: 0,
   };
 }
 // Turns are accepted only at lane intersections; held input is buffered until then.
@@ -103,8 +111,10 @@ function fire(s: ClassicState, actor: Actor) {
     s.score = Math.max(0, s.score - CLASSIC.shotCost);
   }
 }
-function loseLife(s: ClassicState) {
+function loseLife(s: ClassicState, cause: "crash" | "shot") {
   if (s.invulnerable > 0) return;
+  if (cause === "crash") s.crashes++;
+  else s.shotDeaths++;
   s.lives--;
   s.shots = [];
   if (s.lives === 0) {
@@ -243,9 +253,10 @@ export function tickClassic(
   }
   s.shots = survivors;
   if (playerHit || s.enemies.some((e) => Math.hypot(e.x - s.player.x, e.y - s.player.y) < 12))
-    loseLife(s);
+    loseLife(s, playerHit ? "shot" : "crash");
   if (s.phase === "playing" && s.enemies.length === 0) {
     s.score += CLASSIC.levelBonus;
+    s.levelsCleared++;
     s.phase = "level_clear";
     s.timer = CLASSIC.transition;
     s.shots = [];

@@ -6,6 +6,7 @@ import { DesktopArena } from "./DesktopArena";
 import "@/routes/desktop-main-menu.css";
 import { ShipIcon } from "./ShipIcon";
 import MultiplayerLobby from "./MultiplayerLobby";
+import ClassicLeaderboard from "./ClassicLeaderboard";
 import { createClassic, tickClassic } from "@/game/classic/engine";
 import { renderClassic } from "@/game/classic/render";
 import { createMatch } from "@/game/engine";
@@ -14,9 +15,10 @@ import { ARENA } from "@/game/config";
 
 const modes = [
   { name: "Classic", description: "Original arena combat", color: "#3ee08a" },
+  { name: "Ranked", description: "Competitive 1v1 matches", color: "#d0a0ff" },
   { name: "Arcade", description: "Power-ups · Wraparound routes", color: "#ffe066" },
   { name: "Practice", description: "Local 1v1 · Training bot", color: "#3ee08a" },
-  { name: "Global Leaderboard", description: "Classic ? Top Ten Scores", color: "#69d9ff" },
+  { name: "Global Leaderboard", description: "Classic · Scores & player cards", color: "#69d9ff" },
   { name: "Ranked Ratings", description: "1v1 ? Competitive standings", color: "#d0a0ff" },
 ] as const;
 
@@ -77,7 +79,7 @@ function ArenaPreview({
 function StandingsPreview({ ranked = false }: { ranked?: boolean }) {
   return <span className="standings-preview" aria-hidden="true">
     {ranked ? <Medal /> : <Trophy />}
-    <b>{ranked ? "1v1 RATINGS" : "TOP TEN SCORES"}</b>
+    <b>{ranked ? "1v1 RATINGS" : "CLASSIC SCORES"}</b>
     <span className="standings-preview-row">{ranked ? "PLAYER / RATING" : "NAME / SCORE"}</span>
     {[1, 2, 3].map(rank => <span className="standings-preview-row" key={rank}><span>{rank}.</span><span>?</span></span>)}
   </span>;
@@ -92,6 +94,11 @@ export function MobileMainMenu() {
   const [inviteCode, setInviteCode] = useState<string>();
   useEffect(() => {
     const readInvite = () => {
+      const player = new URLSearchParams(window.location.hash.slice(1)).get("player");
+      if (player && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(player)) {
+        setPanel("leaderboard");
+        return;
+      }
       const code = new URLSearchParams(window.location.hash.slice(1)).get("room");
       if (code && /^[a-z0-9]{6}$/i.test(code)) {
         setInviteCode(code.toUpperCase());
@@ -117,7 +124,7 @@ export function MobileMainMenu() {
     <section className="mobile-main-menu" aria-label="Main menu">
       <PlayerProfile />
       <div className="desktop-arena" aria-hidden="true">
-        <DesktopArena mode={selected} />
+        <DesktopArena mode={mode.name === "Arcade" ? 1 : mode.name === "Practice" ? 2 : 0} />
       </div>
       <header className="desktop-menu-brand">
         <h1>Alien Force Arena</h1>
@@ -126,14 +133,14 @@ export function MobileMainMenu() {
         <ShipIcon size={80} />
         <h2>{mode.name}</h2>
         <p>{mode.description}</p>
-        {selected >= 3 ? (
-          <button className="desktop-play" onClick={() => setPanel(selected === 3 ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight /></button>
-        ) : selected === 1 ? (
+        {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
+          <button className="desktop-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight /></button>
+        ) : (mode.name === "Ranked" || mode.name === "Arcade") ? (
           <button className="desktop-play" disabled>
             Coming Soon
           </button>
         ) : (
-          <Link className="desktop-play" to={selected === 0 ? "/classic" : "/practice"}>
+          <Link className="desktop-play" to={mode.name === "Classic" ? "/classic" : "/practice"}>
             Play {mode.name}
             <ChevronRight />
           </Link>
@@ -160,10 +167,10 @@ export function MobileMainMenu() {
             onClick={() => setSelected(index)}
           >
             <span className="desktop-thumbnail">
-              {index >= 3 ? <StandingsPreview ranked={index === 4} /> : <DesktopArena mode={index} thumbnail />}
+              {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : <DesktopArena mode={item.name === "Arcade" ? 1 : item.name === "Practice" ? 2 : 0} thumbnail />}
             </span>
             <strong>{item.name}</strong>
-            {index === 1 && <small>Coming soon</small>}
+            {(item.name === "Ranked" || item.name === "Arcade") && <small>Coming soon</small>}
           </button>
         ))}
         <button className="desktop-mode-arrow" aria-label="Next mode" onClick={() => move(1)}>
@@ -217,19 +224,19 @@ export function MobileMainMenu() {
               className={`mode-card ${position}`}
               style={{ "--mode-color": item.color } as React.CSSProperties}
               tabIndex={selected === index ? 0 : -1}
-              aria-label={`Select ${item.name}${index === 1 ? ", coming soon" : ""}`}
+              aria-label={`Select ${item.name}${(item.name === "Ranked" || item.name === "Arcade") ? ", coming soon" : ""}`}
               aria-pressed={selected === index}
               onClick={() => setSelected(index)}
             >
-              {index >= 3 ? <StandingsPreview ranked={index === 4} /> : <ArenaPreview
+              {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : <ArenaPreview
                 active={selected === index}
-                arcade={index === 1}
-                practice={index === 2}
+                arcade={item.name === "Arcade"}
+                practice={item.name === "Practice"}
               />}
               <span className="mode-caption">
                 <strong>{item.name}</strong>
                 <span>{item.description}</span>
-                {index === 1 && <em>Coming soon</em>}
+                {(item.name === "Ranked" || item.name === "Arcade") && <em>Coming soon</em>}
               </span>
             </button>
           );
@@ -261,23 +268,23 @@ export function MobileMainMenu() {
         ))}
       </div>
       <div className="mobile-mode-actions" aria-live="polite">
-        {selected >= 3 ? (
-          <button className="mobile-play" onClick={() => setPanel(selected === 3 ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight size={22} /></button>
-        ) : selected === 1 ? (
+        {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
+          <button className="mobile-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight size={22} /></button>
+        ) : (mode.name === "Ranked" || mode.name === "Arcade") ? (
           <>
-            <div className="team-options" aria-label="Planned Arcade team size">
+            {mode.name === "Arcade" && <div className="team-options" aria-label="Planned Arcade team size">
               {[1, 2].map((size) => (
                 <button key={size} aria-pressed={team === size} onClick={() => setTeam(size)}>
                   {size}v{size}
                 </button>
               ))}
-            </div>
+            </div>}
             <button className="mobile-play" disabled>
               Coming Soon
             </button>
           </>
         ) : (
-          <Link className="mobile-play" to={selected === 0 ? "/classic" : "/practice"}>
+          <Link className="mobile-play" to={mode.name === "Classic" ? "/classic" : "/practice"}>
             Play {mode.name}
             <ChevronRight size={22} />
           </Link>
@@ -301,13 +308,17 @@ export function MobileMainMenu() {
       <footer>Fight · Adapt · Survive</footer>
       <dialog
         ref={dialog}
-        className={`mobile-menu-dialog ${roomPlaying ? "is-playing" : ""}`}
+        className={`mobile-menu-dialog ${roomPlaying ? "is-playing" : ""} ${panel === "leaderboard" ? "classic-tracker-dialog" : ""}`}
         aria-labelledby="mobile-panel-title"
         onCancel={(event) => {
           if (roomBusy || roomPlaying) event.preventDefault();
           else setPanel(null);
         }}
-        onClose={() => { if (!roomPlaying) setPanel(null); }}
+        onClose={() => { if (!roomPlaying) {
+          setPanel(null);
+          if (new URLSearchParams(window.location.hash.slice(1)).has("player"))
+            window.history.replaceState(null, "", window.location.pathname + window.location.search);
+        } }}
       >
         <div className="mobile-panel-heading">
           <h2 id="mobile-panel-title">
@@ -321,14 +332,14 @@ export function MobileMainMenu() {
             <X />
           </button>
         </div>
-        {panel === "leaderboard" || panel === "ratings" ? (
+        {panel === "leaderboard" ? <ClassicLeaderboard /> : panel === "ratings" ? (
           <div className="standings-panel">
-            <h3>{panel === "leaderboard" ? "Top Ten Scores" : "1v1 Standings"}</h3>
+            <h3>1v1 Standings</h3>
             <div className="standings-table-scroll">
-              <table><thead><tr>{(panel === "leaderboard" ? ["Rank", "Player", "Score", "Level"] : ["Rank", "Player", "Tier", "W?L", "Rating", "Peak"]).map(label => <th key={label}>{label}</th>)}</tr></thead>
-              <tbody><tr><td colSpan={panel === "leaderboard" ? 4 : 6}>{panel === "leaderboard" ? "Global score tracking is coming soon." : "Ranked play is coming soon."}</td></tr></tbody></table>
+              <table><thead><tr>{["Rank", "Player", "Tier", "W–L", "Rating", "Peak"].map(label => <th key={label}>{label}</th>)}</tr></thead>
+              <tbody><tr><td colSpan={6}>Ranked play is coming soon.</td></tr></tbody></table>
             </div>
-            <p>{panel === "leaderboard" ? "This board will show saved Classic high scores. Online score saving is not connected yet." : "This board will show competitive 1v1 ratings and match records. Private friend-code rooms remain unranked."}</p>
+            <p>This board will show competitive 1v1 ratings and match records. Private friend-code rooms remain unranked.</p>
             <button className="standings-back" onClick={() => setPanel(null)}>Back to menu</button>
           </div>
         ) : panel === "settings" ? (

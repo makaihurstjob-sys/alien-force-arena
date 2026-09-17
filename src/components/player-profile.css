@@ -35,6 +35,20 @@
 .discord-sign-in svg { width: 24px; height: 24px; flex-shrink: 0; }
 .player-profile-dialog input::placeholder { color: #aaa; opacity: 1; }
 .player-profile-dialog p { margin-top: 16px; }
+.profile-flag-picker { margin-top: 20px; }
+.profile-flag-picker label { display: block; color: #d9e9ee; }
+.profile-flag-picker small { display: block; color: #a2b6c6; margin-top: 8px; }
+.player-profile-dialog .profile-flag-current { display: flex; align-items: center; gap: 12px; }
+.profile-flag-current > span:first-of-type { flex: 1; }
+.profile-flag-current > span:last-child { color: #8acfb0; font-size: 13px; }
+.player-flag { display: inline-block; width: 28px; height: 21px; object-fit: contain; flex-shrink: 0; vertical-align: middle; }
+.profile-flag-list { display: grid; gap: 4px; max-height: 240px; overflow-y: auto; overscroll-behavior: contain; padding: 4px; border: 1px solid #43515b; border-radius: 7px; }
+.profile-flag-list button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 8px 10px; text-align: left; color: #eee; background: #111c23; border: 1px solid transparent; border-radius: 4px; }
+.profile-flag-list button span { flex: 1; }
+.profile-flag-list button:hover, .profile-flag-list button[aria-pressed="true"] { background: #203a34; border-color: #5d9d7e; }
+.profile-flag-list button:focus-visible { outline: 2px solid #77e8ad; outline-offset: -2px; }
+.player-profile-dialog .profile-flag-count { margin: 8px 0; color: #a2b6c6; font-size: 13px; }
+.player-profile-dialog .profile-save { text-align: center; background: #235b43; border-color: #509f78; }
 @media (max-width: 767px) {
   .player-profile-button { top: 18px; right: 20px; }
 }

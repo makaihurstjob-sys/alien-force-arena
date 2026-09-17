@@ -10,6 +10,7 @@ import {
 } from "@/game/classic/engine";
 import "@/routes/classic-controls.css";
 import { renderClassic } from "@/game/classic/render";
+import { useClassicRecords } from "@/game/useClassicRecords";
 export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
   const [mobileArena, setMobileArena] = useState(false);
   useEffect(() => {
@@ -22,6 +23,7 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
   const menuController = useRef<MenuController>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const game = useRef(createClassic());
+  const records = useClassicRecords(game);
   const input = useRef<ClassicInput>({ direction: null, fire: false });
   const [paused, setPaused] = useState(false);
   const [awayPaused, setAwayPaused] = useState(false);
@@ -140,6 +142,7 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
     return () => cancelAnimationFrame(raf);
   }, []);
   const restart = (level = 1) => {
+    void records.finish("restarted");
     game.current = createClassic(level);
     input.current = { direction: null, fire: false };
     setPaused(false);
@@ -147,7 +150,13 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
     canvas.current?.focus();
   };
   return (
-    <main className="min-h-screen bg-background p-4 font-mono text-foreground">
+    <main className="min-h-screen bg-background p-4 font-mono text-foreground" onClickCapture={event => {
+      const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a");
+      if (link?.getAttribute("href") === menuHref && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        void records.finish("abandoned").finally(() => window.location.assign(menuHref));
+      }
+    }}>
       <div className="classic-shell mx-auto max-w-4xl space-y-4">
         <ClassicWindow
           controllerRef={menuController}
@@ -205,6 +214,14 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
         <p className="classic-keyboard-instructions text-sm">
           Arrows / WASD: steer through lanes. R: reverse. Space: fire. P / Escape: pause.
         </p>
+        <div className="classic-record-status text-sm" aria-live="polite">
+          <p>{records.message}</p>
+          {records.failed && <button className="underline" onClick={records.retry}>Retry saving history</button>}
+          {records.playerId && <a className="underline" href={`${menuHref}#player=${records.playerId}`}
+            onClick={event => { event.preventDefault(); void records.finish("abandoned").finally(() => {
+              window.location.assign(`${menuHref}#player=${records.playerId}`);
+            }); }}>View my public player card</a>}
+        </div>
       </div>
     </main>
   );

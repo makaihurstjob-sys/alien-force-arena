@@ -112,12 +112,12 @@
   .desktop-mode-picker {
     display: flex;
     align-items: flex-start;
-    gap: 18px;
+    gap: clamp(8px, 1.25vw, 18px);
     margin: clamp(42px, 9vh, 100px) 0 115px 2vw;
     width: fit-content;
   }
   .desktop-mode-tile {
-    width: clamp(110px, 11.8vw, 195px);
+    width: clamp(80px, 11.8vw, 195px);
     text-align: center;
     color: #969aa7;
   }
