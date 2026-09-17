@@ -2,6 +2,7 @@
 Run against a static production preview or ALIEN_TEST_ORIGIN after publication.
 """
 import asyncio
+import base64
 import json
 import os
 from playwright.async_api import async_playwright
@@ -148,8 +149,9 @@ async def main():
             await classic.get_by_role("button", name="B: Reverse", exact=True).click()
             if os.environ.get("ALIEN_SCREENSHOTS"):
                 os.makedirs(os.environ["ALIEN_SCREENSHOTS"], exist_ok=True)
-                await g.screenshot(path=os.path.join(os.environ["ALIEN_SCREENSHOTS"], "matching-mobile.png"), full_page=True)
-                await classic.screenshot(path=os.path.join(os.environ["ALIEN_SCREENSHOTS"], "reference-classic.png"), full_page=True)
+                capture = await touch.send("Page.captureScreenshot", {"format": "png"})
+                with open(os.path.join(os.environ["ALIEN_SCREENSHOTS"], "matching-mobile.png"), "wb") as image:
+                    image.write(base64.b64decode(capture["data"]))
             await classic.close()
             await g.get_by_role("button", name="Start: Resume", exact=True).click()
             await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'false'")
