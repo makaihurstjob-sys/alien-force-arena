@@ -126,8 +126,30 @@ async def main():
                       s.fontSize, s.padding, s.width, s.height];
                   })""")
             assert await controller_styles(classic) == await controller_styles(g), "Classic controller style mismatch"
+            assert await g.locator(".classic-caption").inner_text() == "Alien Force 1v1"
+            async def geometry(page):
+                return await page.evaluate("""() => {
+                  const box = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { x:r.x, y:r.y, width:r.width, height:r.height }; };
+                  return { frame:box('.classic-window'), canvas:box(document.querySelector('.duel-arena') ? '.duel-arena canvas' : 'canvas'), controller:box('.classic-controller') };
+                }""")
+            for width, height in [(320,740), (390,844), (430,932), (844,390)]:
+                await classic.set_viewport_size({"width":width, "height":height})
+                await g.set_viewport_size({"width":width, "height":height})
+                a, b = await geometry(classic), await geometry(g)
+                for part in ("frame", "canvas", "controller"):
+                    for dimension in ("x", "y", "width", "height"):
+                        assert abs(a[part][dimension] - b[part][dimension]) < 1, (width, part, dimension, a, b)
+                assert not await g.evaluate("document.documentElement.scrollWidth > innerWidth")
+            await g.set_viewport_size({"width":390, "height":844})
+            await classic.set_viewport_size({"width":390, "height":844})
+            print("PASS: 1v1 title and exact Classic frame, arena and controller geometry at four touch sizes", flush=True)
+
             await classic.get_by_role("button", name="Menu", exact=True).click()
             await classic.get_by_role("button", name="B: Reverse", exact=True).click()
+            if os.environ.get("ALIEN_SCREENSHOTS"):
+                os.makedirs(os.environ["ALIEN_SCREENSHOTS"], exist_ok=True)
+                await g.screenshot(path=os.path.join(os.environ["ALIEN_SCREENSHOTS"], "matching-mobile.png"), full_page=True)
+                await classic.screenshot(path=os.path.join(os.environ["ALIEN_SCREENSHOTS"], "reference-classic.png"), full_page=True)
             await classic.close()
             await g.get_by_role("button", name="Start: Resume", exact=True).click()
             await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'false'")

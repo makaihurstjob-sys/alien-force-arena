@@ -14,7 +14,8 @@
   padding: 12px;
   border-radius: 8px;
 }
-.online-duel button:not(.classic-pad-key):not(.classic-round):not(.classic-system) {
+.online-duel .duel-footer button,
+.online-duel .duel-results button {
   color: #eef3f9;
   background: #303c4d;
   border: 1px solid #637184;
@@ -220,111 +221,62 @@
 .online-match-active .home-menu {
   display: none;
 }
+/* Match Classic's outer shell, frame and playfield proportions. */
 .online-match-screen {
   min-height: 100dvh;
-  padding: 24px 16px;
+  padding: 16px;
   background: #0e141c;
   color: #ddd;
   font-family: "Windows Bold", monospace;
 }
-.online-match-screen .online-duel {
+.online-classic-shell { max-width: 896px; margin: 0 auto; }
+.online-match-screen .online-duel { padding: 0; background: transparent; border-radius: 0; }
+.duel-board {
   display: grid;
-  grid-template-columns: minmax(0, 424fr) minmax(180px, 196fr);
-  grid-template-areas: "arena score" "arena status" "arena results" "controls controls" "footer footer";
-  grid-template-rows: auto auto 1fr auto auto;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 4px;
-  border: 2px solid #000;
-  border-radius: 0;
+  grid-template-columns: minmax(0, 424fr) minmax(0, 196fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "arena score" "arena status";
   background: #000;
-  box-shadow: inset 2px 2px #fff, inset -2px -2px #808080, 0 0 0 2px #c0c0c0;
-}
-.duel-window-title {
-  grid-area: title;
-  background: #0000b0;
-  border: 2px solid #c0c0c0;
-  margin: 0;
-  padding: 5px 12px;
-  color: #fff;
-  text-align: center;
-  font-size: 24px;
+  color: #e2e7ef;
 }
 .online-match-screen .duel-arena {
   grid-area: arena;
-  width: 100%;
-  min-width: 0;
-  margin: 0;
-  align-self: start;
+  width: 100%; min-width: 0; margin: 0; align-self: start;
 }
 .online-match-screen .duel-scoreboard {
-  grid-area: score;
-  flex-direction: column;
-  gap: 16px;
-  padding: 24px 8px;
+  grid-area: score; flex-direction: column; gap: 16px; padding: 24px 8px;
 }
 .online-match-screen .duel-status {
-  grid-area: status;
-  flex-direction: column;
-  text-align: center;
-  padding: 12px;
+  grid-area: status; flex-direction: column; justify-content: start;
+  text-align: center; padding: 12px;
 }
-.online-match-screen .duel-results { grid-area: results; }
 .online-match-screen .duel-controls {
-  grid-area: controls;
-  position: static;
-  padding: 12px;
-  margin: 0;
-  pointer-events: auto;
-  background: #0e141c;
+  display: block; position: static; margin: 16px 0 0; padding: 0; pointer-events: auto;
 }
-.online-match-screen .duel-footer {
-  grid-area: footer;
-  padding: 12px;
-  background: #0e141c;
-}
-.online-match-screen .duel-controls p { display: block; }
-@media (max-width: 600px) {
-  .online-match-screen { padding: 12px 6px; }
-  .online-match-screen .online-duel {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "score" "arena" "status" "results" "controls" "footer";
-    grid-template-rows: auto;
-  }
-  .duel-window-title { font-size: 20px; }
-  .online-match-screen .duel-scoreboard {
-    flex-direction: row;
-    padding: 12px 4px;
-    gap: 4px;
-  }
-  .online-match-screen .duel-status {
-    flex-direction: row;
-    padding: 10px 4px;
-  }
-  .online-match-screen .duel-controls { padding: 8px 4px; }
-  .online-match-screen .duel-controls p { display: none; }
-}
-
-/* ClassicController owns its appearance; the online screen only places it. */
-.online-match-screen .duel-controls { display: block; }
 .online-match-screen .duel-controls .classic-controller { width: 100%; }
-.duel-controller-menu { gap: 12px; }
-.duel-controller-menu [data-controller-selected="true"] { outline: 3px solid #6fffe5; }
-@media (pointer: coarse) {
-  .online-match-screen .duel-controls .classic-keyboard-instructions { display: none; }
-}
-
-/* Use ClassicWindow's actual chrome; the duel only lays out its contents. */
-.online-classic-shell { max-width: 960px; margin: 0 auto; }
-.online-match-screen .online-duel { border: 0; padding: 0; box-shadow: none; max-width: none; }
-.online-classic-shell .classic-window.is-maximized .online-duel { max-width: 1200px; margin: auto; }
-.online-match-screen .duel-footer { background: #c0c0c0; color: #000; }
-.online-match-screen .duel-footer span { color: #000; }
-.online-match-screen .online-duel .duel-footer button:not(.classic-system),
-.online-match-screen .online-duel .duel-results button:not(.classic-system) {
+.online-match-screen .duel-footer { margin-top: 16px; padding: 0 4px; }
+.online-match-screen .duel-footer span { color: #aebccd; }
+.online-match-screen .online-duel .duel-footer button,
+.online-match-screen .online-duel .duel-results button {
   background: #c0c0c0; color: #000; border: 1px solid #000; border-radius: 0;
   box-shadow: inset 2px 2px #fff, inset -2px -2px #808080;
 }
-
+.duel-mobile-hud { display: none; }
 .online-classic-shell .classic-titlebar > .classic-caption-button { display: grid; }
-.online-classic-shell:has(.is-maximized) { position: fixed; inset: 8px; z-index: 50; max-width: none; overflow: auto; background: #000; }
+.online-classic-shell:has(.is-maximized) {
+  position: fixed; inset: 8px; z-index: 50; max-width: none;
+  overflow: auto; background: #0e141c; padding: 4px;
+}
+.online-duel:has(.is-minimized) > :not(.classic-window) { display: none; }
+@media (pointer: coarse) {
+  .duel-board { display: block; }
+  .online-match-screen .duel-scoreboard,
+  .online-match-screen .duel-status { display: none; }
+  .duel-mobile-hud {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px 12px; margin-top: 16px;
+    padding: 0 4px; font-size: 14px; line-height: 1.4;
+  }
+  .duel-mobile-shot { font-size: 11px; }
+  .online-match-screen .duel-controls .classic-keyboard-instructions { display: none; }
+}

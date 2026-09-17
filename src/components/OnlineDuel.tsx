@@ -150,10 +150,6 @@ export function OnlineDuel({
   const paused = snapshot.paused || duel.stalled;
   return (
     <div className="online-classic-shell">
-    <ClassicWindow controllerRef={menuController} paused={manualPause}
-      onPause={() => setManualPause(value => !value)} onRestart={onReturn}
-      onInteractionChange={setWindowBlocked} menuHref={import.meta.env.BASE_URL}
-      level={1} onLevelChange={() => {}} online={{ onReturn, onLeave, busy }}>
     <section
       className="online-duel"
       aria-label="Online 1v1 match"
@@ -162,18 +158,11 @@ export function OnlineDuel({
       data-phase={state.phase}
       data-paused={paused}
     >
-      <header className="duel-scoreboard">
-        <span className="duel-green">
-          White <b>{state.score[0]}</b>
-        </span>
-        <span>
-          Round {state.round}
-          <small>First to {PVP_RULES.roundsToWinMatch}</small>
-        </span>
-        <span className="duel-red">
-          <b>{state.score[1]}</b> Orange
-        </span>
-      </header>
+    <ClassicWindow controllerRef={menuController} paused={manualPause}
+      onPause={() => setManualPause(value => !value)} onRestart={onReturn}
+      onInteractionChange={setWindowBlocked} menuHref={import.meta.env.BASE_URL}
+      level={1} onLevelChange={() => {}} online={{ onReturn, onLeave, busy }}>
+      <div className="duel-board">
       <div className="duel-arena">
         <canvas
           ref={canvas}
@@ -192,6 +181,18 @@ export function OnlineDuel({
           </div>
         )}
       </div>
+      <header className="duel-scoreboard">
+        <span className="duel-green">
+          White <b>{state.score[0]}</b>
+        </span>
+        <span>
+          Round {state.round}
+          <small>First to {PVP_RULES.roundsToWinMatch}</small>
+        </span>
+        <span className="duel-red">
+          <b>{state.score[1]}</b> Orange
+        </span>
+      </header>
       <div className="duel-status">
         <span className={you.team === 0 ? "duel-green" : "duel-red"}>
           You are {you.team === 0 ? "WHITE" : "ORANGE"}
@@ -200,6 +201,16 @@ export function OnlineDuel({
           {!you.alive ? "Eliminated this round" : you.canFire ? "Shot ready" : "Shot in flight"}
         </span>
         <span>{Math.max(0, Math.ceil(state.phaseTimerMs / 1000))}s</span>
+      </div>
+      </div>
+    </ClassicWindow>
+      <div className="duel-mobile-hud" aria-label="Match status">
+        <span className="duel-green">White {state.score[0]}</span>
+        <span>Round {state.round}</span>
+        <span className="duel-red">{state.score[1]} Orange</span>
+        <span title={`You are ${you.team === 0 ? "WHITE" : "ORANGE"}`} className={`duel-mobile-shot ${you.team === 0 ? "duel-green" : "duel-red"}`}>
+          {!you.alive ? "OUT" : you.canFire ? "READY" : "SHOT IN PLAY"}
+        </span>
       </div>
       {winner !== null && !snapshot.ended ? (
         <section className="duel-results" aria-label="Match results" aria-live="polite">
@@ -238,7 +249,6 @@ export function OnlineDuel({
         </button>
       </div>
     </section>
-    </ClassicWindow>
     </div>
   );
 }

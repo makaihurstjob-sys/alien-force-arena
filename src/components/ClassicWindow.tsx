@@ -160,7 +160,7 @@ export default function ClassicWindow({
           className="classic-caption"
           onDoubleClick={() => changeMode(mode === "maximized" ? "normal" : "maximized")}
         >
-          Alien Force
+          {online ? "Alien Force 1v1" : "Alien Force"}
         </div>
         <button
           className="classic-caption-button"
