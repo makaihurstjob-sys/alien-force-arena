@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Link2, Users, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Link2, Users, X, Trophy, Medal } from "lucide-react";
 import { PlayerProfile } from "./PlayerProfile";
 import { DesktopArena } from "./DesktopArena";
 import "@/routes/desktop-main-menu.css";
@@ -16,6 +16,8 @@ const modes = [
   { name: "Classic", description: "Original arena combat", color: "#3ee08a" },
   { name: "Arcade", description: "Power-ups · Wraparound routes", color: "#ffe066" },
   { name: "Practice", description: "Local 1v1 · Training bot", color: "#3ee08a" },
+  { name: "Global Leaderboard", description: "Classic ? Top Ten Scores", color: "#69d9ff" },
+  { name: "Ranked Ratings", description: "1v1 ? Competitive standings", color: "#d0a0ff" },
 ] as const;
 
 // An isolated attract-mode simulation: never changes the player's actual game.
@@ -72,10 +74,19 @@ function ArenaPreview({
   return <canvas ref={canvas} width={424} height={424} aria-hidden="true" />;
 }
 
+function StandingsPreview({ ranked = false }: { ranked?: boolean }) {
+  return <span className="standings-preview" aria-hidden="true">
+    {ranked ? <Medal /> : <Trophy />}
+    <b>{ranked ? "1v1 RATINGS" : "TOP TEN SCORES"}</b>
+    <span className="standings-preview-row">{ranked ? "PLAYER / RATING" : "NAME / SCORE"}</span>
+    {[1, 2, 3].map(rank => <span className="standings-preview-row" key={rank}><span>{rank}.</span><span>?</span></span>)}
+  </span>;
+}
+
 export function MobileMainMenu() {
   const [selected, setSelected] = useState(0);
   const [team, setTeam] = useState(1);
-  const [panel, setPanel] = useState<"create" | "join" | "settings" | null>(null);
+  const [panel, setPanel] = useState<"create" | "join" | "settings" | "leaderboard" | "ratings" | null>(null);
   const [roomBusy, setRoomBusy] = useState(false);
   const [roomPlaying, setRoomPlaying] = useState(false);
   const [inviteCode, setInviteCode] = useState<string>();
@@ -115,7 +126,9 @@ export function MobileMainMenu() {
         <ShipIcon size={80} />
         <h2>{mode.name}</h2>
         <p>{mode.description}</p>
-        {selected === 1 ? (
+        {selected >= 3 ? (
+          <button className="desktop-play" onClick={() => setPanel(selected === 3 ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight /></button>
+        ) : selected === 1 ? (
           <button className="desktop-play" disabled>
             Coming Soon
           </button>
@@ -147,7 +160,7 @@ export function MobileMainMenu() {
             onClick={() => setSelected(index)}
           >
             <span className="desktop-thumbnail">
-              <DesktopArena mode={index} thumbnail />
+              {index >= 3 ? <StandingsPreview ranked={index === 4} /> : <DesktopArena mode={index} thumbnail />}
             </span>
             <strong>{item.name}</strong>
             {index === 1 && <small>Coming soon</small>}
@@ -197,7 +210,7 @@ export function MobileMainMenu() {
       >
         {modes.map((item, index) => {
           const offset = (index - selected + modes.length) % modes.length;
-          const position = offset === 0 ? "selected" : offset === 1 ? "next" : "previous";
+          const position = offset === 0 ? "selected" : offset === 1 ? "next" : offset === modes.length - 1 ? "previous" : "offstage";
           return (
             <button
               key={item.name}
@@ -208,11 +221,11 @@ export function MobileMainMenu() {
               aria-pressed={selected === index}
               onClick={() => setSelected(index)}
             >
-              <ArenaPreview
+              {index >= 3 ? <StandingsPreview ranked={index === 4} /> : <ArenaPreview
                 active={selected === index}
                 arcade={index === 1}
                 practice={index === 2}
-              />
+              />}
               <span className="mode-caption">
                 <strong>{item.name}</strong>
                 <span>{item.description}</span>
@@ -248,7 +261,9 @@ export function MobileMainMenu() {
         ))}
       </div>
       <div className="mobile-mode-actions" aria-live="polite">
-        {selected === 1 ? (
+        {selected >= 3 ? (
+          <button className="mobile-play" onClick={() => setPanel(selected === 3 ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight size={22} /></button>
+        ) : selected === 1 ? (
           <>
             <div className="team-options" aria-label="Planned Arcade team size">
               {[1, 2].map((size) => (
@@ -296,7 +311,7 @@ export function MobileMainMenu() {
       >
         <div className="mobile-panel-heading">
           <h2 id="mobile-panel-title">
-            {roomPlaying ? "Online 1v1" : panel === "settings"
+            {panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
               ? "About the game"
               : panel === "join"
                 ? "Join Room"
@@ -306,7 +321,17 @@ export function MobileMainMenu() {
             <X />
           </button>
         </div>
-        {panel === "settings" ? (
+        {panel === "leaderboard" || panel === "ratings" ? (
+          <div className="standings-panel">
+            <h3>{panel === "leaderboard" ? "Top Ten Scores" : "1v1 Standings"}</h3>
+            <div className="standings-table-scroll">
+              <table><thead><tr>{(panel === "leaderboard" ? ["Rank", "Player", "Score", "Level"] : ["Rank", "Player", "Tier", "W?L", "Rating", "Peak"]).map(label => <th key={label}>{label}</th>)}</tr></thead>
+              <tbody><tr><td colSpan={panel === "leaderboard" ? 4 : 6}>{panel === "leaderboard" ? "Global score tracking is coming soon." : "Ranked play is coming soon."}</td></tr></tbody></table>
+            </div>
+            <p>{panel === "leaderboard" ? "This board will show saved Classic high scores. Online score saving is not connected yet." : "This board will show competitive 1v1 ratings and match records. Private friend-code rooms remain unranked."}</p>
+            <button className="standings-back" onClick={() => setPanel(null)}>Back to menu</button>
+          </div>
+        ) : panel === "settings" ? (
           <p>
             Classic is a reconstruction of the original game. Movement, timing and layouts are still
             being tuned. Private 1v1 rooms are playable. Arcade power-ups and wraparound routes are in development.

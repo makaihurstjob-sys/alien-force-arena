@@ -85,8 +85,10 @@ export function EnemyShipBackdrop() {
       return ship;
     };
     // Start with a few ships already mid-screen so the page isn't empty at first.
-    for (let i = 0; i < 5; i++) {
-      spawn().x = random(0, width);
+    for (let i = 0; i < 10; i++) {
+      const ship = spawn();
+      ship.x = i % 2 === 0 ? random(0, width * 0.1) : random(width * 0.86, width - ship.size);
+      ship.y = (i + 0.5) / 10 * Math.max(0, height - ship.size);
     }
 
     let nextSpawn = random(SPAWN_MIN_S, SPAWN_MAX_S);

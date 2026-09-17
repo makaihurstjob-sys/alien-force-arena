@@ -9,7 +9,7 @@
   opacity: 1;
 }
 .home-menu.menu-loaded .enemy-ship-backdrop {
-  opacity: 0.28;
+  opacity: 0.7;
 }
 .menu-reveal {
   transition:
@@ -410,4 +410,34 @@
 @media (prefers-reduced-motion: reduce) {
   .mobile-menu-header h1,
   .desktop-menu-brand h1 { animation: none; }
+}
+
+/* Keep the backdrop below controls without relying on utility ordering. */
+.home-menu .enemy-ship-backdrop { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.menu-reveal { position: relative; z-index: 1; }
+.mode-card.offstage { visibility: hidden; pointer-events: none; transform: translateX(-50%) scale(.7); }
+.standings-preview { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 18px; aspect-ratio: 1; background: #fff; color: #111; border: 5px solid #0000bb; font-family: "Windows Bold", monospace; }
+.standings-preview > svg { width: 42px; height: 42px; align-self: center; color: #0000bb; }
+.standings-preview b { font-size: 18px; }
+.standings-preview-row { display: flex; justify-content: space-between; border-bottom: 1px solid #111; padding: 5px; font-size: 14px; }
+.standings-panel { background: white; color: black; padding: 16px; border: 4px solid #0000bb; }
+.standings-panel h3 { text-align: center; font-size: 24px; margin-bottom: 16px; }
+.standings-table-scroll { overflow-x: auto; }
+.standings-panel table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.standings-panel th, .standings-panel td { border: 1px solid black; padding: 8px; text-align: left; }
+.standings-panel p { margin: 16px 0; font-size: 15px; }
+.standings-back { border: 3px outset #ddd; background: #c0c0c0; padding: 8px 16px; }
+@media (max-width: 767px) {
+ .mode-caption strong { font-size: clamp(23px, 6.8vw, 32px); }
+ .mobile-mode-actions .mobile-play { width: 76%; font-size: clamp(17px, 4.7vw, 21px); gap: 6px; }
+}
+@media (min-width: 768px) {
+ .desktop-thumbnail .standings-preview { aspect-ratio: 1.65; padding: 8px; gap: 4px; }
+ .desktop-thumbnail .standings-preview > svg { width: 24px; height: 24px; }
+ .desktop-thumbnail .standings-preview b { font-size: 12px; }
+ .desktop-thumbnail .standings-preview-row { display: none; }
+ .desktop-mode-picker { max-width: 96vw; gap: 12px; }
+ .desktop-mode-tile { min-width: 0; flex-shrink: 1; }
+ .desktop-mode-detail h2 { overflow-wrap: anywhere; font-size: clamp(36px, 4vw, 64px); }
+ .desktop-mode-detail .desktop-play { gap: 12px; }
 }

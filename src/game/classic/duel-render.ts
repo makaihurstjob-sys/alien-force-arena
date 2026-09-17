@@ -11,7 +11,7 @@ export function renderClassicDuel(ctx: CanvasRenderingContext2D, state: GameStat
     shots: state.projectiles.map((p, id) => ({ id, owner: p.team, x: p.x, y: p.y,
       direction: directionFromAngle(Math.atan2(p.vy, p.vx)) })),
     score: 0, lives: 0, level: 1, phase: 'playing', timer: 0, invulnerable: 0,
-    elapsed: 0, shotsFired: 0, hits: 0,
+    elapsed: 0, shotsFired: 0, hits: 0, playerMoving: true,
   }, false, host.alive);
   const message = state.phase === 'countdown' ? String(Math.max(1, Math.ceil(state.phaseTimerMs / 1000)))
     : state.phase === 'round_over' ? state.lastRoundWinner === null ? 'DRAW'
