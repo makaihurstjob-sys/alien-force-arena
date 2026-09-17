@@ -85,12 +85,6 @@ async def main():
             await h.wait_for_function("old => document.querySelector('.online-duel')?.dataset.matchId !== old", arg=first_match)
             await g.wait_for_function("document.querySelector('.online-duel')?.dataset.phase === 'playing'", timeout=15000)
             print("PASS: synchronized shots, eliminations, 3-0 match result and mutual rematch", flush=True)
-            if os.environ.get("ALIEN_SCREENSHOTS"):
-                folder = os.environ["ALIEN_SCREENSHOTS"]
-                os.makedirs(folder, exist_ok=True)
-                await h.screenshot(path=os.path.join(folder, "alien-force-1v1-desktop.png"), full_page=True)
-                await g.screenshot(path=os.path.join(folder, "alien-force-1v1-mobile.png"), full_page=True)
-
             # Mobile input is authoritative at the host. Capture both position and shot count.
             assert snapshots["host"] and snapshots["guest"], "No wire snapshots captured"
             before = snapshots["host"][-1]["state"]["ships"][1]
@@ -130,6 +124,12 @@ async def main():
             assert await g.locator(".online-duel").get_attribute("data-match-id") == current_match
             await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'false'", timeout=15000)
             print("PASS: guest reload and rejoin recover the same match", flush=True)
+
+            if os.environ.get("ALIEN_SCREENSHOTS"):
+                folder = os.environ["ALIEN_SCREENSHOTS"]
+                os.makedirs(folder, exist_ok=True)
+                await h.screenshot(path=os.path.join(folder, "alien-force-1v1-desktop.png"), full_page=True)
+                await g.screenshot(path=os.path.join(folder, "alien-force-1v1-mobile.png"), full_page=True)
 
             # A participant leaving ends the other client's active match and restores lobby access.
             await g.get_by_role("button", name="Leave match", exact=True).click()
