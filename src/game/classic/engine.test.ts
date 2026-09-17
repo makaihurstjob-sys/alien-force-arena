@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createClassic, tickClassic, moveActor, CLASSIC, type Direction } from "./engine";
 const idle = { direction: null, fire: false };
+// Existing combat tests begin after the opening countdown.
+function playingClassic(level = 1) {
+  const s = createClassic(level);
+  tickClassic(s, idle, CLASSIC.countdown);
+  return s;
+}
 describe("classic simulation", () => {
   it("buffers a perpendicular turn until an intersection", () => {
     const actor = { id: 0, x: 32, y: 12, direction: "right" as const };
@@ -9,12 +15,12 @@ describe("classic simulation", () => {
     expect(actor.y).toBeGreaterThan(12);
   });
   it("keeps ships inside the outer lanes", () => {
-    const s = createClassic();
+    const s = playingClassic();
     moveActor(s.player, "right", 100);
     expect(s.player.x).toBe(412);
   });
   it("allows only one player shot and charges only successful shots", () => {
-    const s = createClassic();
+    const s = playingClassic();
     s.score = 100;
     for (let i = 0; i < 10; i++) tickClassic(s, { direction: null, fire: true }, 1 / 60, () => 1);
     expect(s.shots.filter((b) => b.owner === 0)).toHaveLength(1);
@@ -22,7 +28,7 @@ describe("classic simulation", () => {
     expect(s.score).toBe(90);
   });
   it("awards a hit once, clears the wave, and starts the next level", () => {
-    const s = createClassic();
+    const s = playingClassic();
     s.enemies = [{ id: 1, x: 372, y: 412, direction: "right" }];
     tickClassic(s, { direction: null, fire: true }, 1 / 60, () => 1);
     for (let i = 0; i < 20; i++) tickClassic(s, idle, 1 / 60, () => 1);
@@ -34,7 +40,7 @@ describe("classic simulation", () => {
     expect(s.phase).toBe("playing");
   });
   it("loses one life on contact and protects the respawn", () => {
-    const s = createClassic();
+    const s = playingClassic();
     s.invulnerable = 0;
     s.enemies = [{ ...s.player, id: 1 }];
     tickClassic(s, idle, 1 / 60, () => 1);
@@ -44,7 +50,7 @@ describe("classic simulation", () => {
     expect(s.lives).toBe(2);
   });
   it("stops the simulation after the final life", () => {
-    const s = createClassic();
+    const s = playingClassic();
     s.invulnerable = 0;
     s.lives = 1;
     s.enemies = [{ ...s.player, id: 1 }];
@@ -57,7 +63,7 @@ describe("classic simulation", () => {
 });
 
 it("continues moving after release and reverses without stopping", () => {
-  const s = createClassic();
+  const s = playingClassic();
   tickClassic(s, { ...idle, direction: "left" }, 1 / 60, () => 1);
   const x = s.player.x;
   tickClassic(s, idle, 1 / 60, () => 1);
@@ -79,7 +85,7 @@ describe("enemy progression", () => {
   ] as [number, number, Direction][])(
     "turns away from a wall approached at (%s, %s)",
     (x, y, direction) => {
-      const s = createClassic();
+      const s = playingClassic();
       s.invulnerable = Infinity;
       s.enemies = [{ id: 1, x, y, direction }];
       for (let frame = 0; frame < 120; frame++) tickClassic(s, idle, 1 / 60, () => 0.9);
@@ -92,7 +98,7 @@ describe("enemy progression", () => {
     },
   );
   it.each([1, 2, 6, 11, 20])("keeps moving on lanes through crossings at level %s", (level) => {
-    const s = createClassic();
+    const s = playingClassic();
     s.level = level;
     s.invulnerable = Infinity;
     let seed = 12345;
@@ -123,14 +129,14 @@ describe("enemy progression", () => {
     expect(maxLaneError).toBeLessThan(1e-7);
   });
   it("never fires enemy shots on level 1 even when the random roll favors firing", () => {
-    const s = createClassic();
+    const s = playingClassic();
     for (let frame = 0; frame < 120; frame++) tickClassic(s, idle, 1 / 60, () => 0);
     expect(s.shots.filter((shot) => shot.owner !== 0)).toHaveLength(0);
     expect(s.enemies.every((enemy) => !enemy.canFire)).toBe(true);
   });
   it("keeps enemy count, movement and firing identical across levels", () => {
-    const low = createClassic(1),
-      high = createClassic(20);
+    const low = playingClassic(1),
+      high = playingClassic(20);
     low.invulnerable = high.invulnerable = Infinity;
     for (let frame = 0; frame < 600; frame++) {
       tickClassic(low, idle, 1 / 60, () => 0.25);
@@ -148,7 +154,7 @@ describe("enemy progression", () => {
     expect(() => createClassic(level)).toThrow(RangeError);
   });
   it("makes one decision while passing through an intersection", () => {
-    const s = createClassic();
+    const s = playingClassic();
     s.enemies = [{ id: 1, x: 212, y: 212, direction: "down" }];
     let calls = 0;
     const random = () => {
@@ -166,13 +172,13 @@ describe("enemy progression", () => {
 
 describe("original opening", () => {
   it("places nine enemies in the first nine top lanes", () => {
-    const s = createClassic();
+    const s = playingClassic();
     expect(s.enemies).toHaveLength(9);
     expect(s.enemies.map(e => e.x)).toEqual(Array.from({ length: 9 }, (_, i) => CLASSIC.margin + i * CLASSIC.spacing));
     expect(s.enemies.every(e => e.y === CLASSIC.margin && e.direction === "down")).toBe(true);
   });
   it("waits for steering, even when firing or reversing", () => {
-    const s = createClassic();
+    const s = playingClassic();
     const start = { x: s.player.x, y: s.player.y };
     for (let i = 0; i < 60; i++) tickClassic(s, idle);
     tickClassic(s, { ...idle, fire: true });
@@ -186,7 +192,7 @@ describe("original opening", () => {
     expect(s.player.y).toBeLessThan(y);
   });
   it("waits for steering again after losing a life", () => {
-    const s = createClassic();
+    const s = playingClassic();
     s.playerMoving = true;
     s.invulnerable = 0;
     s.enemies = [{ ...s.player, id: 1 }];
@@ -196,5 +202,42 @@ describe("original opening", () => {
     expect(s.playerMoving).toBe(false);
     tickClassic(s, idle);
     expect(s.player.x).toBe(412);
+  });
+});
+
+
+describe("opening countdown", () => {
+  it("freezes all gameplay and ignores input for three seconds", () => {
+    const s = createClassic();
+    const player = { ...s.player }, enemies = structuredClone(s.enemies);
+    const input = { direction: "up" as const, fire: true, reverse: true };
+    for (let second = 3; second > 0; second--) {
+      expect(Math.ceil(s.timer)).toBe(second);
+      tickClassic(s, input, 1);
+      expect(s.player).toEqual(player);
+      expect(s.enemies).toEqual(enemies);
+      expect(s.shots).toHaveLength(0);
+      expect(s.elapsed).toBe(0);
+      expect(s.invulnerable).toBe(CLASSIC.invulnerability);
+      expect(s.playerMoving).toBe(false);
+    }
+    expect(s.phase).toBe("playing");
+    tickClassic(s, idle);
+    expect(s.player).toEqual(player);
+    expect(s.enemies).not.toEqual(enemies);
+    tickClassic(s, { ...idle, direction: "up" });
+    expect(s.player.y).toBeLessThan(player.y);
+  });
+  it("restarts the countdown after a lost life", () => {
+    const s = playingClassic();
+    s.invulnerable = 0;
+    s.enemies = [{ ...s.player, id: 1 }];
+    tickClassic(s, idle);
+    expect(s.phase).toBe("countdown");
+    expect(s.timer).toBe(3);
+    const enemies = structuredClone(s.enemies);
+    tickClassic(s, idle, 2);
+    expect(s.enemies).toEqual(enemies);
+    expect(s.lives).toBe(2);
   });
 });

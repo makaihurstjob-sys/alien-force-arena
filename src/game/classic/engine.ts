@@ -14,6 +14,7 @@ export const CLASSIC = {
   lives: 3,
   invulnerability: 2,
   transition: 1.5,
+  countdown: 3,
 };
 export type Direction = "up" | "down" | "left" | "right";
 export const vectors: Record<Direction, [number, number]> = {
@@ -33,7 +34,7 @@ export type ClassicState = {
   score: number;
   lives: number;
   level: number;
-  phase: "playing" | "level_clear" | "game_over";
+  phase: "countdown" | "playing" | "level_clear" | "game_over";
   timer: number;
   invulnerable: number;
   elapsed: number;
@@ -68,8 +69,8 @@ export function createClassic(level = 1): ClassicState {
     score: 0,
     lives: CLASSIC.lives,
     level,
-    phase: "playing",
-    timer: 0,
+    phase: "countdown",
+    timer: CLASSIC.countdown,
     invulnerable: CLASSIC.invulnerability,
     elapsed: 0,
     shotsFired: 0,
@@ -112,6 +113,8 @@ function loseLife(s: ClassicState) {
   }
   s.player = { id: 0, x: lane(10), y: lane(10), direction: "left" };
   s.playerMoving = false;
+  s.phase = "countdown";
+  s.timer = CLASSIC.countdown;
   s.enemies = wave();
   s.invulnerable = CLASSIC.invulnerability;
 }
@@ -122,6 +125,14 @@ export function tickClassic(
   random: () => number = Math.random,
 ) {
   if (s.phase === "game_over") return;
+  if (s.phase === "countdown") {
+    s.timer = Math.max(0, s.timer - dt);
+    if (s.timer < 1e-9) {
+      s.timer = 0;
+      s.phase = "playing";
+    }
+    return;
+  }
   if (s.phase === "level_clear") {
     s.timer -= dt;
     if (s.timer <= 0) {

@@ -59,12 +59,14 @@ export function renderClassic(ctx: CanvasRenderingContext2D, s: ClassicState, pa
         ? "PAUSED"
         : s.phase === "level_clear"
           ? "LEVEL CLEAR"
-          : null;
+          : s.phase === "countdown"
+            ? String(Math.max(1, Math.ceil(s.timer)))
+            : null;
   if (message) {
     ctx.fillStyle = "rgba(0,0,0,0.8)";
     ctx.fillRect(65, 172, 290, 65);
     ctx.fillStyle = "white";
-    ctx.font = '24px \"Windows Bold\", monospace';
+    ctx.font = (s.phase === "countdown" && !paused ? '48px ' : '24px ') + '\"Windows Bold\", monospace';
     ctx.textAlign = "center";
     ctx.fillText(message, 210, 212);
     ctx.textAlign = "left";
