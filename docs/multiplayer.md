@@ -110,3 +110,8 @@ https://supabase.com/docs/guides/database/functions
 - Reference match: Level menu, dialog wording, white/blue panel, gray beveled
   buttons, and the supplied font. Intentional additions: Multiplayer menu and
   responsive viewport-centered dialog placement.
+
+Online matches open on a dedicated game screen outside the lobby dialog. The
+Classic window frame contains the arena and match status; phones place controls
+below the arena. Leaving or returning to the room restores the lobby while
+keeping its connection and identity intact until the player explicitly leaves.

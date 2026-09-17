@@ -13,10 +13,12 @@ export default function ClassicOptionsDialog({
   onClose: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const [roomPlaying, setRoomPlaying] = useState(false);
   const [value, setValue] = useState(String(level));
   useEffect(() => {
-    dialog.current?.show();
-  }, []);
+    if (roomPlaying) dialog.current?.close();
+    else dialog.current?.show();
+  }, [roomPlaying]);
   return (
     <dialog
       ref={dialog}
@@ -24,9 +26,10 @@ export default function ClassicOptionsDialog({
       aria-labelledby="options-dialog-title"
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        if (!roomPlaying) onClose();
       }}
       onKeyDown={(e) => {
+        if (roomPlaying) return;
         e.stopPropagation();
         if (e.key === "Escape") {
           e.preventDefault();
@@ -71,7 +74,7 @@ export default function ClassicOptionsDialog({
       ) : (
         <>
           <h2 id="options-dialog-title">Multiplayer</h2>
-          <MultiplayerLobby />
+          <MultiplayerLobby onMatchChange={setRoomPlaying} />
           <div className="classic-dialog-actions">
             <button onClick={onClose}>Close</button>
           </div>

@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 ﻿import { useEffect, useRef, useState } from "react";
 import { lobbyAction, lobbyPlayerId, multiplayerConfigured, type Lobby } from "@/lib/multiplayer";
 import { useOnlineDuel } from "@/game/useOnlineDuel";
@@ -132,11 +133,11 @@ export default function MultiplayerLobby({
       clearTimeout(timer);
     };
   }, [lobby?.code, busy]);
-  if (duel.view && player) return <>
+  if (duel.view && player) return createPortal(<main className="online-match-screen" aria-label="Online game screen">
     {error && <p role="alert">{error}</p>}
     <OnlineDuel duel={duel} player={player} busy={busy}
       onReturn={duel.reset} onLeave={() => void run("leave")} />
-  </>;
+  </main>, document.body);
   return (
     <div className="classic-lobby">
       <p>Private 1v1 room · Unranked</p>

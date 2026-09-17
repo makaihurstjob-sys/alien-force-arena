@@ -213,3 +213,94 @@
     display: none;
   }
 }
+.online-match-active #root,
+.online-match-active #__next {
+  display: none;
+}
+.online-match-active .home-menu {
+  display: none;
+}
+.online-match-screen {
+  min-height: 100dvh;
+  padding: 24px 16px;
+  background: #0e141c;
+  color: #ddd;
+  font-family: "Windows Bold", monospace;
+}
+.online-match-screen .online-duel {
+  display: grid;
+  grid-template-columns: minmax(0, 424fr) minmax(180px, 196fr);
+  grid-template-areas: "title title" "arena score" "arena status" "arena results" "controls controls" "footer footer";
+  grid-template-rows: auto auto auto 1fr auto auto;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 4px;
+  border: 2px solid #000;
+  border-radius: 0;
+  background: #000;
+  box-shadow: inset 2px 2px #fff, inset -2px -2px #808080, 0 0 0 2px #c0c0c0;
+}
+.duel-window-title {
+  grid-area: title;
+  background: #0000b0;
+  border: 2px solid #c0c0c0;
+  margin: 0;
+  padding: 5px 12px;
+  color: #fff;
+  text-align: center;
+  font-size: 24px;
+}
+.online-match-screen .duel-arena {
+  grid-area: arena;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  align-self: start;
+}
+.online-match-screen .duel-scoreboard {
+  grid-area: score;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 8px;
+}
+.online-match-screen .duel-status {
+  grid-area: status;
+  flex-direction: column;
+  text-align: center;
+  padding: 12px;
+}
+.online-match-screen .duel-results { grid-area: results; }
+.online-match-screen .duel-controls {
+  grid-area: controls;
+  position: static;
+  padding: 12px;
+  margin: 0;
+  pointer-events: auto;
+  background: #0e141c;
+}
+.online-match-screen .duel-footer {
+  grid-area: footer;
+  padding: 12px;
+  background: #0e141c;
+}
+.online-match-screen .duel-controls p { display: block; }
+@media (max-width: 600px) {
+  .online-match-screen { padding: 12px 6px; }
+  .online-match-screen .online-duel {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "title" "score" "arena" "status" "results" "controls" "footer";
+    grid-template-rows: auto;
+  }
+  .duel-window-title { font-size: 20px; }
+  .online-match-screen .duel-scoreboard {
+    flex-direction: row;
+    padding: 12px 4px;
+    gap: 4px;
+  }
+  .online-match-screen .duel-status {
+    flex-direction: row;
+    padding: 10px 4px;
+  }
+  .online-match-screen .duel-controls { padding: 8px 4px; }
+  .online-match-screen .duel-controls p { display: none; }
+}

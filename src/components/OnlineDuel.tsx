@@ -34,6 +34,15 @@ export function OnlineDuel({
   onLeave: () => void;
   busy: boolean;
 }) {
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    document.body.classList.add("online-match-active");
+    window.scrollTo(0, 0);
+    return () => {
+      document.body.classList.remove("online-match-active");
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
   const canvas = useRef<HTMLCanvasElement>(null);
   const { inputRef, display } = duel;
   const held = useRef(new Map<number, keyof PlayerInput>());
@@ -151,6 +160,7 @@ export function OnlineDuel({
       data-phase={state.phase}
       data-paused={paused}
     >
+      <h1 className="duel-window-title">Alien Force - Online 1v1</h1>
       <header className="duel-scoreboard">
         <span className="duel-green">
           White <b>{state.score[0]}</b>

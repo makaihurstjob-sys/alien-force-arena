@@ -96,9 +96,10 @@ export function MobileMainMenu() {
   const move = (delta: number) =>
     setSelected((value) => (value + delta + modes.length) % modes.length);
   useEffect(() => {
-    if (panel) dialog.current?.showModal();
+    if (panel && !roomPlaying) dialog.current?.showModal();
     else dialog.current?.close();
-  }, [panel]);
+    if (roomPlaying) document.querySelector<HTMLCanvasElement>(".online-match-screen canvas")?.focus();
+  }, [panel, roomPlaying]);
 
   return (
     <section className="mobile-main-menu" aria-label="Main menu">
@@ -291,7 +292,7 @@ export function MobileMainMenu() {
           if (roomBusy || roomPlaying) event.preventDefault();
           else setPanel(null);
         }}
-        onClose={() => setPanel(null)}
+        onClose={() => { if (!roomPlaying) setPanel(null); }}
       >
         <div className="mobile-panel-heading">
           <h2 id="mobile-panel-title">

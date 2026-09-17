@@ -61,11 +61,13 @@ async def main():
             await g.wait_for_function("document.querySelector('.online-duel')?.dataset.phase === 'playing'", timeout=15000)
             assert await h.locator(".online-duel").get_attribute("data-match-id") == await g.locator(".online-duel").get_attribute("data-match-id")
             assert not await g.evaluate("document.documentElement.scrollWidth > innerWidth"), "mobile page overflow"
-            assert not await g.locator("dialog").evaluate("e => e.scrollWidth > e.clientWidth"), "mobile dialog overflow"
+            assert await g.locator("dialog[open]").count() == 0, "room popup remains open during gameplay"
+            assert await g.get_by_role("main", name="Online game screen").is_visible()
+            assert not await g.get_by_role("region", name="Main menu", exact=True).is_visible()
             assert await h.locator(".duel-footer").evaluate("e => e.getBoundingClientRect().top >= document.querySelector('.duel-controls').getBoundingClientRect().bottom"), "desktop controls overlap footer"
             for width, height in [(320, 740), (844, 390), (390, 844)]:
                 await g.set_viewport_size({"width": width, "height": height})
-                assert not await g.locator("dialog").evaluate("e => e.scrollWidth > e.clientWidth"), f"dialog overflow at {width}"
+                assert not await g.evaluate("document.documentElement.scrollWidth > innerWidth"), f"game screen overflow at {width}"
             print("PASS: real lobby, readiness gate, shared match/countdown and mobile layout", flush=True)
 
             # The two ships face each other on an unobstructed lane. Host shots should
@@ -136,6 +138,9 @@ async def main():
             await g.get_by_role("textbox", name="Room code").wait_for(timeout=15000)
             await h.get_by_role("button", name="Leave room", exact=True).wait_for(timeout=15000)
             await h.get_by_role("button", name="Leave room", exact=True).click()
+            assert await h.get_by_role("region", name="Main menu", exact=True).is_visible()
+            assert await g.get_by_role("region", name="Main menu", exact=True).is_visible()
+            assert await h.get_by_role("main", name="Online game screen").count() == 0
             assert not errors, errors
             print(json.dumps({"passed": True, "hostSnapshots": len(snapshots["host"]), "guestSnapshots": len(snapshots["guest"]), "browserErrors": errors}), flush=True)
         finally:
