@@ -1,20 +1,45 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import { lobbyAction, lobbyPlayerId, multiplayerConfigured, type Lobby } from "@/lib/multiplayer";
+import { useOnlineDuel } from "@/game/useOnlineDuel";
+import { OnlineDuel } from "./OnlineDuel";
 
 export default function MultiplayerLobby({
   entryMode,
   initialCode,
   onBusyChange,
+  onMatchChange,
 }: {
   entryMode?: "create" | "join";
   initialCode?: string | undefined;
   onBusyChange?: (busy: boolean) => void;
+  onMatchChange?: (playing: boolean) => void;
 } = {}) {
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [code, setCode] = useState(
     () => initialCode ?? sessionStorage.getItem("alien-force-room") ?? "",
   );
   const [player, setPlayer] = useState<string>();
+  const duel = useOnlineDuel(lobby, player);
+  const wasPlaying = useRef(false);
+  useEffect(() => {
+    const playing = !!duel.view;
+    onMatchChange?.(playing);
+    if (wasPlaying.current && !playing && lobby?.status === "open") {
+      inFlight.current = true;
+      setBusy(true);
+      onBusyChange?.(true);
+      void lobbyAction("ready", lobby.code, false).then(next => {
+        if (mounted.current) setLobby(next);
+      }).catch(e => {
+        if (mounted.current) setError(e instanceof Error ? e.message : "Unable to reset readiness.");
+      }).finally(() => {
+        inFlight.current = false;
+        onBusyChange?.(false);
+        if (mounted.current) setBusy(false);
+      });
+    }
+    wasPlaying.current = playing;
+  }, [!!duel.view]);
   const [busy, setBusy] = useState(entryMode === "create");
   const started = useRef(false);
   const inFlight = useRef(false);
@@ -45,6 +70,7 @@ export default function MultiplayerLobby({
       sessionStorage.setItem("alien-force-room", next?.code ?? "");
       const id = await lobbyPlayerId();
       if (mounted.current) {
+        if (action === "leave") duel.reset();
         setLobby(next);
         setCode(next?.code ?? "");
         setPlayer(id);
@@ -106,6 +132,11 @@ export default function MultiplayerLobby({
       clearTimeout(timer);
     };
   }, [lobby?.code, busy]);
+  if (duel.view && player) return <>
+    {error && <p role="alert">{error}</p>}
+    <OnlineDuel duel={duel} player={player} busy={busy}
+      onReturn={duel.reset} onLeave={() => void run("leave")} />
+  </>;
   return (
     <div className="classic-lobby">
       <p>Private 1v1 room · Unranked</p>
@@ -194,10 +225,16 @@ export default function MultiplayerLobby({
           <button disabled={busy} onClick={() => void run("leave")}>
             Leave room
           </button>
+          {lobby.status === "open" && <>
+            <p role="status">{duel.connectionStatus}</p>
+            {player === lobby.host_id ? <button disabled={busy || !duel.canStart} onClick={duel.start}>
+              Start match
+            </button> : <p>Both players ready up, then the host starts the match.</p>}
+          </>}
         </>
       )}
       <p className="classic-lobby-note">
-        Room setup preview. Online matches and ranked play are coming next.
+        First to 3 rounds. One hit wins a round. One shot in flight at a time.
       </p>
     </div>
   );

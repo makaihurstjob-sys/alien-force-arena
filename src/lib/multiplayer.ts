@@ -11,7 +11,7 @@ const url = import.meta.env["VITE_SUPABASE_URL"];
 const key = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
 export const multiplayerConfigured = Boolean(url && key);
 let client: Promise<SupabaseClient> | undefined;
-async function connection() {
+export async function connection() {
   if (!multiplayerConfigured) throw new Error("Online rooms are not connected yet.");
   return (client ??= import("@supabase/supabase-js").then(({ createClient }) =>
     createClient(url, key, {

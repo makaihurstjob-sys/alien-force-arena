@@ -68,7 +68,8 @@ All gameplay tuning and arena geometry live in `src/game/config.ts`.
 
 ## Remaining work
 
-Online rooms, matchmaking, database persistence, ratings, and leaderboards
-are unfinished. Supabase integration files alone do not implement those features.
+Private rooms and a first host-simulated online 1v1 pass are playable; see
+`docs/multiplayer.md`. Matchmaking, match persistence, ratings, and leaderboards
+remain unfinished.
 Original-game movement and visual fidelity remain unverified; the existing
 arena rules are a remaster prototype, not a verified exact classic mode.

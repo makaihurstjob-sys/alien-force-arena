@@ -27,7 +27,10 @@ on GitHub Pages (the host may return HTTP 404 while the app renders).
 Test with separate browsers/devices: create, share, join, ready, leave, and
 host closure. Browser profiles share an anonymous identity between their tabs;
 separate devices should have separate identities regardless of IP or Tailscale.
-Rooms currently support lobby testing only, not synchronized multiplayer combat.
+Rooms support the first playable host-simulated 1v1 pass. Both players ready up,
+then the host selects Start match. Test actual gameplay with
+`scripts/test-online-duel.py`; see `docs/multiplayer.md` for transport details,
+disconnect behavior, and current limitations.
 
 Public verification September 16, 2026: two independent browser contexts joined
 the same room as 2/2 players using the published invite URL, both Ready states

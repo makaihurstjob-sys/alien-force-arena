@@ -76,6 +76,7 @@ export function MobileMainMenu() {
   const [team, setTeam] = useState(1);
   const [panel, setPanel] = useState<"create" | "join" | "settings" | null>(null);
   const [roomBusy, setRoomBusy] = useState(false);
+  const [roomPlaying, setRoomPlaying] = useState(false);
   const [inviteCode, setInviteCode] = useState<string>();
   useEffect(() => {
     const readInvite = () => {
@@ -284,30 +285,30 @@ export function MobileMainMenu() {
       <footer>Fight · Adapt · Survive</footer>
       <dialog
         ref={dialog}
-        className="mobile-menu-dialog"
+        className={`mobile-menu-dialog ${roomPlaying ? "is-playing" : ""}`}
         aria-labelledby="mobile-panel-title"
         onCancel={(event) => {
-          if (roomBusy) event.preventDefault();
+          if (roomBusy || roomPlaying) event.preventDefault();
           else setPanel(null);
         }}
         onClose={() => setPanel(null)}
       >
         <div className="mobile-panel-heading">
           <h2 id="mobile-panel-title">
-            {panel === "settings"
+            {roomPlaying ? "Online 1v1" : panel === "settings"
               ? "About the game"
               : panel === "join"
                 ? "Join Room"
                 : "Create Room"}
           </h2>
-          <button aria-label="Close dialog" disabled={roomBusy} onClick={() => setPanel(null)}>
+          <button aria-label="Close dialog" disabled={roomBusy || roomPlaying} onClick={() => setPanel(null)}>
             <X />
           </button>
         </div>
         {panel === "settings" ? (
           <p>
             Classic is a reconstruction of the original game. Movement, timing and layouts are still
-            being tuned. Arcade power-ups, wraparound routes and online combat are in development.
+            being tuned. Private 1v1 rooms are playable. Arcade power-ups and wraparound routes are in development.
             Swipe the cards to choose a mode.
           </p>
         ) : (
@@ -317,6 +318,7 @@ export function MobileMainMenu() {
               entryMode={panel}
               initialCode={inviteCode}
               onBusyChange={setRoomBusy}
+              onMatchChange={setRoomPlaying}
             />
           )
         )}

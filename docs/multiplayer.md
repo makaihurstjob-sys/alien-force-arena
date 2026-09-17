@@ -28,11 +28,52 @@ The RPC checks identity and membership, locks the room before allocating seats,
 and serializes each player's mutations. It does not create matches, accept match
 results, or touch ratings. Browser clients cannot invoke `complete_match`.
 
+## First playable online pass
+
+From the main menu, Create Room, share the link, and join from another browser
+profile or device. Both players select Ready; the host selects Start match.
+Green is the host and red is the guest. WASD/arrows turn, thrust and reverse;
+Space fires. The match screen also has multi-touch directional and fire buttons.
+One hit eliminates a ship, only one projectile per player may be in flight, and
+the first player to win three rounds wins. Draws award neither player a point.
+Both players must choose Rematch to begin another match with fresh statistics.
+
+The host browser runs the existing fixed 60 Hz arena simulation. Supabase
+Realtime Broadcast carries 20 Hz inputs and snapshots, and rendering interpolates
+positions between snapshots. No movement frames are written to Postgres. Lobby
+membership and readiness still use the authenticated RPC and two-second polling.
+This uses the Practice arena rules, not the Classic survival/enemy-wave mode.
+
+Inputs expire after 350 ms without a fresh packet. Missing peer heartbeats after
+1.5 seconds, a hidden game tab, or a disconnected transport pauses the simulation.
+Both devices should keep the game visible. A recovered connection resumes the
+same state; a pause lasting 30 seconds ends the match without awarding a win.
+Return to room resets readiness on both clients. Leaving the room ends the match;
+leaving as host closes the room. Guests can reload and rejoin the same live match.
+There is no host migration or saved match state: a host reload loses the match.
+Opening the same identity's room in multiple tabs pauses play until the duplicate
+room tab closes.
+
+These are peer-trusted, unranked matches. The channel topic contains the room's
+unguessable UUID, which the lobby RPC reveals to members only, but the channel is
+public and sender IDs are not cryptographically authenticated by the transport.
+A participant who knows that UUID can forge game messages. No ratings, official
+results or competitive guarantees depend on browser-authored state. Before ranked
+play, use authenticated private channels and a trusted simulation server. Public
+Broadcast must be enabled for this first-pass transport.
+
+Run `npm test`, `node node_modules/typescript/bin/tsc --noEmit`, and
+`npm run build:pages`. With a static preview at port 5191, run
+`python scripts/test-online-duel.py` (Python Playwright and Edge required). Set
+`ALIEN_TEST_ORIGIN` to the public URL for the same real-network test after deploy.
+The test creates its own anonymous players and cleans up their room afterward.
+
+Transport reference: https://supabase.com/docs/guides/realtime/broadcast
+
 ## Next multiplayer stages
 
-- Add a game session transport and authoritative simulation for synchronized
-  inputs, snapshots, disconnect handling, and reconnects. Do not write movement
-  frames to Postgres. Lobby polling is not the gameplay transport.
+- Move simulation from the host browser to a trusted game service, add stronger
+  transport authorization, and tune input prediction for higher-latency networks.
 - Keep code-based friend matches unranked. Add permanent player accounts before
   ranked matchmaking, with separate 1v1 and 2v2 ratings.
 - Only a trusted game server may finalize a match and update ratings, atomically
@@ -45,7 +86,7 @@ results, or touch ratings. Browser clients cannot invoke `complete_match`.
 References: https://supabase.com/docs/guides/auth/auth-anonymous and
 https://supabase.com/docs/guides/database/functions
 
-## Verified September 16, 2026
+## Historical setup verification (before the public lobby deployment)
 
 - 32 engine tests, TypeScript, and the static production build passed.
 - Playwright on the Tailscale preview at 1440?1000 and 390?844 verified the
