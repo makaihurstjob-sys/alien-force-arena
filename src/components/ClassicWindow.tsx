@@ -19,6 +19,7 @@ type Props = {
   menuHref: string;
   level: number;
   onLevelChange: (level: number) => void;
+  online?: { onReturn: () => void; onLeave: () => void; busy: boolean };
 };
 export default function ClassicWindow({
   children,
@@ -30,10 +31,11 @@ export default function ClassicWindow({
   menuHref,
   level,
   onLevelChange,
+  online,
 }: Props) {
   const [mode, setMode] = useState<"normal" | "minimized" | "maximized">("normal");
   const [menu, setMenu] = useState<string | null>(null);
-  const [dialog, setDialog] = useState<"level" | "multiplayer" | null>(null);
+  const [dialog, setDialog] = useState<"level" | "multiplayer" | "rules" | null>(null);
   const root = useRef<HTMLDivElement>(null);
   const selected = useRef(0);
   const items = () =>
@@ -136,12 +138,13 @@ export default function ClassicWindow({
       ref={root}
       className={`classic-window is-${mode}`}
       onKeyDown={(e) => {
-        if (e.key === "Escape" && menu) {
+        if (e.key === "Escape" && (menu || dialog)) {
           e.preventDefault();
           e.stopPropagation();
           setMenu(null);
+          setDialog(null);
         }
-        if (menu) e.stopPropagation();
+        if (menu || dialog) e.stopPropagation();
       }}
     >
       <div className="classic-titlebar">
@@ -198,12 +201,13 @@ export default function ClassicWindow({
           </button>
           <button
             aria-label="Maximize"
-            disabled
+            disabled={mode === "maximized"}
+            onClick={() => changeMode("maximized")}
           >
             Ma<u>x</u>imize
           </button>
           <hr />
-          <a href={menuHref}>
+          <a href={menuHref} onClick={online ? event => { event.preventDefault(); if (!online.busy) online.onReturn(); } : undefined}>
             <span>
               S<u>w</u>itch To...
             </span>
@@ -211,7 +215,17 @@ export default function ClassicWindow({
           </a>
         </div>
       )}
-      {dialog && (
+      {dialog === "rules" && (
+        <div className="classic-options-overlay">
+          <section className="classic-options-dialog" role="dialog" aria-label="Match rules">
+            <h2>Online 1v1</h2>
+            <p>Classic movement and shooting. White versus orange. First to three wins.</p>
+            <p>Both players must agree to a rematch. Menus pause both players; keep both game screens visible.</p>
+            <button onClick={() => setDialog(null)}>OK</button>
+          </section>
+        </div>
+      )}
+      {dialog && dialog !== "rules" && (
         <ClassicOptionsDialog
           kind={dialog}
           level={level}
@@ -239,12 +253,13 @@ export default function ClassicWindow({
                   {name === "Game" && (
                     <>
                       <button
+                        disabled={online?.busy}
                         onClick={() => {
                           setMenu(null);
-                          onRestart();
+                          if (online) online.onReturn(); else onRestart();
                         }}
                       >
-                        New game
+                        {online ? "Return to room" : "New game"}
                       </button>
                       <button
                         onClick={() => {
@@ -255,7 +270,7 @@ export default function ClassicWindow({
                         {paused ? "Resume" : "Pause"}
                       </button>
                       <hr />
-                      <a href={menuHref}>Exit to main menu</a>
+                      {online ? <button disabled={online.busy} onClick={online.onLeave}>Leave match</button> : <a href={menuHref}>Exit to main menu</a>}
                     </>
                   )}
                   {name === "Options" && (
@@ -263,10 +278,10 @@ export default function ClassicWindow({
                       <button
                         onClick={() => {
                           setMenu(null);
-                          setDialog("level");
+                          setDialog(online ? "rules" : "level");
                         }}
                       >
-                        <u>L</u>evel...
+                        {online ? "Match rules..." : <><u>L</u>evel...</>}
                       </button>
                     </>
                   )}

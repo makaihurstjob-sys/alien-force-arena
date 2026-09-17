@@ -302,3 +302,7 @@
     z-index: 60;
   }
 }
+
+.classic-options-overlay { position: absolute; inset: 41px 3px 3px; z-index: 40; background: #0008; pointer-events: none; }
+.classic-options-overlay .classic-options-dialog { display: block; inset: 0; height: fit-content; pointer-events: auto; max-width: calc(100% - 24px); }
+.classic-options-overlay p { margin: 12px 0; font-size: 18px; line-height: 1.4; }

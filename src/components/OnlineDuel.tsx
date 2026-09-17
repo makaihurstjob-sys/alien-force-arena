@@ -1,5 +1,5 @@
 import ClassicController from "./ClassicController";
-import type { MenuController } from "./ClassicWindow";
+import ClassicWindow, { type MenuController } from "./ClassicWindow";
 import type { ClassicInput } from "@/game/classic/engine";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PVP_RULES } from "@/game/config";
@@ -50,22 +50,17 @@ export function OnlineDuel({
   const { inputRef, display } = duel;
   const controllerInput = useRef<ClassicInput>({ direction: null, fire: false });
   const reverseUntil = useRef(0);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [menuIndex, setMenuIndex] = useState(0);
+  const [windowBlocked, setWindowBlocked] = useState(false);
+  const [manualPause, setManualPause] = useState(false);
   const menuController = useRef<MenuController | null>(null);
-  const closeMenu = () => { setMenuOpen(false); duel.requestPause(false); canvas.current?.focus(); };
-  const menuActions = [closeMenu, onReturn, onLeave];
-  menuController.current = {
-    menu: () => { if (menuOpen) closeMenu(); else { setMenuIndex(0); setMenuOpen(true); duel.requestPause(true); } },
-    move: direction => setMenuIndex(i => (i + (direction === "up" || direction === "left" ? 2 : 1)) % 3),
-    select: () => { if (menuOpen && !busy) menuActions[menuIndex]?.(); },
-    back: closeMenu,
-  };
+  const pauseRequest = useRef(duel.requestPause);
+  pauseRequest.current = duel.requestPause;
+  useEffect(() => { pauseRequest.current(windowBlocked || manualPause); }, [windowBlocked, manualPause]);
   const keys = useRef(new Set<string>());
   const enabled = useRef(false);
   const snapshot = duel.view!;
   enabled.current =
-    !snapshot.paused && !duel.stalled && !snapshot.ended && snapshot.state.matchWinner === null;
+    !windowBlocked && !manualPause && !snapshot.paused && !duel.stalled && !snapshot.ended && snapshot.state.matchWinner === null;
   const updateInput = useCallback(() => {
     const input = { ...EMPTY_INPUT };
     if (enabled.current) {
@@ -89,6 +84,10 @@ export function OnlineDuel({
   }, [inputRef]);
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
+      if (e.code === "KeyP" && !(e.target instanceof HTMLInputElement)) {
+        e.preventDefault(); setManualPause(value => !value); return;
+      }
+      if (windowBlocked) return;
       if (!mapping[e.code] || e.target instanceof HTMLInputElement) return;
       // Preserve Space activation when a real action button has keyboard focus.
       if (
@@ -137,7 +136,7 @@ export function OnlineDuel({
       window.removeEventListener("blur", reset);
       document.removeEventListener("visibilitychange", reset);
     };
-  }, [inputRef, display, updateInput]);
+  }, [inputRef, display, updateInput, windowBlocked]);
   useEffect(() => {
     controllerInput.current = { direction: null, fire: false };
     reverseUntil.current = 0;
@@ -150,6 +149,11 @@ export function OnlineDuel({
   const winner = state.matchWinner;
   const paused = snapshot.paused || duel.stalled;
   return (
+    <div className="online-classic-shell">
+    <ClassicWindow controllerRef={menuController} paused={manualPause}
+      onPause={() => setManualPause(value => !value)} onRestart={onReturn}
+      onInteractionChange={setWindowBlocked} menuHref={import.meta.env.BASE_URL}
+      level={1} onLevelChange={() => {}} online={{ onReturn, onLeave, busy }}>
     <section
       className="online-duel"
       aria-label="Online 1v1 match"
@@ -158,7 +162,6 @@ export function OnlineDuel({
       data-phase={state.phase}
       data-paused={paused}
     >
-      <h1 className="duel-window-title">Alien Force - Online 1v1</h1>
       <header className="duel-scoreboard">
         <span className="duel-green">
           White <b>{state.score[0]}</b>
@@ -179,12 +182,7 @@ export function OnlineDuel({
           tabIndex={0}
           aria-label={`Arena. You control the ${you.team === 0 ? "white" : "orange"} ship.`}
         />
-        {menuOpen && <div className="duel-overlay duel-controller-menu" role="group" aria-label="Match menu">
-          {["Resume game", "Return to room", "Leave match"].map((label, index) =>
-            <button key={label} disabled={busy} data-controller-selected={menuIndex === index ? "true" : undefined}
-              onClick={menuActions[index]}>{label}</button>)}
-        </div>}
-        {!menuOpen && (snapshot.ended || paused) && (
+        {!windowBlocked && (snapshot.ended || paused) && (
           <div className="duel-overlay" role="status">
             <strong>{snapshot.ended ? "Match ended" : "Match paused"}</strong>
             <p>
@@ -221,9 +219,9 @@ export function OnlineDuel({
         !snapshot.ended && (
           <div className="duel-controls">
             <ClassicController input={controllerInput} menuController={menuController}
-              windowBlocked={menuOpen} resumeFromAway={() => {}}
+              windowBlocked={windowBlocked} resumeFromAway={() => {}}
               paused={duel.localPaused} onInputChange={updateInput}
-              onStart={() => { if (menuOpen) closeMenu(); else duel.requestPause(!duel.localPaused); }} />
+              onStart={() => { menuController.current?.back(); setManualPause(value => !value); }} />
             <p className="classic-keyboard-instructions">WASD / arrows to steer. Space to fire. R to reverse.</p>
           </div>
         )
@@ -240,5 +238,7 @@ export function OnlineDuel({
         </button>
       </div>
     </section>
+    </ClassicWindow>
+    </div>
   );
 }

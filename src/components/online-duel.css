@@ -230,8 +230,8 @@
 .online-match-screen .online-duel {
   display: grid;
   grid-template-columns: minmax(0, 424fr) minmax(180px, 196fr);
-  grid-template-areas: "title title" "arena score" "arena status" "arena results" "controls controls" "footer footer";
-  grid-template-rows: auto auto auto 1fr auto auto;
+  grid-template-areas: "arena score" "arena status" "arena results" "controls controls" "footer footer";
+  grid-template-rows: auto auto 1fr auto auto;
   max-width: 960px;
   margin: 0 auto;
   padding: 4px;
@@ -288,7 +288,7 @@
   .online-match-screen { padding: 12px 6px; }
   .online-match-screen .online-duel {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "title" "score" "arena" "status" "results" "controls" "footer";
+    grid-template-areas: "score" "arena" "status" "results" "controls" "footer";
     grid-template-rows: auto;
   }
   .duel-window-title { font-size: 20px; }
@@ -313,3 +313,18 @@
 @media (pointer: coarse) {
   .online-match-screen .duel-controls .classic-keyboard-instructions { display: none; }
 }
+
+/* Use ClassicWindow's actual chrome; the duel only lays out its contents. */
+.online-classic-shell { max-width: 960px; margin: 0 auto; }
+.online-match-screen .online-duel { border: 0; padding: 0; box-shadow: none; max-width: none; }
+.online-classic-shell .classic-window.is-maximized .online-duel { max-width: 1200px; margin: auto; }
+.online-match-screen .duel-footer { background: #c0c0c0; color: #000; }
+.online-match-screen .duel-footer span { color: #000; }
+.online-match-screen .online-duel .duel-footer button:not(.classic-system),
+.online-match-screen .online-duel .duel-results button:not(.classic-system) {
+  background: #c0c0c0; color: #000; border: 1px solid #000; border-radius: 0;
+  box-shadow: inset 2px 2px #fff, inset -2px -2px #808080;
+}
+
+.online-classic-shell .classic-titlebar > .classic-caption-button { display: grid; }
+.online-classic-shell:has(.is-maximized) { position: fixed; inset: 8px; z-index: 50; max-width: none; overflow: auto; background: #000; }

@@ -132,11 +132,28 @@ async def main():
             await g.get_by_role("button", name="Start: Resume", exact=True).click()
             await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'false'")
             await g.get_by_role("button", name="Menu", exact=True).click()
-            await g.get_by_role("group", name="Match menu", exact=True).wait_for()
+            await g.get_by_role("button", name="Game", exact=True).wait_for()
+            assert await g.get_by_role("button", name="Game", exact=True).get_attribute("aria-expanded") == "true"
+            await g.get_by_role("button", name="B: Reverse", exact=True).click()
+            await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'false'")
+            await g.get_by_role("button", name="Options", exact=True).click()
+            await g.get_by_role("button", name="Match rules...", exact=True).click()
+            await g.get_by_role("dialog", name="Match rules").wait_for()
+            await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'true'")
             await g.get_by_role("button", name="Select: Confirm", exact=True).click()
             await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'false'")
-            assert await g.get_by_role("group", name="Match menu", exact=True).count() == 0
-            print("PASS: shared Classic controller styles, B reverse, START pause/resume, MENU/SELECT", flush=True)
+            await g.get_by_role("button", name="Help", exact=True).click()
+            assert await g.locator('.classic-help').is_visible()
+            await g.get_by_role("button", name="B: Reverse", exact=True).click()
+            await g.get_by_role("button", name="Minimize window", exact=True).click()
+            assert not await g.locator('.duel-arena').is_visible()
+            await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'true'")
+            await g.get_by_role("button", name="Restore window", exact=True).click()
+            await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'false'")
+            await h.get_by_role("button", name="Maximize window", exact=True).click()
+            assert await h.locator('.classic-window.is-maximized').count() == 1
+            await h.get_by_role("button", name="Restore window", exact=True).click()
+            print("PASS: Classic frame, menus, rules, minimize/restore, maximize, controller and synchronized pause", flush=True)
 
             # Deliberately drop the guest network. Both clients must pause; score must freeze.
             await mobile.set_offline(True)
