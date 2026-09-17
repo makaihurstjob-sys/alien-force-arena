@@ -30,8 +30,10 @@
   font: inherit;
 }
 .player-profile-dialog button:disabled { opacity: .55; }
-.player-profile-dialog form { margin-top: 20px; }
-.player-profile-dialog input { width: 100%; padding: 10px; border: 1px solid #626772; margin-top: 8px; }
+.player-profile-dialog form { margin: 0; }
+.player-profile-dialog .discord-sign-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.discord-sign-in svg { width: 24px; height: 24px; flex-shrink: 0; }
+.player-profile-dialog input::placeholder { color: #aaa; opacity: 1; }
 .player-profile-dialog p { margin-top: 16px; }
 @media (max-width: 767px) {
   .player-profile-button { top: 18px; right: 20px; }
