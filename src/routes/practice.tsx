@@ -31,7 +31,7 @@ const PLAYERS: PlayerSeed[] = [
   { id: "bot", name: "BOT", team: 1 },
 ];
 
-function Practice() {
+export function Practice() {
   const [paused, setPaused] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [layoutIndex, setLayoutIndex] = useState(0);

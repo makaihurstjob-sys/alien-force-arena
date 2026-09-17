@@ -1,23 +1,13 @@
 import { createRoot } from "react-dom/client";
-import { useState } from "react";
+import { createRootRoute, createRoute, createRouter, Outlet, RouterProvider } from "@tanstack/react-router";
+import { Home } from "../src/routes/index";
+import { Practice } from "../src/routes/practice";
 import Classic from "../src/components/Classic";
 import "../src/styles.css";
 
-function App() {
-  const [playing, setPlaying] = useState(false);
-  if (playing) return <Classic menuHref="./" />;
-  return (
-    <main className="min-h-screen bg-background p-6 font-mono text-foreground flex items-center justify-center">
-      <div className="max-w-lg space-y-6 text-center">
-          <img src="./branding/alien-force-logo.jpg" alt="Alien Force logo" width="100" height="100" className="mx-auto mb-4 [image-rendering:pixelated]" />
-        <h1 className="text-3xl">Alien Force Classic</h1>
-        <p>Navigate the grid, dodge enemies, and clear each wave.</p>
-        <button className="border-2 bg-gray-300 px-8 py-4 text-black text-xl" onClick={() => setPlaying(true)}>Play Classic</button>
-        <p className="text-sm">Arrows steer. Space fires. R reverses. P pauses.</p>
-        <p className="text-sm">On your phone: D-pad to steer, A to fire, B to reverse, Start to pause.</p>
-      </div>
-    </main>
-  );
-}
-
-createRoot(document.getElementById("root")!).render(<App />);
+const root = createRootRoute({ component: Outlet });
+const home = createRoute({ getParentRoute: () => root, path: "/", component: Home });
+const classic = createRoute({ getParentRoute: () => root, path: "/classic", component: () => <Classic menuHref={import.meta.env.BASE_URL} /> });
+const practice = createRoute({ getParentRoute: () => root, path: "/practice", component: Practice });
+const router = createRouter({ routeTree: root.addChildren([home, classic, practice]), basepath: import.meta.env.BASE_URL });
+createRoot(document.getElementById("root")!).render(<RouterProvider router={router} />);

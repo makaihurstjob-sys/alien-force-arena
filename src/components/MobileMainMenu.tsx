@@ -1,0 +1,326 @@
+import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight, Link2, Settings, Users, X } from "lucide-react";
+import { DesktopArena } from "./DesktopArena";
+import "@/routes/desktop-main-menu.css";
+import { ShipIcon } from "./ShipIcon";
+import MultiplayerLobby from "./MultiplayerLobby";
+import { createClassic, tickClassic } from "@/game/classic/engine";
+import { renderClassic } from "@/game/classic/render";
+import { createMatch } from "@/game/engine";
+import { render } from "@/game/render";
+import { ARENA } from "@/game/config";
+
+const modes = [
+  { name: "Classic", description: "Original arena combat", color: "#3ee08a" },
+  { name: "Arcade", description: "Power-ups · Wraparound routes", color: "#ffe066" },
+  { name: "Practice", description: "Local 1v1 · Training bot", color: "#3ee08a" },
+] as const;
+
+// An isolated attract-mode simulation: never changes the player's actual game.
+function ArenaPreview({
+  active,
+  arcade,
+  practice,
+}: {
+  active: boolean;
+  arcade: boolean;
+  practice: boolean;
+}) {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const ctx = canvas.current?.getContext("2d");
+    if (!ctx) return;
+    let state = createClassic();
+    const practiceState = createMatch([
+      { id: "preview-player", name: "Player", team: 0 },
+      { id: "preview-bot", name: "Bot", team: 1 },
+    ]);
+    state.invulnerable = 0;
+    let frame = 0;
+    let last = 0;
+    const media = window.matchMedia("(max-width: 767px)");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const draw = (now: number) => {
+      const dt = Math.min((now - last) / 1000, 0.04);
+      last = now;
+      if (media.matches && !document.hidden) {
+        if (active && !reduced.matches) {
+          tickClassic(state, { direction: null, fire: true }, dt);
+          if (state.phase !== "playing") state = createClassic();
+        }
+        if (practice) {
+          ctx.save();
+          ctx.scale(424 / ARENA.width, 424 / ARENA.height);
+          render(ctx, practiceState, "cross");
+          ctx.restore();
+        } else renderClassic(ctx, state, false);
+        if (arcade) {
+          // Concept markers only; Arcade is not playable yet.
+          ctx.fillStyle = "#ffe066";
+          ctx.font = '28px "Windows Bold", monospace';
+          ctx.fillText("+", 100, 155);
+          ctx.fillText("↑", 300, 315);
+        }
+      }
+      frame = requestAnimationFrame(draw);
+    };
+    frame = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(frame);
+  }, [active, arcade, practice]);
+  return <canvas ref={canvas} width={424} height={424} aria-hidden="true" />;
+}
+
+export function MobileMainMenu() {
+  const [selected, setSelected] = useState(0);
+  const [team, setTeam] = useState(1);
+  const [panel, setPanel] = useState<"create" | "join" | "settings" | null>(null);
+  const [roomBusy, setRoomBusy] = useState(false);
+  const [inviteCode, setInviteCode] = useState<string>();
+  useEffect(() => {
+    const readInvite = () => {
+      const code = new URLSearchParams(window.location.hash.slice(1)).get("room");
+      if (code && /^[a-z0-9]{6}$/i.test(code)) {
+        setInviteCode(code.toUpperCase());
+        setPanel("join");
+      }
+    };
+    readInvite();
+    window.addEventListener("hashchange", readInvite);
+    return () => window.removeEventListener("hashchange", readInvite);
+  }, []);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const mode = modes[selected] ?? modes[0];
+  const move = (delta: number) =>
+    setSelected((value) => (value + delta + modes.length) % modes.length);
+  useEffect(() => {
+    if (panel) dialog.current?.showModal();
+    else dialog.current?.close();
+  }, [panel]);
+
+  return (
+    <section className="mobile-main-menu" aria-label="Main menu">
+      <div className="desktop-arena" aria-hidden="true">
+        <DesktopArena mode={selected} />
+      </div>
+      <header className="desktop-menu-brand">
+        <h1>Alien Force Arena</h1>
+      </header>
+      <div className="desktop-mode-detail" aria-live="polite" key={mode.name}>
+        <ShipIcon size={80} />
+        <h2>{mode.name}</h2>
+        <p>{mode.description}</p>
+        {selected === 1 ? (
+          <button className="desktop-play" disabled>
+            Coming Soon
+          </button>
+        ) : (
+          <Link className="desktop-play" to={selected === 0 ? "/classic" : "/practice"}>
+            Play {mode.name}
+            <ChevronRight />
+          </Link>
+        )}
+      </div>
+      <nav
+        className="desktop-mode-picker"
+        aria-label="Desktop game modes"
+        onKeyDown={(event) => {
+          if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            event.preventDefault();
+            move(event.key === "ArrowRight" ? 1 : -1);
+          }
+        }}
+      >
+        <button className="desktop-mode-arrow" aria-label="Previous mode" onClick={() => move(-1)}>
+          <ChevronLeft />
+        </button>
+        {modes.map((item, index) => (
+          <button
+            key={item.name}
+            className="desktop-mode-tile"
+            aria-pressed={selected === index}
+            onClick={() => setSelected(index)}
+          >
+            <span className="desktop-thumbnail">
+              <DesktopArena mode={index} thumbnail />
+            </span>
+            <strong>{item.name}</strong>
+            {index === 1 && <small>Coming soon</small>}
+          </button>
+        ))}
+        <button className="desktop-mode-arrow" aria-label="Next mode" onClick={() => move(1)}>
+          <ChevronRight />
+        </button>
+      </nav>
+      <span className="desktop-preview-label">Development preview</span>
+      <header className="mobile-menu-header">
+        <div className="mobile-menu-top">
+          <ShipIcon size={34} />
+          <button aria-label="Menu information" onClick={() => setPanel("settings")}>
+            <Settings size={24} />
+          </button>
+        </div>
+        <h1>Alien Force Arena</h1>
+        <p>Small arenas. Big battles.</p>
+      </header>
+      <div
+        className="mode-carousel"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Game modes"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            event.preventDefault();
+            move(event.key === "ArrowRight" ? 1 : -1);
+          }
+        }}
+        onTouchStart={(event) => {
+          const first = event.touches[0];
+          if (first) touch.current = { x: first.clientX, y: first.clientY };
+        }}
+        onTouchEnd={(event) => {
+          const start = touch.current;
+          const end = event.changedTouches[0];
+          touch.current = null;
+          if (!start || !end) return;
+          const dx = end.clientX - start.x;
+          const dy = end.clientY - start.y;
+          if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) move(dx < 0 ? 1 : -1);
+        }}
+        onTouchCancel={() => {
+          touch.current = null;
+        }}
+      >
+        {modes.map((item, index) => {
+          const offset = (index - selected + modes.length) % modes.length;
+          const position = offset === 0 ? "selected" : offset === 1 ? "next" : "previous";
+          return (
+            <button
+              key={item.name}
+              className={`mode-card ${position}`}
+              style={{ "--mode-color": item.color } as React.CSSProperties}
+              tabIndex={selected === index ? 0 : -1}
+              aria-label={`Select ${item.name}${index === 1 ? ", coming soon" : ""}`}
+              aria-pressed={selected === index}
+              onClick={() => setSelected(index)}
+            >
+              <ArenaPreview
+                active={selected === index}
+                arcade={index === 1}
+                practice={index === 2}
+              />
+              <span className="mode-caption">
+                <strong>{item.name}</strong>
+                <span>{item.description}</span>
+                {index === 1 && <em>Coming soon</em>}
+              </span>
+            </button>
+          );
+        })}
+        <button
+          className="carousel-arrow previous-arrow"
+          aria-label="Previous game mode"
+          onClick={() => move(-1)}
+        >
+          <ChevronLeft />
+        </button>
+        <button
+          className="carousel-arrow next-arrow"
+          aria-label="Next game mode"
+          onClick={() => move(1)}
+        >
+          <ChevronRight />
+        </button>
+      </div>
+      <div className="mode-dots" aria-label="Choose mode">
+        {modes.map((item, index) => (
+          <button
+            key={item.name}
+            aria-label={`Show ${item.name}`}
+            aria-pressed={index === selected}
+            onClick={() => setSelected(index)}
+            style={{ background: index === selected ? mode.color : undefined }}
+          />
+        ))}
+      </div>
+      <div className="mobile-mode-actions" aria-live="polite">
+        {selected === 1 ? (
+          <>
+            <div className="team-options" aria-label="Planned Arcade team size">
+              {[1, 2].map((size) => (
+                <button key={size} aria-pressed={team === size} onClick={() => setTeam(size)}>
+                  {size}v{size}
+                </button>
+              ))}
+            </div>
+            <button className="mobile-play" disabled>
+              Coming Soon
+            </button>
+          </>
+        ) : (
+          <Link className="mobile-play" to={selected === 0 ? "/classic" : "/practice"}>
+            Play {mode.name}
+            <ChevronRight size={22} />
+          </Link>
+        )}
+      </div>
+      <div className="mobile-room-actions">
+        <button
+          onClick={() => {
+            setRoomBusy(true);
+            setPanel("create");
+          }}
+        >
+          <Users />
+          Create Room
+        </button>
+        <button onClick={() => setPanel("join")}>
+          <Link2 />
+          Join Room
+        </button>
+      </div>
+      <footer>Fight · Adapt · Survive</footer>
+      <dialog
+        ref={dialog}
+        className="mobile-menu-dialog"
+        aria-labelledby="mobile-panel-title"
+        onCancel={(event) => {
+          if (roomBusy) event.preventDefault();
+          else setPanel(null);
+        }}
+        onClose={() => setPanel(null)}
+      >
+        <div className="mobile-panel-heading">
+          <h2 id="mobile-panel-title">
+            {panel === "settings"
+              ? "About the game"
+              : panel === "join"
+                ? "Join Room"
+                : "Create Room"}
+          </h2>
+          <button aria-label="Close dialog" disabled={roomBusy} onClick={() => setPanel(null)}>
+            <X />
+          </button>
+        </div>
+        {panel === "settings" ? (
+          <p>
+            Classic is a reconstruction of the original game. Movement, timing and layouts are still
+            being tuned. Arcade power-ups, wraparound routes and online combat are in development.
+            Swipe the cards to choose a mode.
+          </p>
+        ) : (
+          panel && (
+            <MultiplayerLobby
+              key={`${panel}-${inviteCode ?? ""}`}
+              entryMode={panel}
+              initialCode={inviteCode}
+              onBusyChange={setRoomBusy}
+            />
+          )
+        )}
+      </dialog>
+    </section>
+  );
+}

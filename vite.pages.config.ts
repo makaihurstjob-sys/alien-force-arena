@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 export default defineConfig({
   root: "pages",
   envDir: "..",
-  base: "./",
+  base: "/alien-force-classic/",
   publicDir: "../public",
   plugins: [react(), tailwindcss()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },

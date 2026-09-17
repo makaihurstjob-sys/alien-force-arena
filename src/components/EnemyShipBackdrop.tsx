@@ -43,7 +43,8 @@ export function EnemyShipBackdrop() {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let repaint = () => {};
 
     let width = 0;
     let height = 0;
@@ -55,6 +56,7 @@ export function EnemyShipBackdrop() {
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.imageSmoothingEnabled = false;
+      repaint();
     };
     resize();
     window.addEventListener("resize", resize);
@@ -64,6 +66,7 @@ export function EnemyShipBackdrop() {
     sheet.onload = () => {
       sprites.left = cutSprite(sheet, "left");
       sprites.right = cutSprite(sheet, "right");
+      repaint();
     };
     sheet.src = spriteSheetUrl;
 
@@ -91,7 +94,7 @@ export function EnemyShipBackdrop() {
     let frame = 0;
     const tick = (now: number) => {
       // Clamp so ships don't jump after the tab was in the background.
-      const dt = Math.min((now - last) / 1000, 0.1);
+      const dt = reducedMotion.matches ? 0 : Math.min((now - last) / 1000, 0.1);
       last = now;
       nextSpawn -= dt;
       if (nextSpawn <= 0) {
@@ -110,14 +113,27 @@ export function EnemyShipBackdrop() {
         const sprite = sprites[s.heading];
         if (sprite) ctx.drawImage(sprite, Math.round(s.x), s.y, s.size, s.size);
       }
-      frame = requestAnimationFrame(tick);
+      if (!reducedMotion.matches) frame = requestAnimationFrame(tick);
     };
-    frame = requestAnimationFrame(tick);
+    // Reduced motion keeps the ships visible, but freezes their flight.
+    // Redraw after image loading and canvas resizing, which clears its pixels.
+    repaint = () => {
+      cancelAnimationFrame(frame);
+      for (const ship of ships) {
+        ship.x = Math.max(0, Math.min(ship.x, width - ship.size));
+        ship.y = Math.max(0, Math.min(ship.y, height - ship.size));
+      }
+      last = performance.now();
+      tick(last);
+    };
+    reducedMotion.addEventListener("change", repaint);
+    repaint();
 
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
       sheet.onload = null;
+      reducedMotion.removeEventListener("change", repaint);
     };
   }, []);
 
@@ -125,7 +141,7 @@ export function EnemyShipBackdrop() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-50 [image-rendering:pixelated]"
+      className="enemy-ship-backdrop pointer-events-none fixed inset-0 z-0 h-full w-full opacity-50 [image-rendering:pixelated]"
     />
   );
 }

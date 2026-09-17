@@ -1,11 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { lobbyAction, lobbyPlayerId, multiplayerConfigured, type Lobby } from "@/lib/multiplayer";
 
-export default function MultiplayerLobby() {
+export default function MultiplayerLobby({
+  entryMode,
+  initialCode,
+  onBusyChange,
+}: {
+  entryMode?: "create" | "join";
+  initialCode?: string | undefined;
+  onBusyChange?: (busy: boolean) => void;
+} = {}) {
   const [lobby, setLobby] = useState<Lobby | null>(null);
-  const [code, setCode] = useState(() => sessionStorage.getItem("alien-force-room") ?? "");
+  const [code, setCode] = useState(
+    () => initialCode ?? sessionStorage.getItem("alien-force-room") ?? "",
+  );
   const [player, setPlayer] = useState<string>();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(entryMode === "create");
+  const started = useRef(false);
+  const inFlight = useRef(false);
+  const [shareStatus, setShareStatus] = useState("");
   const [error, setError] = useState("");
   const mounted = useRef(true);
   useEffect(() => {
@@ -15,7 +28,10 @@ export default function MultiplayerLobby() {
     };
   }, []);
   async function run(action: "create" | "join" | "ready" | "leave") {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
+    onBusyChange?.(true);
     setError("");
     try {
       const next = await lobbyAction(
@@ -34,7 +50,30 @@ export default function MultiplayerLobby() {
       if (mounted.current)
         setError(e instanceof Error ? e.message : "Unable to connect. Try again.");
     } finally {
+      inFlight.current = false;
+      onBusyChange?.(false);
       if (mounted.current) setBusy(false);
+    }
+  }
+  useEffect(() => {
+    if (entryMode === "create" && !started.current) {
+      started.current = true;
+      void run("create");
+    }
+  }, [entryMode]);
+  const roomLink = lobby ? `${window.location.origin}${import.meta.env.BASE_URL}#room=${encodeURIComponent(lobby.code)}` : "";
+  async function shareRoom(copyOnly = false) {
+    setShareStatus("");
+    try {
+      if (!copyOnly && navigator.share)
+        await navigator.share({ title: "Join my Alien Force room", url: roomLink });
+      else {
+        await navigator.clipboard.writeText(roomLink);
+        setShareStatus("Room link copied.");
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      setShareStatus("Select and copy the room link below.");
     }
   }
   useEffect(() => {
@@ -65,36 +104,61 @@ export default function MultiplayerLobby() {
       <p>Private 1v1 room · Unranked</p>
       {!multiplayerConfigured && <p role="status">Online rooms are not connected yet.</p>}
       {error && <p role="alert">{error}</p>}
-      {!lobby ? (
+      {busy && !lobby ? (
+        <div className="room-loading" role="status">
+          <span className="room-loading-ring" aria-hidden="true" />
+          <span>{entryMode === "create" ? "Creating your room..." : "Joining room..."}</span>
+        </div>
+      ) : !lobby ? (
         <>
-          <button disabled={busy || !multiplayerConfigured} onClick={() => void run("create")}>
-            Create room
-          </button>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void run("join");
-            }}
-          >
-            <label htmlFor="room-code">Room code</label>
-            <input
-              id="room-code"
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-              maxLength={6}
-              minLength={6}
-              pattern="[A-Za-z0-9]{6}"
-              required
-              autoComplete="off"
-            />
-            <button disabled={busy || !multiplayerConfigured}>Join room</button>
-          </form>
+          {entryMode !== "join" && (
+            <button disabled={busy || !multiplayerConfigured} onClick={() => void run("create")}>
+              {entryMode === "create" ? "Try again" : "Create room"}
+            </button>
+          )}
+          {entryMode !== "create" && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void run("join");
+              }}
+            >
+              <label htmlFor="room-code">Room code</label>
+              <input
+                id="room-code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                maxLength={6}
+                minLength={6}
+                pattern="[A-Za-z0-9]{6}"
+                required
+                autoComplete="off"
+              />
+              <button disabled={busy || !multiplayerConfigured}>Join room</button>
+            </form>
+          )}
         </>
       ) : (
         <>
           <p>
             Room code: <strong>{lobby.code}</strong>
           </p>
+          {lobby.status === "open" && (
+            <div className="room-sharing">
+              <label htmlFor="share-room-link">Room link</label>
+              <input
+                id="share-room-link"
+                readOnly
+                value={roomLink}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+              <div>
+                <button onClick={() => void shareRoom()}>Share room</button>
+                <button onClick={() => void shareRoom(true)}>Copy link</button>
+              </div>
+              {shareStatus && <p role="status">{shareStatus}</p>}
+            </div>
+          )}
           <p role="status">
             {lobby.status === "closed"
               ? "The host closed this room."

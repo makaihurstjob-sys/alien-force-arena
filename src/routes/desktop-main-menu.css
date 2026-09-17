@@ -1,0 +1,276 @@
+.desktop-arena,
+.desktop-menu-brand,
+.desktop-mode-detail,
+.desktop-mode-picker,
+.desktop-preview-label {
+  display: none;
+}
+@media (min-width: 768px) {
+  .home-menu {
+    padding: 0;
+  }
+  .mobile-main-menu {
+    display: block;
+    position: relative;
+    isolation: isolate;
+    min-height: 100svh;
+    overflow: hidden;
+    color: #f5f5f5;
+    font-family: "Windows Bold", monospace;
+  }
+  .mobile-menu-header,
+  .mode-carousel,
+  .mode-dots,
+  .mobile-mode-actions {
+    display: none;
+  }
+  .desktop-arena {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background: #1c2022;
+  }
+  .desktop-arena canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: pixelated;
+  }
+  .desktop-arena::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, #050707fa 0%, #060808ee 24%, #07090985 43%, #07090912 72%),
+      linear-gradient(0deg, #060909b0, transparent 28%);
+  }
+  .desktop-menu-brand {
+    display: block;
+    position: relative;
+    padding: clamp(28px, 4vw, 64px) 3.3vw 0;
+  }
+  .desktop-menu-brand h1 {
+    width: fit-content;
+    font-size: clamp(34px, 4.3vw, 72px);
+    line-height: 1;
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: 0.025em;
+    background: linear-gradient(90deg, #29f18a 0%, #e7ef59 39%, #ffb64c 63%, #ff535e 100%);
+    background-clip: text;
+    color: transparent;
+  }
+  .desktop-mode-detail {
+    display: block;
+    margin: clamp(42px, 8vh, 85px) 0 0 3.5vw;
+    width: clamp(310px, 28vw, 450px);
+    animation: desktop-mode-in 0.35s ease both;
+  }
+  .desktop-mode-detail canvas {
+    margin: 0 0 14px 65px;
+  }
+  .desktop-mode-detail h2 {
+    font-size: clamp(54px, 5vw, 84px);
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+  .desktop-mode-detail p {
+    color: #989ca8;
+    font-size: clamp(19px, 2vw, 32px);
+    margin: 6px 0 28px;
+  }
+  .desktop-play {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    min-height: 70px;
+    width: 100%;
+    border: 2px solid #65ffa9;
+    border-radius: 8px;
+    background: #20e680;
+    color: #06110c;
+    font-size: clamp(24px, 2.1vw, 34px);
+    box-shadow:
+      0 0 28px #19f88819,
+      inset 0 0 0 2px #ffffff15;
+    transition:
+      background 0.2s,
+      transform 0.2s;
+  }
+  .desktop-play:hover {
+    background: #5affaa;
+    transform: translateY(-2px);
+  }
+  .desktop-play:disabled {
+    background: #292d30;
+    border-color: #70747c;
+    color: #acafb5;
+    box-shadow: none;
+    transform: none;
+    cursor: not-allowed;
+  }
+  .desktop-mode-picker {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin: clamp(42px, 9vh, 100px) 0 115px 2vw;
+    width: fit-content;
+  }
+  .desktop-mode-tile {
+    width: clamp(110px, 11.8vw, 195px);
+    text-align: center;
+    color: #969aa7;
+  }
+  .desktop-thumbnail {
+    display: block;
+    border: 2px solid #565b64;
+    padding: 4px;
+    border-radius: 7px;
+    overflow: hidden;
+    background: #0e1214;
+    transition:
+      border-color 0.2s,
+      transform 0.2s;
+  }
+  .desktop-thumbnail canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1.65;
+    object-fit: cover;
+    image-rendering: pixelated;
+  }
+  .desktop-mode-tile strong {
+    display: block;
+    font-size: 22px;
+    margin-top: 8px;
+  }
+  .desktop-mode-tile small {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .desktop-mode-tile[aria-pressed="true"] {
+    color: white;
+  }
+  .desktop-mode-tile[aria-pressed="true"] .desktop-thumbnail {
+    border-color: #3aff9d;
+    box-shadow: 0 0 14px #3aff9d18;
+  }
+  .desktop-mode-tile[aria-pressed="true"] strong::after {
+    content: "";
+    display: block;
+    height: 3px;
+    background: #3aff9d;
+    width: 65%;
+    margin: 8px auto 0;
+  }
+  .desktop-mode-tile:hover .desktop-thumbnail {
+    transform: translateY(-3px);
+    border-color: #b7c1c8;
+  }
+  .desktop-mode-arrow {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 100px;
+    color: #bfc3cf;
+  }
+  .desktop-mode-arrow svg {
+    width: 32px;
+    height: 32px;
+  }
+  .mobile-room-actions {
+    position: absolute;
+    right: 3vw;
+    bottom: 100px;
+    display: flex;
+    gap: 20px;
+  }
+  .mobile-room-actions button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    min-height: 64px;
+    padding: 12px 26px;
+    border: 2px solid #626772;
+    border-radius: 7px;
+    background: #0a0e12d9;
+    color: #eee;
+    font-size: 23px;
+    transition:
+      border-color 0.2s,
+      background 0.2s;
+  }
+  .mobile-room-actions button:hover {
+    border-color: #3ee08a;
+    background: #14261e;
+  }
+  .mobile-main-menu footer {
+    position: absolute;
+    right: 2vw;
+    bottom: 24px;
+    color: #9399a3;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  .desktop-preview-label {
+    display: block;
+    position: absolute;
+    left: 2vw;
+    bottom: 24px;
+    color: #9399a3;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+  }
+  .mobile-main-menu button:focus-visible,
+  .mobile-main-menu a:focus-visible {
+    outline: 3px solid white;
+    outline-offset: 5px;
+  }
+  .mobile-main-menu button {
+    cursor: pointer;
+  }
+  .mobile-menu-dialog {
+    font-family: "Windows Bold", monospace;
+  }
+}
+@media (min-width: 768px) and (max-width: 1200px) {
+  .mobile-room-actions {
+    bottom: 65px;
+    gap: 12px;
+  }
+  .mobile-room-actions button {
+    padding: 10px 18px;
+    font-size: 20px;
+    min-height: 54px;
+  }
+  .desktop-mode-picker {
+    margin-bottom: 155px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .desktop-mode-detail {
+    animation: none;
+  }
+  .desktop-play,
+  .desktop-thumbnail {
+    transition: none;
+  }
+}
+@keyframes desktop-mode-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
