@@ -13,6 +13,9 @@ import {
 } from "./online";
 
 export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
+  const pauseRequested = useRef(false);
+  const [localPaused, setLocalPaused] = useState(false);
+  const requestPause = (paused: boolean) => { pauseRequested.current = paused; setLocalPaused(paused); };
   const inputRef = useRef<PlayerInput>({ ...EMPTY_INPUT });
   const latestLobby = useRef(lobby);
   latestLobby.current = lobby;
@@ -30,6 +33,7 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
 
   useEffect(() => {
     setView(null);
+    requestPause(false);
     setVoted(false);
     setCanStart(false);
     setStalled(false);
@@ -85,6 +89,7 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
       }
       host = null;
       current = null;
+      requestPause(false);
       display.current = null;
       inputRef.current = { ...EMPTY_INPUT };
       vote = false;
@@ -143,6 +148,7 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
       instance,
       sequence: ++sequence,
       active: active() && !duplicate,
+      paused: pauseRequested.current,
       input: active() && !duplicate ? { ...inputRef.current } : { ...EMPTY_INPUT },
       matchId: current?.matchId ?? null,
       rematch: vote,
@@ -281,6 +287,8 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
 
   return {
     view,
+    localPaused,
+    requestPause,
     display,
     inputRef,
     connectionStatus,

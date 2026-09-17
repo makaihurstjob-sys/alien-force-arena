@@ -14,7 +14,7 @@
   padding: 12px;
   border-radius: 8px;
 }
-.online-duel button {
+.online-duel button:not(.classic-pad-key):not(.classic-round):not(.classic-system) {
   color: #eef3f9;
   background: #303c4d;
   border: 1px solid #637184;
@@ -303,4 +303,13 @@
   }
   .online-match-screen .duel-controls { padding: 8px 4px; }
   .online-match-screen .duel-controls p { display: none; }
+}
+
+/* ClassicController owns its appearance; the online screen only places it. */
+.online-match-screen .duel-controls { display: block; }
+.online-match-screen .duel-controls .classic-controller { width: 100%; }
+.duel-controller-menu { gap: 12px; }
+.duel-controller-menu [data-controller-selected="true"] { outline: 3px solid #6fffe5; }
+@media (pointer: coarse) {
+  .online-match-screen .duel-controls .classic-keyboard-instructions { display: none; }
 }

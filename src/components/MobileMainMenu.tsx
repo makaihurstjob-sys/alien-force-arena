@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Link2, Settings, Users, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Link2, Users, X } from "lucide-react";
+import { PlayerProfile } from "./PlayerProfile";
 import { DesktopArena } from "./DesktopArena";
 import "@/routes/desktop-main-menu.css";
 import { ShipIcon } from "./ShipIcon";
@@ -103,6 +104,7 @@ export function MobileMainMenu() {
 
   return (
     <section className="mobile-main-menu" aria-label="Main menu">
+      <PlayerProfile />
       <div className="desktop-arena" aria-hidden="true">
         <DesktopArena mode={selected} />
       </div>
@@ -159,9 +161,7 @@ export function MobileMainMenu() {
       <header className="mobile-menu-header">
         <div className="mobile-menu-top">
           <ShipIcon size={34} />
-          <button aria-label="Menu information" onClick={() => setPanel("settings")}>
-            <Settings size={24} />
-          </button>
+
         </div>
         <h1>Alien Force Arena</h1>
         <p>Small arenas. Big battles.</p>

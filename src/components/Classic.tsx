@@ -1,3 +1,4 @@
+import ClassicController from "./ClassicController";
 import ClassicWindow, { type MenuController } from "./ClassicWindow";
 import spriteSheetUrl from "@/assets/classic/original-sprites.bmp?url";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -190,151 +191,13 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
             {stats.over ? "GAME OVER" : stats.shotInPlay ? "SHOT IN PLAY" : "SHOT READY"}
           </span>
         </div>
-        <section
-          className="classic-controller"
-          aria-label="Game Boy touch controls"
-          onPointerDownCapture={(e) => {
-            if (!(e.target as HTMLElement).closest('[aria-label^="Start:"]')) resumeFromAway();
-          }}
-          onClickCapture={(e) => {
-            if (!(e.target as HTMLElement).closest('[aria-label^="Start:"]')) resumeFromAway();
-          }}
-          onKeyDownCapture={(e) => {
-            if (
-              ["Enter", "Space"].includes(e.code) &&
-              !(e.target as HTMLElement).closest('[aria-label^="Start:"]')
-            )
-              resumeFromAway();
-          }}
-        >
-          <div className="classic-controller-main">
-            <div className="classic-dpad" role="group" aria-label="Direction pad">
-              {(["up", "left", "down", "right"] as const).map((direction) => (
-                <button
-                  key={direction}
-                  className={`classic-pad-key classic-pad-${direction}`}
-                  aria-label={`Move ${direction}`}
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.setPointerCapture(e.pointerId);
-                    if (windowBlocked) {
-                      menuController.current?.move(direction);
-                      return;
-                    }
-                    input.current.direction = direction;
-                  }}
-                  onPointerUp={() => {
-                    if (input.current.direction === direction) input.current.direction = null;
-                  }}
-                  onPointerCancel={() => {
-                    if (input.current.direction === direction) input.current.direction = null;
-                  }}
-                  onLostPointerCapture={() => {
-                    if (input.current.direction === direction) input.current.direction = null;
-                  }}
-                  onClick={(e) => {
-                    if (e.detail === 0) {
-                      if (windowBlocked) menuController.current?.move(direction);
-                      else input.current.direction = direction;
-                    }
-                  }}
-                >
-                  {{ up: "\u25b2", left: "\u25c0", down: "\u25bc", right: "\u25b6" }[direction]}
-                </button>
-              ))}
-              <span className="classic-pad-center" aria-hidden="true" />
-            </div>
-            <div className="classic-ab" role="group" aria-label="Action buttons">
-              <div className="classic-action classic-action-b">
-                <button
-                  className="classic-round"
-                  aria-label="B: Reverse"
-                  onClick={() => {
-                    if (windowBlocked) {
-                      menuController.current?.back();
-                      return;
-                    }
-                    input.current.direction = null;
-                    input.current.reverse = true;
-                  }}
-                >
-                  B
-                </button>
-                <span>REVERSE</span>
-              </div>
-              <div className="classic-action classic-action-a">
-                <button
-                  className="classic-round"
-                  aria-label="A: Fire"
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.setPointerCapture(e.pointerId);
-                    if (windowBlocked) {
-                      menuController.current?.select();
-                      return;
-                    }
-                    input.current.fire = true;
-                  }}
-                  onPointerUp={() => {
-                    input.current.fire = false;
-                  }}
-                  onPointerCancel={() => {
-                    input.current.fire = false;
-                  }}
-                  onLostPointerCapture={() => {
-                    input.current.fire = false;
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.code === "Space" || e.code === "Enter") {
-                      if (windowBlocked) {
-                        e.preventDefault();
-                        menuController.current?.select();
-                      } else input.current.fire = true;
-                    }
-                  }}
-                  onKeyUp={() => {
-                    input.current.fire = false;
-                  }}
-                  onBlur={() => {
-                    input.current.fire = false;
-                  }}
-                >
-                  A
-                </button>
-                <span>FIRE</span>
-              </div>
-            </div>
-          </div>
-          <div className="classic-system-buttons">
-            <button
-              className="classic-system"
-              aria-label="Menu"
-              onClick={() => menuController.current?.menu()}
-            >
-              <span aria-hidden="true">&#9473;</span>MENU
-            </button>
-            <button
-              className="classic-system"
-              aria-label="Select: Confirm"
-              onClick={() => {
-                menuController.current?.select();
-              }}
-            >
-              <span aria-hidden="true">&#9473;</span>SELECT
-            </button>
-            <button
-              className="classic-system"
-              aria-label={paused || awayPaused ? "Start: Resume" : "Start: Pause"}
-              onClick={() => {
-                if (away.current) resumeFromAway();
-                else setPaused((p) => !p);
-                canvas.current?.focus();
-              }}
-            >
-              <span aria-hidden="true">&#9473;</span>START
-            </button>
-          </div>
-        </section>
+        <ClassicController input={input} menuController={menuController}
+          windowBlocked={windowBlocked} resumeFromAway={resumeFromAway}
+          paused={paused || awayPaused} onStart={() => {
+            if (away.current) resumeFromAway();
+            else setPaused(p => !p);
+            canvas.current?.focus();
+          }} />
         <p className="classic-desktop-stats">
           Level {stats.level} | Score {stats.score} | Lives {stats.lives}
           {stats.over ? " | Game over - select New game to retry." : ""}

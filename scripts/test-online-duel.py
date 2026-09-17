@@ -99,12 +99,44 @@ async def main():
                 await g.wait_for_timeout(duration)
                 await touch.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
             await press_touch("Move up", 650)
-            await press_touch("Fire", 150)
+            await press_touch("A: Fire", 150)
             await g.wait_for_timeout(200)
             after = snapshots["host"][-1]["state"]["ships"][1]
             assert after["y"] < before["y"], (before, after)
             assert after["shots"] > before["shots"], (before, after)
             print("PASS: mobile lane steering and fire reach host simulation", flush=True)
+
+            # The exact same controller drives Classic and online play.
+            await g.get_by_role("button", name="B: Reverse", exact=True).click()
+            await g.wait_for_timeout(250)
+            turned = snapshots["host"][-1]["state"]["ships"][1]
+            assert abs(abs(turned["angle"] - after["angle"]) - 3.141592653589793) < 0.01
+            await g.get_by_role("button", name="Start: Pause", exact=True).click()
+            await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'true'")
+            frozen_tick = await h.locator(".online-duel").get_attribute("data-tick")
+            await h.wait_for_timeout(500)
+            assert await h.locator(".online-duel").get_attribute("data-tick") == frozen_tick
+            classic = await mobile.new_page()
+            await classic.goto(ORIGIN + "classic", wait_until="networkidle")
+            async def controller_styles(page):
+                return await page.locator(".classic-controller").evaluate("""el =>
+                  ['.classic-pad-up', '.classic-round', '.classic-system'].map(selector => {
+                    const s = getComputedStyle(el.querySelector(selector));
+                    return [s.backgroundColor, s.backgroundImage, s.borderRadius, s.borderTopWidth,
+                      s.fontSize, s.padding, s.width, s.height];
+                  })""")
+            assert await controller_styles(classic) == await controller_styles(g), "Classic controller style mismatch"
+            await classic.get_by_role("button", name="Menu", exact=True).click()
+            await classic.get_by_role("button", name="B: Reverse", exact=True).click()
+            await classic.close()
+            await g.get_by_role("button", name="Start: Resume", exact=True).click()
+            await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'false'")
+            await g.get_by_role("button", name="Menu", exact=True).click()
+            await g.get_by_role("group", name="Match menu", exact=True).wait_for()
+            await g.get_by_role("button", name="Select: Confirm", exact=True).click()
+            await h.wait_for_function("document.querySelector('.online-duel')?.dataset.paused === 'false'")
+            assert await g.get_by_role("group", name="Match menu", exact=True).count() == 0
+            print("PASS: shared Classic controller styles, B reverse, START pause/resume, MENU/SELECT", flush=True)
 
             # Deliberately drop the guest network. Both clients must pause; score must freeze.
             await mobile.set_offline(True)

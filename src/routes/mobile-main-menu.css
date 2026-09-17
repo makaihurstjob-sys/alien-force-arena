@@ -298,17 +298,15 @@
     flex: 1;
     min-width: 0;
     min-height: 56px;
-    border: 2px solid #3ee08a;
-    border-radius: 11px;
-    background: #141e18e8;
-    color: #3ee08a;
-    font-size: clamp(14px, 4.2vw, 22px);
-    text-transform: uppercase;
+    border: 2px solid #626772;
+    border-radius: 7px;
+    background: #0a0e12d9;
+    color: #eee;
+    font-size: clamp(16px, 4.8vw, 23px);
   }
-  .mobile-room-actions button:last-child {
-    color: #ff5f5f;
-    border-color: #ff5f5f;
-    background: #231719e8;
+  .mobile-room-actions button:hover {
+    border-color: #3ee08a;
+    background: #14261e;
   }
   .mobile-room-actions svg {
     width: 22px;

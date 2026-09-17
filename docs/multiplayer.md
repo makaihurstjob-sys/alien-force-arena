@@ -115,3 +115,24 @@ Online matches open on a dedicated game screen outside the lobby dialog. The
 Classic window frame contains the arena and match status; phones place controls
 below the arena. Leaving or returning to the room restores the lobby while
 keeping its connection and identity intact until the player explicitly leaves.
+
+## Player profile menu
+
+The top-right circle opens the profile menu on desktop and mobile. Its white plus
+is dismissed after the first opening (stored on this browser). Guests keep the
+same plain circle; Discord users display their provider avatar when available.
+Display names are saved to the existing RLS-protected profiles table, use 2–24
+characters, and appear in room rosters. Names must be unique.
+
+Discord sign-in uses the same Supabase client as rooms. The provider is currently
+disabled in the connected project's Auth settings (verified September 16, 2026).
+The button reports this without navigating away. To activate it, configure a
+Discord OAuth application and its credentials in Supabase Auth, register the
+Supabase callback in Discord, and allow the production redirect URL
+https://makaihurstjob-sys.github.io/alien-force-classic/ in Supabase. Keep the
+Discord client secret only in the provider configuration, never in frontend env.
+Reference: https://supabase.com/docs/guides/auth/social-login/auth-discord
+
+Discord login switches to the Discord identity; guest room/profile history is
+not merged in this initial version. Real Discord consent and avatar retrieval
+still need end-to-end verification once the provider is enabled.

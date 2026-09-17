@@ -1,4 +1,7 @@
-import { useCallback, useEffect, useRef } from "react";
+import ClassicController from "./ClassicController";
+import type { MenuController } from "./ClassicWindow";
+import type { ClassicInput } from "@/game/classic/engine";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PVP_RULES } from "@/game/config";
 import { interpolateDuel } from "@/game/online";
 import { renderClassicDuel } from "@/game/classic/duel-render";
@@ -45,7 +48,19 @@ export function OnlineDuel({
   }, []);
   const canvas = useRef<HTMLCanvasElement>(null);
   const { inputRef, display } = duel;
-  const held = useRef(new Map<number, keyof PlayerInput>());
+  const controllerInput = useRef<ClassicInput>({ direction: null, fire: false });
+  const reverseUntil = useRef(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuIndex, setMenuIndex] = useState(0);
+  const menuController = useRef<MenuController | null>(null);
+  const closeMenu = () => { setMenuOpen(false); duel.requestPause(false); canvas.current?.focus(); };
+  const menuActions = [closeMenu, onReturn, onLeave];
+  menuController.current = {
+    menu: () => { if (menuOpen) closeMenu(); else { setMenuIndex(0); setMenuOpen(true); duel.requestPause(true); } },
+    move: direction => setMenuIndex(i => (i + (direction === "up" || direction === "left" ? 2 : 1)) % 3),
+    select: () => { if (menuOpen && !busy) menuActions[menuIndex]?.(); },
+    back: closeMenu,
+  };
   const keys = useRef(new Set<string>());
   const enabled = useRef(false);
   const snapshot = duel.view!;
@@ -58,7 +73,17 @@ export function OnlineDuel({
         const key = mapping[code];
         if (key) input[key] = true;
       }
-      for (const key of held.current.values()) input[key] = true;
+      const direction = controllerInput.current.direction;
+      if (direction) {
+        input.thrust = direction === "up"; input.reverse = direction === "down";
+        input.left = direction === "left"; input.right = direction === "right";
+      }
+      input.fire ||= controllerInput.current.fire;
+      if (controllerInput.current.reverse) {
+        reverseUntil.current = performance.now() + 150;
+        controllerInput.current.reverse = false;
+      }
+      input.turnaround ||= performance.now() < reverseUntil.current;
     }
     inputRef.current = input;
   }, [inputRef]);
@@ -82,7 +107,8 @@ export function OnlineDuel({
     };
     const reset = () => {
       keys.current.clear();
-      held.current.clear();
+      controllerInput.current = { direction: null, fire: false };
+      reverseUntil.current = 0;
       inputRef.current = { ...EMPTY_INPUT };
     };
     window.addEventListener("keydown", down);
@@ -91,6 +117,7 @@ export function OnlineDuel({
     document.addEventListener("visibilitychange", reset);
     let frame = 0;
     const draw = (now: number) => {
+      updateInput();
       const frameState = display.current;
       const ctx = canvas.current?.getContext("2d");
       if (ctx && frameState)
@@ -112,41 +139,12 @@ export function OnlineDuel({
     };
   }, [inputRef, display, updateInput]);
   useEffect(() => {
-    held.current.clear();
+    controllerInput.current = { direction: null, fire: false };
+    reverseUntil.current = 0;
     keys.current.clear();
     duel.inputRef.current = { ...EMPTY_INPUT };
   }, [snapshot.matchId, snapshot.paused, duel.stalled, snapshot.ended, duel.inputRef]);
 
-  const control = (action: keyof PlayerInput, label: string, glyph: string) => (
-    <button
-      type="button"
-      data-control={action}
-      className={`duel-control duel-${action}`}
-      aria-label={label}
-      onPointerDown={(event) => {
-        event.preventDefault();
-        event.currentTarget.setPointerCapture(event.pointerId);
-        held.current.set(event.pointerId, action);
-        updateInput();
-        canvas.current?.focus();
-      }}
-      onPointerUp={(event) => {
-        held.current.delete(event.pointerId);
-        updateInput();
-      }}
-      onPointerCancel={(event) => {
-        held.current.delete(event.pointerId);
-        updateInput();
-      }}
-      onLostPointerCapture={(event) => {
-        held.current.delete(event.pointerId);
-        updateInput();
-      }}
-      onContextMenu={(event) => event.preventDefault()}
-    >
-      {glyph}
-    </button>
-  );
   const state = snapshot.state;
   const you = state.ships.find((s) => s.id === player)!;
   const winner = state.matchWinner;
@@ -181,11 +179,16 @@ export function OnlineDuel({
           tabIndex={0}
           aria-label={`Arena. You control the ${you.team === 0 ? "white" : "orange"} ship.`}
         />
-        {(snapshot.ended || paused) && (
+        {menuOpen && <div className="duel-overlay duel-controller-menu" role="group" aria-label="Match menu">
+          {["Resume game", "Return to room", "Leave match"].map((label, index) =>
+            <button key={label} disabled={busy} data-controller-selected={menuIndex === index ? "true" : undefined}
+              onClick={menuActions[index]}>{label}</button>)}
+        </div>}
+        {!menuOpen && (snapshot.ended || paused) && (
           <div className="duel-overlay" role="status">
             <strong>{snapshot.ended ? "Match ended" : "Match paused"}</strong>
             <p>
-              {snapshot.ended || "Waiting for both players to reconnect or return to the game."}
+              {snapshot.ended || (duel.localPaused ? "Press START to resume." : "Waiting for the other player to resume or reconnect.")}
             </p>
             {!snapshot.ended && <small>Keep the game visible on both devices.</small>}
           </div>
@@ -216,20 +219,12 @@ export function OnlineDuel({
         </section>
       ) : (
         !snapshot.ended && (
-          <div className="duel-controls" aria-label="Touch controls">
-            <div className="duel-dpad">
-              {control("thrust", "Move up", "▲")}
-              {control("left", "Move left", "◀")}
-              {control("right", "Move right", "▶")}
-              {control("reverse", "Move down", "▼")}
-            </div>
-            <p>
-              WASD / arrows to steer
-              <br />
-              Space to fire / R to reverse
-            </p>
-            {control("turnaround", "Reverse direction", "REV")}
-            {control("fire", "Fire", "FIRE")}
+          <div className="duel-controls">
+            <ClassicController input={controllerInput} menuController={menuController}
+              windowBlocked={menuOpen} resumeFromAway={() => {}}
+              paused={duel.localPaused} onInputChange={updateInput}
+              onStart={() => { if (menuOpen) closeMenu(); else duel.requestPause(!duel.localPaused); }} />
+            <p className="classic-keyboard-instructions">WASD / arrows to steer. Space to fire. R to reverse.</p>
           </div>
         )
       )}

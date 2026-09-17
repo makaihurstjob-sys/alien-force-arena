@@ -116,6 +116,25 @@ describe("online host simulation", () => {
     expect(host.rematchVotes).toHaveLength(2);
   });
 
+  it("pauses both pilots on START without treating an intentional pause as a disconnect", () => {
+    const host = new DuelHost("match", players);
+    connect(host);
+    host.advance(0, true);
+    const tick = host.state.tick;
+    for (let time = 100; time <= 40100; time += 100) {
+      host.receive(packet("host", time), time);
+      host.receive(packet("guest", time, { paused: true }), time);
+      host.advance(time, true);
+    }
+    expect(host.paused).toBe(true);
+    expect(host.state.tick).toBe(tick);
+    expect(host.ended).toBe("");
+    connect(host, 40200, 40200);
+    host.advance(40200, true);
+    expect(host.paused).toBe(false);
+    expect(host.state.tick).toBe(tick + 1);
+  });
+
   it("rejects malformed wire data", () => {
     expect(isPilotPacket({ ...packet("guest"), input: { fire: "yes" } })).toBe(false);
     expect(isPilotPacket({ ...packet("guest"), sequence: NaN })).toBe(false);

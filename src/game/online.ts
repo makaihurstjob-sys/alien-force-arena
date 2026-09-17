@@ -11,6 +11,7 @@ export type PilotPacket = {
   instance: string;
   sequence: number;
   active: boolean;
+  paused?: boolean;
   input: PlayerInput;
   matchId: string | null;
   rematch: boolean;
@@ -34,6 +35,7 @@ export function isPilotPacket(value: unknown): value is PilotPacket {
     Number.isSafeInteger(p.sequence) &&
     p.sequence >= 0 &&
     typeof p.active === "boolean" &&
+    (p.paused === undefined || typeof p.paused === "boolean") &&
     typeof p.rematch === "boolean" &&
     (p.matchId === null || typeof p.matchId === "string") &&
     (p.returnFrom === null || typeof p.returnFrom === "string") &&
@@ -125,12 +127,14 @@ export class DuelHost {
 
   advance(now: number, connected: boolean) {
     if (this.ended) return;
-    this.paused =
+    const disconnected =
       !connected ||
       this.players.some((p) => {
         const peer = this.peers.get(p.id);
         return !peer || !peer.packet.active || now - peer.receivedAt > PEER_TIMEOUT_MS;
       });
+    this.paused = disconnected || this.players.some(p => this.peers.get(p.id)?.packet.paused);
+    if (this.paused && !disconnected) { this.missingSince = null; return; }
     if (this.paused) {
       this.missingSince ??= now;
       if (now - this.missingSince >= DISCONNECT_LIMIT_MS)
