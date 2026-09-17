@@ -57,9 +57,6 @@
     text-transform: uppercase;
     font-weight: 900;
     letter-spacing: 0.025em;
-    background: linear-gradient(90deg, #29f18a 0%, #e7ef59 39%, #ffb64c 63%, #ff535e 100%);
-    background-clip: text;
-    color: transparent;
   }
   .desktop-mode-detail {
     display: block;

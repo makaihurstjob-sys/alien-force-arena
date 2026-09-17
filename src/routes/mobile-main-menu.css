@@ -122,9 +122,6 @@
     line-height: 1.15;
     text-transform: uppercase;
     margin: 12px 0 8px;
-    background: linear-gradient(90deg, #3ee08a, #ffe066, #ff5f5f);
-    background-clip: text;
-    color: transparent;
     font-weight: 900;
   }
   .mobile-menu-header p {
@@ -392,3 +389,25 @@
 .room-copy-check path { stroke-dasharray: 24; stroke-dashoffset: 0; animation: room-check-draw 300ms ease-out; }
 @keyframes room-check-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .room-copy-button { transition: none; } .room-copy-check path { animation: none; } }
+
+/* Exact bright colors from assets/classic/original-sprites.bmp.
+   Two identical cycles make the horizontal loop seamless. */
+.mobile-menu-header h1,
+.desktop-menu-brand h1 {
+  background-image: linear-gradient(90deg,
+    #00ffff 0%, #00ff00 12.5%, #ffff00 25%, #ff0000 37.5%,
+    #00ffff 50%, #00ff00 62.5%, #ffff00 75%, #ff0000 87.5%, #00ffff 100%);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: title-gradient-flow 8s linear infinite;
+}
+@keyframes title-gradient-flow {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu-header h1,
+  .desktop-menu-brand h1 { animation: none; }
+}
