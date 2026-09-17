@@ -58,7 +58,7 @@ describe("classic simulation", () => {
 
 it("continues moving after release and reverses without stopping", () => {
   const s = createClassic();
-  tickClassic(s, idle, 1 / 60, () => 1);
+  tickClassic(s, { ...idle, direction: "left" }, 1 / 60, () => 1);
   const x = s.player.x;
   tickClassic(s, idle, 1 / 60, () => 1);
   expect(s.player.x).toBeLessThan(x);
@@ -160,5 +160,41 @@ describe("enemy progression", () => {
     tickClassic(s, idle, 1 / 60, random);
     expect(calls).toBe(firstCalls);
     expect(s.enemies[0]!.x).toBeGreaterThan(212);
+  });
+});
+
+
+describe("original opening", () => {
+  it("places nine enemies in the first nine top lanes", () => {
+    const s = createClassic();
+    expect(s.enemies).toHaveLength(9);
+    expect(s.enemies.map(e => e.x)).toEqual(Array.from({ length: 9 }, (_, i) => CLASSIC.margin + i * CLASSIC.spacing));
+    expect(s.enemies.every(e => e.y === CLASSIC.margin && e.direction === "down")).toBe(true);
+  });
+  it("waits for steering, even when firing or reversing", () => {
+    const s = createClassic();
+    const start = { x: s.player.x, y: s.player.y };
+    for (let i = 0; i < 60; i++) tickClassic(s, idle);
+    tickClassic(s, { ...idle, fire: true });
+    tickClassic(s, { ...idle, reverse: true });
+    expect({ x: s.player.x, y: s.player.y }).toEqual(start);
+    expect(s.playerMoving).toBe(false);
+    tickClassic(s, { ...idle, direction: "up" });
+    expect(s.player.y).toBeLessThan(start.y);
+    const y = s.player.y;
+    tickClassic(s, idle);
+    expect(s.player.y).toBeLessThan(y);
+  });
+  it("waits for steering again after losing a life", () => {
+    const s = createClassic();
+    s.playerMoving = true;
+    s.invulnerable = 0;
+    s.enemies = [{ ...s.player, id: 1 }];
+    tickClassic(s, idle, 1 / 60, () => 1);
+    expect(s.lives).toBe(2);
+    expect(s.enemies).toHaveLength(9);
+    expect(s.playerMoving).toBe(false);
+    tickClassic(s, idle);
+    expect(s.player.x).toBe(412);
   });
 });

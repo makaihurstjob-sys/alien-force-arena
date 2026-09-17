@@ -27,6 +27,7 @@ export type Enemy = Actor & { canFire?: boolean; lastDecision?: string };
 type Shot = Actor & { owner: number };
 export type ClassicState = {
   player: Actor;
+  playerMoving: boolean;
   enemies: Enemy[];
   shots: Shot[];
   score: number;
@@ -47,7 +48,7 @@ export type ClassicInput = {
 const lane = (n: number) => CLASSIC.margin + n * CLASSIC.spacing;
 const nearest = (v: number) => lane(Math.round((v - CLASSIC.margin) / CLASSIC.spacing));
 function wave(): Enemy[] {
-  return Array.from({ length: 6 }, (_, i) => ({
+  return Array.from({ length: 9 }, (_, i) => ({
     id: i + 1,
     x: lane(i),
     y: lane(0),
@@ -61,6 +62,7 @@ export function createClassic(level = 1): ClassicState {
     throw new RangeError("Level must be between 1 and 999");
   return {
     player: { id: 0, x: lane(10), y: lane(10), direction: "left" },
+    playerMoving: false,
     enemies: wave(),
     shots: [],
     score: 0,
@@ -109,6 +111,7 @@ function loseLife(s: ClassicState) {
     return;
   }
   s.player = { id: 0, x: lane(10), y: lane(10), direction: "left" };
+  s.playerMoving = false;
   s.enemies = wave();
   s.invulnerable = CLASSIC.invulnerability;
 }
@@ -141,7 +144,9 @@ export function tickClassic(
     };
     s.player.direction = opposite[s.player.direction];
   }
-  moveActor(s.player, input.reverse ? null : input.direction, CLASSIC.playerSpeed * dt);
+  if (input.direction) s.playerMoving = true;
+  if (s.playerMoving)
+    moveActor(s.player, input.reverse ? null : input.direction, CLASSIC.playerSpeed * dt);
   if (input.fire) fire(s, s.player);
   for (const enemy of s.enemies) {
     // Stop exactly at each crossing before choosing a turn. A proximity check
