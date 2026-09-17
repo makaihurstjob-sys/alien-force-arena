@@ -387,3 +387,10 @@
     transition: none;
   }
 }
+.room-copy-button { position: relative; transition: background-color 180ms ease, border-color 180ms ease; }
+.mobile-menu-dialog .classic-lobby .room-copy-button.is-copied { background: #3ee08a; border-color: #3ee08a; color: #102017; }
+.room-copy-button.is-copied .room-copy-label { visibility: hidden; }
+.room-copy-check { position: absolute; width: 26px; height: 26px; left: 50%; top: 50%; transform: translate(-50%, -50%); fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.room-copy-check path { stroke-dasharray: 24; stroke-dashoffset: 0; animation: room-check-draw 300ms ease-out; }
+@keyframes room-check-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .room-copy-button { transition: none; } .room-copy-check path { animation: none; } }

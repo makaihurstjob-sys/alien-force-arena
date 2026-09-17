@@ -18,6 +18,8 @@ export default function MultiplayerLobby({
   const [busy, setBusy] = useState(entryMode === "create");
   const started = useRef(false);
   const inFlight = useRef(false);
+  const [copiedButton, setCopiedButton] = useState<"copy" | "share" | null>(null);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [shareStatus, setShareStatus] = useState("");
   const [error, setError] = useState("");
   const mounted = useRef(true);
@@ -25,6 +27,7 @@ export default function MultiplayerLobby({
     mounted.current = true;
     return () => {
       mounted.current = false;
+      clearTimeout(copiedTimer.current);
     };
   }, []);
   async function run(action: "create" | "join" | "ready" | "leave") {
@@ -64,12 +67,16 @@ export default function MultiplayerLobby({
   const roomLink = lobby ? `${window.location.origin}${import.meta.env.BASE_URL}#room=${encodeURIComponent(lobby.code)}` : "";
   async function shareRoom(copyOnly = false) {
     setShareStatus("");
+    setCopiedButton(null);
+    clearTimeout(copiedTimer.current);
     try {
       if (!copyOnly && navigator.share)
         await navigator.share({ title: "Join my Alien Force room", url: roomLink });
       else {
         await navigator.clipboard.writeText(roomLink);
-        setShareStatus("Room link copied.");
+        if (!mounted.current) return;
+        setCopiedButton(copyOnly ? "copy" : "share");
+        copiedTimer.current = setTimeout(() => setCopiedButton(null), 2200);
       }
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") return;
@@ -153,8 +160,17 @@ export default function MultiplayerLobby({
                 onFocus={(event) => event.currentTarget.select()}
               />
               <div>
-                <button onClick={() => void shareRoom()}>Share room</button>
-                <button onClick={() => void shareRoom(true)}>Copy link</button>
+                {(["share", "copy"] as const).map((action) => (
+                  <button
+                    key={action}
+                    className={`room-copy-button ${copiedButton === action ? "is-copied" : ""}`}
+                    aria-label={copiedButton === action ? "Link copied" : action === "copy" ? "Copy link" : "Share room"}
+                    onClick={() => void shareRoom(action === "copy")}
+                  >
+                    <span className="room-copy-label">{action === "copy" ? "Copy link" : "Share room"}</span>
+                    {copiedButton === action && <svg className="room-copy-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4L19 6" /></svg>}
+                  </button>
+                ))}
               </div>
               {shareStatus && <p role="status">{shareStatus}</p>}
             </div>
