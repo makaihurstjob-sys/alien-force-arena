@@ -14,30 +14,31 @@ The ranked gameplay card remains Coming soon.
 
 ## Rank brainstorm — not approved or enforced
 
-Proposed space theme, low to high:
+Owner approved these names on September 18, 2026. The Ranked Ratings panel
+shows them as labeled color swatches, lowest to highest. Colors are temporary
+and centralized in `src/lib/ranks.ts`; sprites can replace them later.
 
-| Tier | Name | Badge direction |
+Space theme, low to high:
+
+| Tier | Name | Temporary color |
 | --- | --- | --- |
-| 1 | Cadet | Gray, one chevron |
-| 2 | Scout | Teal, paired chevrons |
-| 3 | Pilot | Blue, wings |
-| 4 | Ace | Gold, winged star |
-| 5 | Commander | Crimson, crowned wings |
-| 6 | Galactic Legend | Violet, star and orbital ring |
-
-Alternative familiar ladder: Bronze, Silver, Gold, Platinum, Diamond,
-with Galactic Legend as the distinctive top tier.
+| 1 | Cadet | Gray `#a8b5c7` |
+| 2 | Scout | Mint `#53dfbe` |
+| 3 | Pilot | Blue `#69baff` |
+| 4 | Ace | Gold `#ffda6b` |
+| 5 | Commander | Coral `#ff8899` |
+| 6 | Galactic Legend | Violet `#d0a0ff` |
 
 Suggestion: ten placement matches, then rating-based promotion and demotion.
 Consider three divisions in each ordinary tier; keep the top tier undivided.
 These are Alien Force proposals, not claims about Brawlhalla's rules.
-Do not set public thresholds until rank names, starting rating, and expected
+Do not set public thresholds until starting rating and expected
 rating movement have been decided. Small early populations favor a simple
 ladder; avoid a top-N requirement until there are enough active competitors.
 
 ## Next implementation stages
 
-1. Agree on names, divisions, placement count, rating thresholds, season length,
+1. Agree on divisions, placement count, rating thresholds, season length,
    and whether peak means season peak (recommended) or lifetime peak.
 2. Define a season and one player rating record per season and mode. Store
    current rating, season peak, wins, losses, and placement progress. Matchmaking

@@ -1,4 +1,13 @@
 .ranked-tracker .tracker-eyebrow { color: #d0a0ff; }
+.ranked-progression { margin: 20px 0; }
+.ranked-progression-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+.ranked-progression-heading h4 { font-size: 16px; }
+.ranked-progression-heading > span { font-size: 12px; color: #a2b6c6; }
+.ranked-tier-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; list-style: none; padding: 0; margin: 0; }
+.ranked-tier-list li { display: flex; align-items: center; gap: 9px; padding: 12px; background: #142630; border: 1px solid #294652; border-radius: 6px; min-width: 0; }
+.ranked-tier-swatch { width: 14px; height: 14px; flex-shrink: 0; border-radius: 2px; }
+.ranked-tier-name { font-size: 15px; overflow-wrap: anywhere; }
+.ranked-tier-number { margin-left: auto; color: #a2b6c6; font-size: 12px; }
 .ranked-tracker .ranked-season-status { color: #dfc5ff; border: 1px solid #70538d; border-radius: 5px; padding: 4px 10px; font-size: 12px; }
 .ranked-filters { display: grid; grid-template-columns: minmax(0, 1fr) 160px 110px; gap: 14px; margin-top: 22px; }
 .ranked-filters label { display: grid; gap: 7px; color: #a2b6c6; font-size: 14px; min-width: 0; }
@@ -14,6 +23,9 @@
 .ranked-empty-cell h4 { font-size: 23px; margin-bottom: 8px; }
 .ranked-empty-cell p { color: #a2b6c6; font-size: 14px; }
 @media (max-width: 600px) {
+  .ranked-tier-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ranked-tier-list li { padding: 10px 8px; gap: 6px; }
+  .ranked-tier-name { font-size: 13px; }
   .ranked-filters { grid-template-columns: 1fr 1fr; }
   .ranked-search { grid-column: 1 / -1; }
   .ranked-tracker .tracker-pagination { gap: 6px; font-size: 12px; }
