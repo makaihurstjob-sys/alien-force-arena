@@ -1,0 +1,23 @@
+.ranked-tracker .tracker-eyebrow { color: #d0a0ff; }
+.ranked-tracker .ranked-season-status { color: #dfc5ff; border: 1px solid #70538d; border-radius: 5px; padding: 4px 10px; font-size: 12px; }
+.ranked-filters { display: grid; grid-template-columns: minmax(0, 1fr) 160px 110px; gap: 14px; margin-top: 22px; }
+.ranked-filters label { display: grid; gap: 7px; color: #a2b6c6; font-size: 14px; min-width: 0; }
+.ranked-search > span { position: relative; display: flex; align-items: center; }
+.ranked-search svg { position: absolute; left: 12px; }
+.ranked-tracker .ranked-filters input, .ranked-tracker .ranked-filters select { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #37505f; border-radius: 6px; background: #142630; color: #a2b6c6; padding: 10px 12px; font: inherit; }
+.ranked-tracker .ranked-filters input { padding-left: 40px; }
+.ranked-tracker .ranked-filters input::placeholder { color: #a2b6c6; opacity: 1; }
+.ranked-filters :disabled, .ranked-tracker button:disabled { cursor: not-allowed; opacity: .65; }
+.ranked-tracker .tracker-table-scroll:focus-visible { outline: 2px solid #d0a0ff; outline-offset: 3px; }
+.ranked-tracker .ranked-empty-cell { text-align: center; padding: 38px 16px; border-bottom: 1px solid #294652; }
+.ranked-empty-cell svg { margin: 0 auto 12px; color: #d0a0ff; }
+.ranked-empty-cell h4 { font-size: 23px; margin-bottom: 8px; }
+.ranked-empty-cell p { color: #a2b6c6; font-size: 14px; }
+@media (max-width: 600px) {
+  .ranked-filters { grid-template-columns: 1fr 1fr; }
+  .ranked-search { grid-column: 1 / -1; }
+  .ranked-tracker .tracker-pagination { gap: 6px; font-size: 12px; }
+  .ranked-tracker .tracker-pagination button { padding: 6px; }
+  .ranked-tracker table { min-width: 670px; }
+  .ranked-empty-cell p { max-width: 290px; margin: auto; }
+}

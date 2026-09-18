@@ -7,6 +7,7 @@ import "@/routes/desktop-main-menu.css";
 import { ShipIcon } from "./ShipIcon";
 import MultiplayerLobby from "./MultiplayerLobby";
 import ClassicLeaderboard from "./ClassicLeaderboard";
+import RankedRatings from "./RankedRatings";
 import { createClassic, tickClassic } from "@/game/classic/engine";
 import { renderClassic } from "@/game/classic/render";
 import { createMatch } from "@/game/engine";
@@ -308,7 +309,7 @@ export function MobileMainMenu() {
       <footer>Fight · Adapt · Survive</footer>
       <dialog
         ref={dialog}
-        className={`mobile-menu-dialog ${roomPlaying ? "is-playing" : ""} ${panel === "leaderboard" ? "classic-tracker-dialog" : ""}`}
+        className={`mobile-menu-dialog ${roomPlaying ? "is-playing" : ""} ${(panel === "leaderboard" || panel === "ratings") ? "classic-tracker-dialog" : ""}`}
         aria-labelledby="mobile-panel-title"
         onCancel={(event) => {
           if (roomBusy || roomPlaying) event.preventDefault();
@@ -321,7 +322,7 @@ export function MobileMainMenu() {
         } }}
       >
         <div className="mobile-panel-heading">
-          <h2 id="mobile-panel-title" className={panel === "leaderboard" ? "sr-only" : undefined}>
+          <h2 id="mobile-panel-title" className={(panel === "leaderboard" || panel === "ratings") ? "sr-only" : undefined}>
             {panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
               ? "About the game"
               : panel === "join"
@@ -332,17 +333,7 @@ export function MobileMainMenu() {
             <X />
           </button>
         </div>
-        {panel === "leaderboard" ? <ClassicLeaderboard /> : panel === "ratings" ? (
-          <div className="standings-panel">
-            <h3>1v1 Standings</h3>
-            <div className="standings-table-scroll">
-              <table><thead><tr>{["Rank", "Player", "Tier", "W–L", "Rating", "Peak"].map(label => <th key={label}>{label}</th>)}</tr></thead>
-              <tbody><tr><td colSpan={6}>Ranked play is coming soon.</td></tr></tbody></table>
-            </div>
-            <p>This board will show competitive 1v1 ratings and match records. Private friend-code rooms remain unranked.</p>
-            <button className="standings-back" onClick={() => setPanel(null)}>Back to menu</button>
-          </div>
-        ) : panel === "settings" ? (
+        {panel === "leaderboard" ? <ClassicLeaderboard /> : panel === "ratings" ? <RankedRatings /> : panel === "settings" ? (
           <p>
             Classic is a reconstruction of the original game. Movement, timing and layouts are still
             being tuned. Private 1v1 rooms are playable. Arcade power-ups and wraparound routes are in development.
