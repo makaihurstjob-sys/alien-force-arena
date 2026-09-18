@@ -147,12 +147,14 @@ export function OnlineDuel({
   const state = snapshot.state;
   const you = state.ships.find((s) => s.id === player)!;
   const winner = state.matchWinner;
+  const ffa = (state.mode === "ffa" || state.score.length > 2);
+  const pilotName = ffa ? `Pilot ${you.team + 1}` : you.team === 0 ? "WHITE" : "ORANGE";
   const paused = snapshot.paused || duel.stalled;
   return (
     <div className="online-classic-shell">
     <section
       className="online-duel"
-      aria-label="Online 1v1 match"
+      aria-label={ffa ? "Online FFA match" : "Online 1v1 match"}
       data-match-id={snapshot.matchId}
       data-tick={state.tick}
       data-phase={state.phase}
@@ -161,7 +163,7 @@ export function OnlineDuel({
     <ClassicWindow controllerRef={menuController} paused={manualPause}
       onPause={() => setManualPause(value => !value)} onRestart={onReturn}
       onInteractionChange={setWindowBlocked} menuHref={import.meta.env.BASE_URL}
-      level={1} onLevelChange={() => {}} online={{ onReturn, onLeave, busy }}>
+      level={1} onLevelChange={() => {}} online={{ onReturn, onLeave, busy, mode: ffa ? "ffa" : "1v1" }}>
       <div className="duel-board">
       <div className="duel-arena">
         <canvas
@@ -169,7 +171,7 @@ export function OnlineDuel({
           width={CLASSIC.size}
           height={CLASSIC.size}
           tabIndex={0}
-          aria-label={`Arena. You control the ${you.team === 0 ? "white" : "orange"} ship.`}
+          aria-label={`Arena. You control ${pilotName}.`}
         />
         {!windowBlocked && (snapshot.ended || paused) && (
           <div className="duel-overlay" role="status">
@@ -177,11 +179,12 @@ export function OnlineDuel({
             <p>
               {snapshot.ended || (duel.localPaused ? "Press START to resume." : "Waiting for the other player to resume or reconnect.")}
             </p>
-            {!snapshot.ended && <small>Keep the game visible on both devices.</small>}
+            {!snapshot.ended && <small>Keep the game visible on all devices.</small>}
           </div>
         )}
       </div>
       <header className="duel-scoreboard">
+        {ffa ? <div className="ffa-scores">{state.ships.map(ship => <span key={ship.id}>P{ship.team + 1} {ship.name}{ship.id === player ? " (you)" : ""} <b>{state.score[ship.team]}</b></span>)}<span>Round {state.round} - First to {PVP_RULES.roundsToWinMatch}</span></div> : <>
         <span className="duel-green">
           White <b>{state.score[0]}</b>
         </span>
@@ -192,10 +195,11 @@ export function OnlineDuel({
         <span className="duel-red">
           <b>{state.score[1]}</b> Orange
         </span>
+      </>}
       </header>
       <div className="duel-status">
         <span className={you.team === 0 ? "duel-green" : "duel-red"}>
-          You are {you.team === 0 ? "WHITE" : "ORANGE"}
+          You are {pilotName}
         </span>
         <span>
           {!you.alive ? "Eliminated this round" : you.canFire ? "Shot ready" : "Shot in flight"}
@@ -205,10 +209,10 @@ export function OnlineDuel({
       </div>
     </ClassicWindow>
       <div className="duel-mobile-hud" aria-label="Match status">
-        <span className="duel-green">White {state.score[0]}</span>
+        {ffa ? <span>{state.ships.map(ship => `P${ship.team + 1}: ${state.score[ship.team]}`).join(" / ")}</span> : <span className="duel-green">White {state.score[0]}</span>}
         <span>Round {state.round}</span>
-        <span className="duel-red">{state.score[1]} Orange</span>
-        <span title={`You are ${you.team === 0 ? "WHITE" : "ORANGE"}`} className={`duel-mobile-shot ${you.team === 0 ? "duel-green" : "duel-red"}`}>
+        {!ffa && <span className="duel-red">{state.score[1]} Orange</span>}
+        <span title={`You are ${pilotName}`} className={`duel-mobile-shot ${you.team === 0 ? "duel-green" : "duel-red"}`}>
           {!you.alive ? "OUT" : you.canFire ? "READY" : "SHOT IN PLAY"}
         </span>
       </div>
@@ -222,9 +226,9 @@ export function OnlineDuel({
             {you.shots ? Math.round((you.hits / you.shots) * 100) : 0}% accuracy
           </p>
           <button disabled={duel.voted || paused} onClick={duel.rematch}>
-            {duel.voted ? "Waiting for opponent..." : "Rematch"}
+            {duel.voted ? "Waiting for players..." : "Rematch"}
           </button>
-          <p>{snapshot.rematch.length}/2 players want a rematch</p>
+          <p>{snapshot.rematch.length}/{state.ships.length} players want a rematch</p>
         </section>
       ) : (
         !snapshot.ended && (

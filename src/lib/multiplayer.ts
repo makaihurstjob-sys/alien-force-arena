@@ -1,6 +1,9 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 
+export type RoomMode = "1v1" | "ffa";
 export type Lobby = {
+  mode?: RoomMode;
+  max_players?: number;
   id: string;
   code: string;
   host_id: string;
@@ -23,6 +26,7 @@ export async function lobbyAction(
   action: "create" | "join" | "get" | "ready" | "leave",
   code = "",
   ready = false,
+  mode: RoomMode = "1v1",
 ): Promise<Lobby | null> {
   const db = await connection();
   const { data: session, error: sessionError } = await db.auth.getSession();
@@ -35,6 +39,7 @@ export async function lobbyAction(
     p_action: action,
     p_code: code.trim().toUpperCase(),
     p_ready: ready,
+    ...(action === "create" && mode === "ffa" ? { p_mode: mode } : {}),
   });
   if (error) {
     if (error.code === "PGRST202") throw new Error("Online room setup is still pending.");

@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 ﻿import { useEffect, useRef, useState } from "react";
-import { lobbyAction, lobbyPlayerId, multiplayerConfigured, type Lobby } from "@/lib/multiplayer";
+import { lobbyAction, lobbyPlayerId, multiplayerConfigured, type Lobby, type RoomMode } from "@/lib/multiplayer";
 import { useOnlineDuel } from "@/game/useOnlineDuel";
 import { OnlineDuel } from "./OnlineDuel";
 
@@ -15,6 +15,7 @@ export default function MultiplayerLobby({
   onBusyChange?: (busy: boolean) => void;
   onMatchChange?: (playing: boolean) => void;
 } = {}) {
+  const [mode, setMode] = useState<RoomMode>("1v1");
   const [lobby, setLobby] = useState<Lobby | null>(null);
   const [code, setCode] = useState(
     () => initialCode ?? sessionStorage.getItem("alien-force-room") ?? "",
@@ -41,8 +42,7 @@ export default function MultiplayerLobby({
     }
     wasPlaying.current = playing;
   }, [!!duel.view]);
-  const [busy, setBusy] = useState(entryMode === "create");
-  const started = useRef(false);
+  const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
   const [copiedButton, setCopiedButton] = useState<"copy" | "share" | null>(null);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -67,6 +67,7 @@ export default function MultiplayerLobby({
         action,
         lobby?.code ?? code,
         !lobby?.members.find((m) => m.player_id === player)?.is_ready,
+        mode,
       );
       sessionStorage.setItem("alien-force-room", next?.code ?? "");
       const id = await lobbyPlayerId();
@@ -85,12 +86,6 @@ export default function MultiplayerLobby({
       if (mounted.current) setBusy(false);
     }
   }
-  useEffect(() => {
-    if (entryMode === "create" && !started.current) {
-      started.current = true;
-      void run("create");
-    }
-  }, [entryMode]);
   const roomLink = lobby ? `${window.location.origin}${import.meta.env.BASE_URL}#room=${encodeURIComponent(lobby.code)}` : "";
   async function shareRoom(copyOnly = false) {
     setShareStatus("");
@@ -140,7 +135,7 @@ export default function MultiplayerLobby({
   </main>, document.body);
   return (
     <div className="classic-lobby">
-      <p>Private 1v1 room · Unranked</p>
+      <p>Private {lobby?.mode === "ffa" ? "FFA" : lobby ? "1v1" : "multiplayer"} room - Unranked</p>
       {!multiplayerConfigured && <p role="status">Online rooms are not connected yet.</p>}
       {error && <p role="alert">{error}</p>}
       {busy && !lobby ? (
@@ -150,9 +145,14 @@ export default function MultiplayerLobby({
         </div>
       ) : !lobby ? (
         <>
+          {entryMode !== "join" && <fieldset className="room-mode-picker" disabled={busy}>
+            <legend>Game mode</legend>
+            <label><input type="radio" name="room-mode" value="1v1" checked={mode === "1v1"} onChange={() => setMode("1v1")} />1v1 Duel <small>2 players - Head-to-head</small></label>
+            <label><input type="radio" name="room-mode" value="ffa" checked={mode === "ffa"} onChange={() => setMode("ffa")} />FFA - Free-for-All <small>2-4 players - Every pilot for themselves</small></label>
+          </fieldset>}
           {entryMode !== "join" && (
             <button disabled={busy || !multiplayerConfigured} onClick={() => void run("create")}>
-              {entryMode === "create" ? "Try again" : "Create room"}
+              Create {mode === "ffa" ? "FFA" : "1v1"} room
             </button>
           )}
           {entryMode !== "create" && (
@@ -210,7 +210,7 @@ export default function MultiplayerLobby({
           <p role="status">
             {lobby.status === "closed"
               ? "The host closed this room."
-              : `${lobby.members.length}/2 players`}
+              : `${lobby.members.length}/${lobby.max_players ?? 2} players`}
           </p>
           <ul>
             {lobby.members.map((m) => (
@@ -230,12 +230,12 @@ export default function MultiplayerLobby({
             <p role="status">{duel.connectionStatus}</p>
             {player === lobby.host_id ? <button disabled={busy || !duel.canStart} onClick={duel.start}>
               Start match
-            </button> : <p>Both players ready up, then the host starts the match.</p>}
+            </button> : <p>All players ready up, then the host starts the match.</p>}
           </>}
         </>
       )}
       <p className="classic-lobby-note">
-        First to 3 rounds. One hit wins a round. One shot in flight at a time.
+        First to 3 rounds. One hit eliminates a ship. Last pilot standing wins the round. One shot in flight at a time.
       </p>
     </div>
   );

@@ -20,7 +20,7 @@ export const EMPTY_INPUT: PlayerInput = {
 export type Ship = {
   id: string;
   name: string;
-  team: 0 | 1;
+  team: number;
   x: number;
   y: number;
   vx: number;
@@ -37,7 +37,7 @@ export type Ship = {
 export type Projectile = {
   id: string;
   ownerId: string;
-  team: 0 | 1;
+  team: number;
   x: number;
   y: number;
   vx: number;
@@ -49,19 +49,20 @@ export type GameEvent =
   | { type: "shot"; playerId: string; tick: number }
   | { type: "hit"; playerId: string; targetId: string; tick: number }
   | { type: "elimination"; playerId: string; byId: string | null; tick: number }
-  | { type: "round_end"; winningTeam: 0 | 1 | null; tick: number };
+  | { type: "round_end"; winningTeam: number | null; tick: number };
 
 export type RoundPhase = "countdown" | "playing" | "round_over";
 
 export type GameState = {
+  mode?: "1v1" | "ffa";
   tick: number;
   phase: RoundPhase;
   phaseTimerMs: number;
   ships: Ship[];
   projectiles: Projectile[];
   round: number;
-  score: [number, number];
-  lastRoundWinner: 0 | 1 | null;
-  matchWinner: 0 | 1 | null;
+  score: [number, number, ...number[]];
+  lastRoundWinner: number | null;
+  matchWinner: number | null;
   events: GameEvent[];
 };

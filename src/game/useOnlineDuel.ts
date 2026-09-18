@@ -44,7 +44,7 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
     let connected = false;
     let host: DuelHost | null = null;
     let current: DuelSnapshot | null = null;
-    let remote: { packet: PilotPacket; at: number } | null = null;
+    const remotes = new Map<string, { packet: PilotPacket; at: number }>();
     let vote = false;
     let returnFrom: string | null = null;
     let sequence = 0;
@@ -59,8 +59,12 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
     const retiredMatches = new Set<string>();
     const snapshotSequences = new Map<string, number>();
     const active = () => !document.hidden;
-    const opponentId = () =>
-      latestLobby.current?.members.find((m) => m.player_id !== player)?.player_id;
+    const opponents = () => latestLobby.current?.members.filter(m => m.player_id !== player) ?? [];
+    const isOpponent = (id: string) => opponents().some(m => m.player_id === id);
+    const allRemoteLive = (now: number) => opponents().length > 0 && opponents().every(m => {
+      const remote = remotes.get(m.player_id);
+      return remote && remote.packet.active && now - remote.at < PEER_TIMEOUT_MS;
+    });
     const send = (event: string, payload: unknown) => {
       // Never fall back to HTTP for simulation frames while disconnected.
       if (connected && channel)
@@ -102,15 +106,12 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
       return (
         !!room &&
         room.status === "open" &&
-        room.members.length === 2 &&
+        room.members.length >= 2 && room.members.length <= (room.max_players ?? 2) &&
         room.members.every((m) => m.is_ready) &&
         connected &&
         !duplicate &&
         active() &&
-        !!remote &&
-        remote.packet.playerId === opponentId() &&
-        remote.packet.active &&
-        now - remote.at < PEER_TIMEOUT_MS
+        allRemoteLive(now)
       );
     };
     const start = () => {
@@ -120,9 +121,10 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
         crypto.randomUUID(),
         room.members.map((m) => ({
           id: m.player_id,
-          name: m.team === 0 ? "WHITE" : "ORANGE",
-          team: m.team === 0 ? 0 : 1,
+          name: m.display_name,
+          team: m.team,
         })),
+        room.mode ?? "1v1",
       );
       show(host.snapshot(), performance.now());
       send("state", { hostId: player, snapshot: current });
@@ -180,7 +182,8 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
           duplicate = own.length > 1;
         });
         channel.on("broadcast", { event: "pilot" }, ({ payload }) => {
-          if (!isPilotPacket(payload) || payload.playerId !== opponentId()) return;
+          if (!isPilotPacket(payload) || !isOpponent(payload.playerId)) return;
+          const remote = remotes.get(payload.playerId);
           if (
             remote?.packet.instance === payload.instance &&
             remote.packet.sequence >= payload.sequence
@@ -189,13 +192,14 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
           // Repeat return-to-room intent through the heartbeat too, so losing the
           // one-off return message during a network interruption cannot strand a peer.
           if (current && payload.returnFrom === current.matchId) reset();
-          remote = { packet: payload, at: performance.now() };
-          host?.receive(payload, remote.at);
+          const receivedAt = performance.now();
+          remotes.set(payload.playerId, { packet: payload, at: receivedAt });
+          host?.receive(payload, receivedAt);
         });
         channel.on("broadcast", { event: "state" }, ({ payload }) => {
           if (isHost || payload?.hostId !== hostId) return;
           const snapshot = payload.snapshot;
-          const ids = latestLobby.current?.members.map((m) => m.player_id) ?? [];
+          const ids = current?.state.ships.map(s => s.id) ?? latestLobby.current?.members.map((m) => m.player_id) ?? [];
           if (!isDuelSnapshot(snapshot, ids) || retiredMatches.has(snapshot.matchId)) return;
           if (snapshot.sequence <= (snapshotSequences.get(snapshot.matchId) ?? -1)) return;
           if (current && current.matchId !== snapshot.matchId) retiredMatches.add(current.matchId);
@@ -204,14 +208,14 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
           show(snapshot, lastSnapshotAt);
         });
         channel.on("broadcast", { event: "return" }, ({ payload }) => {
-          if (payload?.playerId === opponentId() && payload.matchId === current?.matchId) reset();
+          if (isOpponent(payload?.playerId) && payload.matchId === current?.matchId) reset();
         });
         channel.subscribe((status) => {
           if (disposed) return;
           connected = status === "SUBSCRIBED";
           if (connected) void channel?.track({ instance });
           setConnectionStatus(
-            connected ? "Waiting for the other player" : "Reconnecting to arena...",
+            connected ? "Waiting for other players" : "Reconnecting to arena...",
           );
         });
       })
@@ -226,8 +230,8 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
       const room = latestLobby.current;
       const validRoster =
         room?.status === "open" &&
-        (!host || host.players.every((p) => room.members.some((m) => m.player_id === p.id)));
-      if (host && !validRoster) host.ended = "A player left the room. This match has ended.";
+        (!host || (host.players.length === room.members.length && host.players.every((p) => room.members.some((m) => m.player_id === p.id))));
+      if (host && !validRoster) host.ended = "The player roster changed. Return to the room to start a new match.";
       if (!isHost && current && room?.status !== "open") {
         if (!current.ended)
           show({ ...current, ended: "The host closed the room. This match has ended." }, now);
@@ -245,7 +249,7 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
           host.state.matchWinner !== null &&
           !host.ended &&
           !host.paused &&
-          host.rematchVotes.length === 2
+          host.rematchVotes.length === host.players.length
         )
           start();
       } else accumulated = 0;
@@ -258,7 +262,7 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
         show(snapshot, now);
         send("state", { hostId: player, snapshot });
       }
-      const remoteLive = !!remote && remote.packet.active && now - remote.at < PEER_TIMEOUT_MS;
+      const remoteLive = allRemoteLive(now);
       setCanStart(readyToStart(now));
       setConnectionStatus(
         duplicate
@@ -266,8 +270,8 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
           : !connected
             ? "Reconnecting to arena..."
             : remoteLive
-              ? "Both players connected"
-              : "Waiting for the other player",
+              ? "All players connected"
+              : "Waiting for other players",
       );
       setStalled(
         duplicate || !connected || (!isHost && !!current && now - lastSnapshotAt > PEER_TIMEOUT_MS),

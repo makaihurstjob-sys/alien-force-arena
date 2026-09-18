@@ -293,7 +293,7 @@ export function MobileMainMenu() {
       <div className="mobile-room-actions">
         <button
           onClick={() => {
-            setRoomBusy(true);
+            setRoomBusy(false);
             setPanel("create");
           }}
         >

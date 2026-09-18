@@ -49,6 +49,7 @@ export function isDuelSnapshot(value: unknown, players: string[]): value is Duel
   if (!value || typeof value !== "object") return false;
   const p = value as DuelSnapshot;
   const s = p.state;
+  const seats = Array.isArray(s?.ships) ? s.ships.map(ship => ship?.team) : [];
   return (
     typeof p.matchId === "string" &&
     Number.isSafeInteger(p.sequence) &&
@@ -62,19 +63,20 @@ export function isDuelSnapshot(value: unknown, players: string[]): value is Duel
     Number.isSafeInteger(s.round) &&
     Number.isFinite(s.phaseTimerMs) &&
     ["countdown", "playing", "round_over"].includes(s.phase) &&
-    [null, 0, 1].includes(s.matchWinner) &&
-    [null, 0, 1].includes(s.lastRoundWinner) &&
+    [null, ...seats].includes(s.matchWinner) &&
+    [null, ...seats].includes(s.lastRoundWinner) &&
     Array.isArray(s.score) &&
-    s.score.length === 2 &&
+    s.score.length >= 2 && s.score.length <= 4 &&
     s.score.every((n) => Number.isSafeInteger(n) && n >= 0) &&
     Array.isArray(s.ships) &&
-    s.ships.length === 2 &&
+    s.ships.length >= 2 && s.ships.length <= 4 && s.ships.length === players.length &&
     s.ships.every((ship) => !!ship) &&
-    new Set(s.ships.map((ship) => ship.id)).size === 2 &&
+    new Set(s.ships.map((ship) => ship.id)).size === players.length &&
+    new Set(seats).size === players.length &&
     s.ships.every(
       (ship) =>
         players.includes(ship.id) &&
-        [0, 1].includes(ship.team) &&
+        Number.isInteger(ship.team) && ship.team >= 0 && ship.team < s.score.length &&
         typeof ship.name === "string" &&
         typeof ship.alive === "boolean" &&
         typeof ship.canFire === "boolean" &&
@@ -83,13 +85,13 @@ export function isDuelSnapshot(value: unknown, players: string[]): value is Duel
         ),
     ) &&
     Array.isArray(s.projectiles) &&
-    s.projectiles.length <= 2 &&
+    s.projectiles.length <= players.length &&
     s.projectiles.every(
       (shot) =>
         !!shot &&
         players.includes(shot.ownerId) &&
         typeof shot.id === "string" &&
-        [0, 1].includes(shot.team) &&
+        s.ships.some(ship => ship.id === shot.ownerId && ship.team === shot.team) &&
         [shot.x, shot.y, shot.vx, shot.vy, shot.ageMs].every(Number.isFinite),
     ) &&
     Array.isArray(s.events)
@@ -108,8 +110,10 @@ export class DuelHost {
   constructor(
     readonly matchId: string,
     readonly players: PlayerSeed[],
+    mode: "1v1" | "ffa" = "1v1",
   ) {
     this.state = createMatch(players);
+    this.state.mode = mode;
   }
 
   receive(packet: PilotPacket, now: number) {

@@ -19,7 +19,7 @@ type Props = {
   menuHref: string;
   level: number;
   onLevelChange: (level: number) => void;
-  online?: { onReturn: () => void; onLeave: () => void; busy: boolean };
+  online?: { mode?: "1v1" | "ffa"; onReturn: () => void; onLeave: () => void; busy: boolean };
 };
 export default function ClassicWindow({
   children,
@@ -160,7 +160,7 @@ export default function ClassicWindow({
           className="classic-caption"
           onDoubleClick={() => changeMode(mode === "maximized" ? "normal" : "maximized")}
         >
-          {online ? "Alien Force 1v1" : "Alien Force"}
+          {online ? `Alien Force ${online.mode === "ffa" ? "FFA" : "1v1"}` : "Alien Force"}
         </div>
         <button
           className="classic-caption-button"
@@ -218,9 +218,9 @@ export default function ClassicWindow({
       {dialog === "rules" && (
         <div className="classic-options-overlay">
           <section className="classic-options-dialog" role="dialog" aria-label="Match rules">
-            <h2>Online 1v1</h2>
-            <p>Classic movement and shooting. White versus orange. First to three wins.</p>
-            <p>Both players must agree to a rematch. Menus pause both players; keep both game screens visible.</p>
+            <h2>Online {online?.mode === "ffa" ? "FFA" : "1v1"}</h2>
+            <p>Classic movement and shooting. {online?.mode === "ffa" ? "Every pilot for themselves. Last pilot standing wins the round." : "White versus orange."} First to three round wins.</p>
+            <p>All players must agree to a rematch. Menus pause the match; keep all game screens visible.</p>
             <button onClick={() => setDialog(null)}>OK</button>
           </section>
         </div>

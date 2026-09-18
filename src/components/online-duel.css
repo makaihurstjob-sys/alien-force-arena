@@ -280,3 +280,10 @@
   .duel-mobile-shot { font-size: 11px; }
   .online-match-screen .duel-controls .classic-keyboard-instructions { display: none; }
 }
+
+.room-mode-picker { display: grid; gap: 12px; border: 1px solid #6a7895; border-radius: 8px; padding: 14px; margin: 12px 0; }
+.classic-lobby .room-mode-picker label { display: block; cursor: pointer; padding: 10px; }
+.classic-lobby .room-mode-picker input[type="radio"] { display: inline-block; width: 18px; height: 18px; min-height: 0; padding: 0; margin: 0 10px 0 0; vertical-align: middle; accent-color: #38eaa0; }
+.room-mode-picker small { display: block; margin: 6px 0 0 26px; }
+.ffa-scores { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; width: 100%; }
+.ffa-scores > span { overflow-wrap: anywhere; }

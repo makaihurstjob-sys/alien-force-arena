@@ -2,7 +2,7 @@ import { CLASSIC, moveActor, vectors, type Direction } from './engine';
 import { PVP_RULES, TICK_MS } from '../config';
 import type { GameState, PlayerInput } from '../types';
 
-export type PlayerSeed = { id: string; name: string; team: 0 | 1 };
+export type PlayerSeed = { id: string; name: string; team: number };
 const directions: Direction[] = ['right', 'down', 'left', 'up'];
 export const directionFromAngle = (angle: number): Direction =>
   directions[((Math.round(angle / (Math.PI / 2)) % 4) + 4) % 4]!;
@@ -10,9 +10,9 @@ export const directionFromAngle = (angle: number): Direction =>
 function spawn(state: GameState, players: PlayerSeed[]) {
   const previous = new Map(state.ships.map(s => [s.id, s]));
   state.ships = players.map(p => ({
-    ...p, x: CLASSIC.margin + (p.team === 0 ? 0 : CLASSIC.cells * CLASSIC.spacing),
-    y: CLASSIC.margin + CLASSIC.cells * CLASSIC.spacing,
-    angle: p.team === 0 ? 0 : Math.PI, vx: 0, vy: 0,
+    ...p, x: CLASSIC.margin + (p.team % 2 === 0 ? 0 : CLASSIC.cells * CLASSIC.spacing),
+    y: CLASSIC.margin + (p.team < 2 ? CLASSIC.cells * CLASSIC.spacing : 0),
+    angle: p.team % 2 === 0 ? 0 : Math.PI, vx: 0, vy: 0,
     alive: true, canFire: true, shots: previous.get(p.id)?.shots ?? 0,
     hits: previous.get(p.id)?.hits ?? 0,
   }));
@@ -20,7 +20,7 @@ function spawn(state: GameState, players: PlayerSeed[]) {
 export function createMatch(players: PlayerSeed[]): GameState {
   const state: GameState = { tick: 0, phase: 'countdown',
     phaseTimerMs: PVP_RULES.countdownSeconds * 1000, ships: [], projectiles: [],
-    round: 1, score: [0, 0], lastRoundWinner: null, matchWinner: null, events: [] };
+    round: 1, score: [0, 0, ...Array.from({ length: Math.max(0, ...players.map(p => p.team - 1)) }, () => 0)], lastRoundWinner: null, matchWinner: null, events: [] };
   spawn(state, players);
   return state;
 }
@@ -88,21 +88,27 @@ export function step(state: GameState, inputs: Record<string, PlayerInput>) {
     }
     return true;
   });
-  const [a, b] = state.ships;
-  if (a?.alive && b?.alive && Math.hypot(a.x - b.x, a.y - b.y) < 12) {
-    eliminated.add(a.id);
-    eliminated.add(b.id);
+  for (let i = 0; i < state.ships.length; i++) {
+    for (let j = i + 1; j < state.ships.length; j++) {
+      const a = state.ships[i]!, b = state.ships[j]!;
+      if (a.alive && b.alive && Math.hypot(a.x - b.x, a.y - b.y) < 12) {
+        eliminated.add(a.id); eliminated.add(b.id);
+      }
+    }
   }
   for (const ship of state.ships) {
     if (eliminated.has(ship.id)) ship.alive = false;
     ship.canFire = !state.projectiles.some(p => p.ownerId === ship.id);
   }
   const alive = state.ships.filter(s => s.alive);
-  if (alive.length === 2 && state.phaseTimerMs > 0) return;
+  if (alive.length > 1 && state.phaseTimerMs > 0) return;
   const winner = alive.length === 1 ? alive[0]!.team : null;
   state.phase = 'round_over';
   state.phaseTimerMs = 2000;
   state.lastRoundWinner = winner;
-  if (winner !== null && ++state.score[winner] >= PVP_RULES.roundsToWinMatch) state.matchWinner = winner;
+  if (winner !== null) {
+    state.score[winner] = (state.score[winner] ?? 0) + 1;
+    if (state.score[winner]! >= PVP_RULES.roundsToWinMatch) state.matchWinner = winner;
+  }
   state.events.push({ type: 'round_end', winningTeam: winner, tick: state.tick });
 }
