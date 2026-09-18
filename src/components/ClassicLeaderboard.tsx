@@ -93,13 +93,12 @@ export default function ClassicLeaderboard() {
     <header className="tracker-header">
       <div><span className="tracker-eyebrow">ALIEN FORCE · COMMUNITY SCORES</span>
         <h3 ref={heading} tabIndex={-1}>{player && <PlayerFlag code={profile?.flag_code} />} {player ? profile?.display_name ?? "Player card" : "Global Leaderboard"}</h3>
-        <p>{player ? "Public Classic stats and game history" : "One player. One best run. See the story behind every score."}</p>
+        {player && <p>Public Classic stats and game history</p>}
       </div>
       {player && <button className="tracker-share" onClick={() => {
         void navigator.clipboard.writeText(window.location.href).then(() => setCopied(true)).catch(() => setError("Could not copy the link. Copy the address from your browser."));
       }}>{copied ? "Link copied" : "Copy player link"}</button>}
     </header>
-    <p className="tracker-note">Browser-reported scores · Not independently verified. Only completed runs starting at level 1 enter the leaderboard.</p>
     {loading ? <p role="status" className="tracker-empty">Loading records…</p> : error ? <div role="alert" className="tracker-empty"><p>{error}</p><button onClick={() => setRevision(value => value + 1)}>Try again</button></div> : player && profile ? <>
       <dl className="tracker-overview">
         <Metric label="Best leaderboard score" value={profile.best_score === null ? "—" : number(profile.best_score)} />

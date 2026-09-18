@@ -321,7 +321,7 @@ export function MobileMainMenu() {
         } }}
       >
         <div className="mobile-panel-heading">
-          <h2 id="mobile-panel-title">
+          <h2 id="mobile-panel-title" className={panel === "leaderboard" ? "sr-only" : undefined}>
             {panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
               ? "About the game"
               : panel === "join"
