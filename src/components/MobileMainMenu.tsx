@@ -130,7 +130,7 @@ export function MobileMainMenu() {
       <header className="desktop-menu-brand">
         <h1>Alien Force Arena</h1>
       </header>
-      <div className="desktop-mode-detail" aria-live="polite" key={mode.name}>
+      <div className="desktop-mode-detail" aria-live="polite">
         <ShipIcon size={80} />
         <h2>{mode.name}</h2>
         <p>{mode.description}</p>
@@ -142,7 +142,7 @@ export function MobileMainMenu() {
           </button>
         ) : (
           <Link className="desktop-play" to={mode.name === "Classic" ? "/classic" : "/practice"}>
-            Play {mode.name}
+            Play
             <ChevronRight />
           </Link>
         )}
@@ -286,7 +286,7 @@ export function MobileMainMenu() {
           </>
         ) : (
           <Link className="mobile-play" to={mode.name === "Classic" ? "/classic" : "/practice"}>
-            Play {mode.name}
+            Play
             <ChevronRight size={22} />
           </Link>
         )}
