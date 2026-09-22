@@ -110,6 +110,23 @@ export function MobileMainMenu() {
     window.addEventListener("hashchange", readInvite);
     return () => window.removeEventListener("hashchange", readInvite);
   }, []);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!window.matchMedia("(min-width: 768px)").matches || panel || roomPlaying ||
+          event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey ||
+          document.querySelector("dialog[open]")) return;
+      const target = event.target;
+      if (target instanceof HTMLElement &&
+          (target.isContentEditable || target.closest("input, textarea, select, [role='textbox']"))) return;
+      const delta = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1
+        : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
+      if (!delta) return;
+      event.preventDefault();
+      setSelected(value => (value + delta + modes.length) % modes.length);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [panel, roomPlaying]);
   const dialog = useRef<HTMLDialogElement>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
   const mode = modes[selected] ?? modes[0];
@@ -150,12 +167,7 @@ export function MobileMainMenu() {
       <nav
         className="desktop-mode-picker"
         aria-label="Desktop game modes"
-        onKeyDown={(event) => {
-          if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-            event.preventDefault();
-            move(event.key === "ArrowRight" ? 1 : -1);
-          }
-        }}
+
       >
         <button className="desktop-mode-arrow" aria-label="Previous mode" onClick={() => move(-1)}>
           <ChevronLeft />
