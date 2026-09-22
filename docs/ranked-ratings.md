@@ -1,59 +1,35 @@
-# Ranked ratings: design proposal and first UI
+﻿# Ranked preseason — first implementation
+
+## Approved rules
+
+Ranked is Discord-only 1v1, starting at Cadet I with no placements. Cadet, Scout, Pilot, Ace and Commander each have I–III, with 100 points per division. Promotion carries excess points forward. A loss reaching/crossing a division floor stops at zero; the next loss demotes by that loss amount. Winning rearms grace. Cadet I is the floor.
+
+Galactic Legend is exclusive to #1 after completing Commander III (1500 rating). Rating remains uncapped. Normal rating changes have baseline 30 and combined opponent/margin cap of 21–39. Exact rating, progress and actual gains/losses are visible when connected.
+
+Experiment 1A uses four continuous stocks; 1B is first to four rounds with both pilots reset. Plane icons show lives. Preseason continues until seasons begin in 2027; no reset date is scheduled yet.
+
+Ranked disconnects forfeit immediately; casual allows 30 seconds. Cooldowns begin after three rapid consecutive disconnects. Prioritize close skill matches, choose connection quality automatically, and offer Classic during queue with no ranked rewards. Ranked always has crossplay; casual permits disabling it. FFA uses separate hidden Elo.
+
+Public cards should show rank, rating, peak, wins/losses, recent opponents/results, win rate and streaks. Circular profile borders sync to rank colors; no other rewards yet. Cheating prevention is the highest priority.
 
 ## Implemented
 
-Ranked Ratings reuses the Classic leaderboard's dialog sizing, typography,
-table, toolbar, and pagination styles, with a violet accent. The owner-provided
-Brawlhalla screenshot informs the search/region/mode layout and columns:
-rank, region, player, tier, wins–losses, season rating, and peak rating.
+Pure rating, progression, rank, and disconnect-policy functions in src/lib/ranked-rules.ts, with tests. Both experimental formats run on Classic physics in src/game/classic/ranked-duel.ts; existing casual first-to-three remains intact. Ranked Ratings now has a local two-player keyboard test, plane lives, format/restart buttons, and the division legend.
 
-The board is explicitly preseason. Search, filters, and pagination remain
-disabled until a real ranked data source exists. No fictional players, ratings,
-or results are shown. No new database migrations or rating writes are included.
-The ranked gameplay card remains Coming soon.
+Local test results never persist or award rating. Live standings/search remain disabled. Border colors are available from rankAt but earned profile borders are not yet connected.
 
-## Rank brainstorm — not approved or enforced
+## Initial tuning choices
 
-Owner approved these names on September 18, 2026. The Ranked Ratings panel
-shows them as labeled color swatches, lowest to highest. Colors are temporary
-and centralized in `src/lib/ranks.ts`; sprites can replace them later.
+- Combined change: round(clamp(30 + 4.5 * clamp((loserRating - winnerRating)/300, -1, 1) + 4.5 * margin, 21, 39)). Margin = 1 - 2 * losingKills/3. Forfeits use margin 1. Grace/floor can reduce the actual amount applied.
+- Disconnect streak: at most 15 minutes between consecutive events; completed match resets it. Third event: five-minute cooldown; fourth: 15 minutes; fifth onward: 30 minutes. Needs trusted timestamps and server enforcement.
+- 1A: immediate respawn, one second protection during which the pilot cannot fire or be hit. Survivor position/projectiles persist. Simultaneous final stocks draw without rating change. No round timeout.
+- 1B: existing 60-second round timeout, two-second break, tied rounds replay without consuming lives.
+- Above 1500, Commander III progress displays full while rating continues. Legend follows standings, without grace protection for its title.
 
-Space theme, low to high:
+## Remaining online work
 
-| Tier | Name | Temporary color |
-| --- | --- | --- |
-| 1 | Cadet | Gray `#a8b5c7` |
-| 2 | Scout | Mint `#53dfbe` |
-| 3 | Pilot | Blue `#69baff` |
-| 4 | Ace | Gold `#ffda6b` |
-| 5 | Commander | Coral `#ff8899` |
-| 6 | Galactic Legend | Violet `#d0a0ff` |
-
-Suggestion: ten placement matches, then rating-based promotion and demotion.
-Consider three divisions in each ordinary tier; keep the top tier undivided.
-These are Alien Force proposals, not claims about Brawlhalla's rules.
-Do not set public thresholds until starting rating and expected
-rating movement have been decided. Small early populations favor a simple
-ladder; avoid a top-N requirement until there are enough active competitors.
-
-## Next implementation stages
-
-1. Agree on divisions, placement count, rating thresholds, season length,
-   and whether peak means season peak (recommended) or lifetime peak.
-2. Define a season and one player rating record per season and mode. Store
-   current rating, season peak, wins, losses, and placement progress. Matchmaking
-   region is separate from the optional profile flag: never infer it from flags.
-3. Build a trusted result settlement path before enabling ranked matches.
-   A unique match ID must prevent duplicate results. Update both competitors
-   atomically, check assigned participants, and define disconnect/forfeit rules.
-   Clients must not directly edit ratings or declare arbitrary ranked wins.
-   Existing host-simulated friendly rooms alone are insufficient as a trusted
-   result authority. Private rooms and FFA must not affect the 1v1 ladder.
-4. Expose a paginated public standings read endpoint with server-side search,
-   region and mode filters, deterministic rating order, and an agreed tie rule.
-   Join display names and flags from profiles. Only advertise regions actually
-   supported by matchmaking. Show unplaced players separately from ranked seats.
-5. Connect this UI to that endpoint with loading/error/retry and empty/search
-   states, then add ranked player cards with season stats and match history.
-6. Validate placement, rating movement, peaks, duplicates, concurrent settlement,
-   authorization, forfeits, and season rollover before enabling ranked play.
+1. Authoritative simulation and assigned participants, with server-side Discord validation. Browser-hosted friendly rooms cannot be trusted to award ranked wins.
+2. Durable season/player/match storage, atomic two-player settlement, unique match IDs, peak/stats/history, authorization and concurrent/duplicate settlement tests. Deterministic tie rule for #1.
+3. Skill-first queue, measured regional latency, forced ranked crossplay, Classic waiting experience, server-enforced disconnects/cooldowns. Casual crossplay setting and 30-second reconnect enforcement.
+4. Real standings, public cards, earned profile borders, separate hidden FFA rating.
+5. Two authenticated client tests and failure paths before enabling rating writes. This first slice includes no backend migration or deployment.

@@ -5,7 +5,18 @@
 .ranked-progression-heading > span { font-size: 12px; color: #a2b6c6; }
 .ranked-tier-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; list-style: none; padding: 0; margin: 0; }
 .ranked-tier-list li { display: flex; align-items: center; gap: 9px; padding: 12px; background: #142630; border: 1px solid #294652; border-radius: 6px; min-width: 0; }
-.ranked-tier-swatch { width: 14px; height: 14px; flex-shrink: 0; border-radius: 2px; }
+.ranked-tier-swatch { width: 14px; height: 14px; flex-shrink: 0; border-radius: 50%; }
+.ranked-experiment { margin: 20px 0; padding: 14px; border: 1px solid #37505f; border-radius: 6px; }
+.ranked-experiment summary { cursor: pointer; }
+.ranked-experiment p { margin: 12px 0; font-size: 14px; color: #a2b6c6; }
+.ranked-experiment-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.ranked-experiment-actions button { padding: 10px; border: 1px solid #70538d; border-radius: 5px; }
+.ranked-experiment-actions button[aria-pressed=true] { background: #49325f; }
+.ranked-experiment > canvas { display: block; width: min(100%, 424px); height: auto; margin: auto; image-rendering: pixelated; }
+.ranked-experiment > canvas:focus-visible { outline: 2px solid #d0a0ff; outline-offset: 3px; }
+.ranked-stock-hud { display: flex; justify-content: space-around; gap: 10px; margin: 15px 0; }
+.ranked-stock-hud span { display: flex; gap: 4px; min-height: 20px; }
+.ranked-stock-hud canvas { margin: 0; }
 .ranked-tier-name { font-size: 15px; overflow-wrap: anywhere; }
 .ranked-tier-number { margin-left: auto; color: #a2b6c6; font-size: 12px; }
 .ranked-tracker .ranked-season-status { color: #dfc5ff; border: 1px solid #70538d; border-radius: 5px; padding: 4px 10px; font-size: 12px; }

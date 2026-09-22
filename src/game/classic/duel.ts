@@ -34,7 +34,7 @@ export function startRound(state: GameState, players: PlayerSeed[]) {
 }
 
 /** Classic's lane movement and shot physics, with two human pilots and round scoring. */
-export function step(state: GameState, inputs: Record<string, PlayerInput>) {
+export function step(state: GameState, inputs: Record<string, PlayerInput>, rules: { roundsToWin?: number; protectedIds?: ReadonlySet<string> } = {}) {
   state.tick++;
   state.events = [];
   state.phaseTimerMs = Math.max(0, state.phaseTimerMs - TICK_MS);
@@ -76,7 +76,7 @@ export function step(state: GameState, inputs: Record<string, PlayerInput>) {
       shot.x += shot.vx / CLASSIC.bulletSpeed * distance;
       shot.y += shot.vy / CLASSIC.bulletSpeed * distance;
       if (shot.x < 0 || shot.y < 0 || shot.x > CLASSIC.size || shot.y > CLASSIC.size) return false;
-      const target = state.ships.find(s => s.alive && s.id !== shot.ownerId && Math.hypot(s.x - shot.x, s.y - shot.y) < 9);
+      const target = state.ships.find(s => s.alive && !rules.protectedIds?.has(s.id) && s.id !== shot.ownerId && Math.hypot(s.x - shot.x, s.y - shot.y) < 9);
       if (target) {
         eliminated.add(target.id);
         const owner = state.ships.find(s => s.id === shot.ownerId)!;
@@ -89,7 +89,7 @@ export function step(state: GameState, inputs: Record<string, PlayerInput>) {
     return true;
   });
   const [a, b] = state.ships;
-  if (a?.alive && b?.alive && Math.hypot(a.x - b.x, a.y - b.y) < 12) {
+  if (a?.alive && b?.alive && !rules.protectedIds?.has(a.id) && !rules.protectedIds?.has(b.id) && Math.hypot(a.x - b.x, a.y - b.y) < 12) {
     eliminated.add(a.id);
     eliminated.add(b.id);
   }
@@ -103,6 +103,6 @@ export function step(state: GameState, inputs: Record<string, PlayerInput>) {
   state.phase = 'round_over';
   state.phaseTimerMs = 2000;
   state.lastRoundWinner = winner;
-  if (winner !== null && ++state.score[winner] >= PVP_RULES.roundsToWinMatch) state.matchWinner = winner;
+  if (winner !== null && ++state.score[winner] >= (rules.roundsToWin ?? PVP_RULES.roundsToWinMatch)) state.matchWinner = winner;
   state.events.push({ type: 'round_end', winningTeam: winner, tick: state.tick });
 }

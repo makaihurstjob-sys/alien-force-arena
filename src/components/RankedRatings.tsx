@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Medal, Search } from "lucide-react";
 import { ranks } from "@/lib/ranks";
+import RankedExperiment from './RankedExperiment';
 import "./classic-leaderboard.css";
 import "./ranked-ratings.css";
 
@@ -18,13 +19,15 @@ export default function RankedRatings() {
     <section className="ranked-progression" aria-labelledby="ranked-progression-title">
       <div className="ranked-progression-heading"><h4 id="ranked-progression-title">Rank progression</h4><span>Lowest → Highest</span></div>
       <ol className="ranked-tier-list">
-        {ranks.map((rank, index) => <li key={rank.id}>
+        {ranks.map((rank) => <li key={rank.id}>
           <span className="ranked-tier-swatch" style={{ backgroundColor: rank.color }} aria-hidden="true" />
           <span className="ranked-tier-name" style={{ color: rank.color }}>{rank.name}</span>
-          <span className="ranked-tier-number">{index + 1}</span>
+          <span className="ranked-tier-number">{rank.id === 'galactic-legend' ? '#1' : 'I / II / III'}</span>
         </li>)}
       </ol>
     </section>
+    <p>Start at Cadet I. Earn 100 points per division, with one grace loss at zero. Galactic Legend requires the #1 spot and 1,500 rating.</p>
+    <RankedExperiment />
     <div className="ranked-filters" aria-describedby="ranked-launch-note">
       <label className="ranked-search">Player
         <span><Search size={18} aria-hidden="true" /><input type="search" placeholder="Search players" disabled /></span>
