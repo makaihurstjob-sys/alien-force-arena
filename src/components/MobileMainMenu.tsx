@@ -28,10 +28,12 @@ function ArenaPreview({
   active,
   arcade,
   practice,
+  desktop = false,
 }: {
   active: boolean;
   arcade: boolean;
   practice: boolean;
+  desktop?: boolean;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -42,10 +44,14 @@ function ArenaPreview({
       { id: "preview-player", name: "Player", team: 0 },
       { id: "preview-bot", name: "Bot", team: 1 },
     ]);
+    if (desktop) {
+      state.phase = "playing";
+      practiceState.phase = "playing";
+    }
     state.invulnerable = 0;
     let frame = 0;
     let last = 0;
-    const media = window.matchMedia("(max-width: 767px)");
+    const media = window.matchMedia(desktop ? "(min-width: 768px)" : "(max-width: 767px)");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const draw = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.04);
@@ -73,7 +79,7 @@ function ArenaPreview({
     };
     frame = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(frame);
-  }, [active, arcade, practice]);
+  }, [active, arcade, practice, desktop]);
   return <canvas ref={canvas} width={424} height={424} aria-hidden="true" />;
 }
 
@@ -180,7 +186,7 @@ export function MobileMainMenu() {
             onClick={() => setSelected(index)}
           >
             <span className="desktop-thumbnail">
-              {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : <DesktopArena mode={item.name === "Arcade" ? 1 : item.name === "Practice" ? 2 : 0} thumbnail />}
+              {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : (item.name === "Classic" || item.name === "Practice") ? <ArenaPreview active={false} arcade={false} practice={item.name === "Practice"} desktop /> : <DesktopArena mode={item.name === "Arcade" ? 1 : 0} thumbnail />}
             </span>
             <strong>{item.name}</strong>
             {(item.name === "Ranked" || item.name === "Arcade") && <small>Coming soon</small>}

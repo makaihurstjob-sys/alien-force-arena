@@ -275,8 +275,8 @@
 /* Keep desktop navigation independent of the selected mode's text height. */
 @media (min-width: 768px) {
   .mobile-main-menu {
-    min-height: max(100svh, 720px);
-    --picker-bottom: 150px;
+    min-height: max(100svh, 820px);
+    --picker-bottom: 250px;
     --picker-height: clamp(125px, 11vw, 180px);
   }
   .desktop-mode-picker {
@@ -323,3 +323,8 @@
   .desktop-play:hover { transform: none; }
   .mobile-room-actions { bottom: 55px; }
 }
+
+@media (min-width: 768px) {
+  .desktop-thumbnail canvas[width="424"] { object-fit: contain; background: #000; }
+}
+
