@@ -11,7 +11,7 @@ async def main():
             errors=[]
             page.on('pageerror',lambda e:errors.append(str(e)))
             await page.goto(os.environ.get('PAGES_URL','https://makaihurstjob-sys.github.io/alien-force-classic/'),wait_until='networkidle')
-            assert await page.locator('.desktop-mode-tile strong').all_text_contents()==['Classic','Ranked','Arcade','Practice','Global Leaderboard','Ranked Ratings']
+            assert await page.locator('.desktop-mode-tile strong').all_text_contents()==['Classic','Ranked','Arcade','Bullet Run','Practice','Global Leaderboard','Ranked Ratings']
             await page.get_by_role('button',name='Player profile',exact=True).click()
             assert await page.locator('.player-profile-button svg.lucide-log-in').count()==1
             await page.get_by_role('button',name='Flag you represent No flag selected').click()
