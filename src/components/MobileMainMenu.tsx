@@ -18,6 +18,7 @@ const modes = [
   { name: "Classic", description: "Original arena combat", color: "#3ee08a" },
   { name: "Ranked", description: "Competitive 1v1 matches", color: "#d0a0ff" },
   { name: "Arcade", description: "Power-ups · Wraparound routes", color: "#ffe066" },
+  { name: "Bullet Run", description: "A new challenge is on its way", color: "#ff704d" },
   { name: "Practice", description: "Local 1v1 · Training bot", color: "#3ee08a" },
   { name: "Global Leaderboard", description: "Classic · Scores & player cards", color: "#69d9ff" },
   { name: "Ranked Ratings", description: "1v1 ? Competitive standings", color: "#d0a0ff" },
@@ -159,7 +160,7 @@ export function MobileMainMenu() {
         <p>{mode.description}</p>
         {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
           <button className="desktop-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight /></button>
-        ) : (mode.name === "Ranked" || mode.name === "Arcade") ? (
+        ) : (mode.name === "Ranked" || mode.name === "Arcade" || mode.name === "Bullet Run") ? (
           <button className="desktop-play" disabled>
             Coming Soon
           </button>
@@ -189,7 +190,7 @@ export function MobileMainMenu() {
               {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : (item.name === "Classic" || item.name === "Practice") ? <ArenaPreview active={false} arcade={false} practice={item.name === "Practice"} desktop /> : <DesktopArena mode={item.name === "Arcade" ? 1 : 0} thumbnail />}
             </span>
             <strong>{item.name}</strong>
-            {(item.name === "Ranked" || item.name === "Arcade") && <small>Coming soon</small>}
+            {(item.name === "Ranked" || item.name === "Arcade" || item.name === "Bullet Run") && <small>Coming soon</small>}
           </button>
         ))}
         <button className="desktop-mode-arrow" aria-label="Next mode" onClick={() => move(1)}>
@@ -243,7 +244,7 @@ export function MobileMainMenu() {
               className={`mode-card ${position}`}
               style={{ "--mode-color": item.color } as React.CSSProperties}
               tabIndex={selected === index ? 0 : -1}
-              aria-label={`Select ${item.name}${(item.name === "Ranked" || item.name === "Arcade") ? ", coming soon" : ""}`}
+              aria-label={`Select ${item.name}${(item.name === "Ranked" || item.name === "Arcade" || item.name === "Bullet Run") ? ", coming soon" : ""}`}
               aria-pressed={selected === index}
               onClick={() => setSelected(index)}
             >
@@ -255,7 +256,7 @@ export function MobileMainMenu() {
               <span className="mode-caption">
                 <strong>{item.name}</strong>
                 <span>{item.description}</span>
-                {(item.name === "Ranked" || item.name === "Arcade") && <em>Coming soon</em>}
+                {(item.name === "Ranked" || item.name === "Arcade" || item.name === "Bullet Run") && <em>Coming soon</em>}
               </span>
             </button>
           );
@@ -289,7 +290,7 @@ export function MobileMainMenu() {
       <div className="mobile-mode-actions" aria-live="polite">
         {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
           <button className="mobile-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight size={22} /></button>
-        ) : (mode.name === "Ranked" || mode.name === "Arcade") ? (
+        ) : (mode.name === "Ranked" || mode.name === "Arcade" || mode.name === "Bullet Run") ? (
           <>
             {mode.name === "Arcade" && <div className="team-options" aria-label="Planned Arcade team size">
               {[1, 2].map((size) => (
