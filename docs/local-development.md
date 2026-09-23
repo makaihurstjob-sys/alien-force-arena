@@ -73,3 +73,13 @@ Private rooms and a first host-simulated online 1v1 pass are playable; see
 remain unfinished.
 Original-game movement and visual fidelity remain unverified; the existing
 arena rules are a remaster prototype, not a verified exact classic mode.
+
+## Bullet Run
+
+Apply `supabase/migrations/202609230000_bullet_run.sql` to the connected Supabase project before opening online Bullet Run rooms. This is a separate room type from Classic's two-player rooms. Anonymous sign-in and the existing VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY settings are required.
+
+Create a Bullet Run room from the mode menu, share its invite link, and start with at least two players (up to 24). Players who join after a match starts enter when the host chooses **Restart with current players**. The host browser runs the simulation; closing it ends the room. This is peer-trusted casual play and has no persistent rankings or server-authoritative anti-cheat.
+
+Move with WASD or arrows, aim with the mouse, and hold click or Space to shoot. Touch screens show movement and fire buttons, and touching the arena sets aim. Kills 1–4 increase the spread from two to five shots; the sixth kill switches to rapid fire. Kills 7–10 increase rapid-fire spread to five shots. At kill 11, every ten seconds a fast sniper projectile joins the five-shot rapid-fire volley. Players respawn with a two-second shield. Obstacles stop both movement and projectiles.
+
+Run engine checks with `node --experimental-strip-types scripts/test-bullet-run.mjs`.

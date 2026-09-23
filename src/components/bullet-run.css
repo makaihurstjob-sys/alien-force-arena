@@ -1,0 +1,21 @@
+.bullet-page { min-height: 100vh; padding: 20px; color: #f7f9ff; background: #0c1219; font-family: 'Windows Bold', monospace; }
+.bullet-page header { display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap; }
+.bullet-page a { color: #61eabd; }
+.bullet-page h1 { font-size: clamp(30px, 5vw, 58px); color: #61eabd; margin: 12px 0; }
+.bullet-lobby { background: #19252d; border: 2px solid #547578; border-radius: 8px; padding: 18px; margin: 14px 0; max-width: 1100px; }
+.bullet-lobby form { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.bullet-lobby button { border: 1px solid #61eabd; border-radius: 5px; background: #123b34; color: #fff; padding: 10px 14px; margin: 4px; cursor: pointer; }
+.bullet-lobby button:disabled { opacity: .5; cursor: not-allowed; }
+.bullet-lobby input { padding: 8px; max-width: min(100%, 390px); background: #fff; color: #111; }
+.bullet-lobby #bullet-link { display: block; width: 100%; margin: 12px 0; }
+.bullet-error { color: #ff9b9b; }
+.bullet-match { max-width: 1100px; }
+.bullet-match canvas { width: 100%; height: auto; display: block; border: 2px solid #61eabd; cursor: crosshair; touch-action: none; }
+.bullet-hud { display: flex; flex-wrap: wrap; gap: 10px 26px; margin: 12px 0; color: #ffe282; }
+.bullet-match ol { max-height: 180px; display: flex; flex-wrap: wrap; gap: 4px 30px; overflow: auto; }
+.bullet-match li { min-width: 160px; }
+.bullet-touch-controls { display: none; }
+@media (pointer: coarse) {
+  .bullet-touch-controls { display: flex; gap: 8px; justify-content: space-between; margin: 12px 0; }
+  .bullet-touch-controls button { min-width: 16%; min-height: 58px; background: #123b34; color: white; border: 1px solid #61eabd; touch-action: none; }
+}
