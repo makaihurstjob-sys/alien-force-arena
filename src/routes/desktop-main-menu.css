@@ -287,7 +287,7 @@
     margin: 0;
     width: 96vw;
     display: grid;
-    grid-template-columns: 28px repeat(6, minmax(0, 1fr)) 28px;
+    grid-template-columns: 28px repeat(7, minmax(0, 1fr)) 28px;
     gap: clamp(6px, 1vw, 16px);
     align-items: start;
   }
@@ -327,4 +327,3 @@
 @media (min-width: 768px) {
   .desktop-thumbnail canvas[width="424"] { object-fit: contain; background: #000; }
 }
-
