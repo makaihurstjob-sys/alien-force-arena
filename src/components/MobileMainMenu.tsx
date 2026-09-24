@@ -18,7 +18,7 @@ const modes = [
   { name: "Classic", description: "Original arena combat", color: "#3ee08a" },
   { name: "Ranked", description: "Competitive 1v1 matches", color: "#d0a0ff" },
   { name: "Arcade", description: "Power-ups · Wraparound routes", color: "#ffe066" },
-  { name: "Bullet Run", description: "A new challenge is on its way", color: "#ff704d" },
+  { name: "Bullet Run", description: "Free for all · Up to 24 pilots", color: "#ff704d" },
   { name: "Practice", description: "Local 1v1 · Training bot", color: "#3ee08a" },
   { name: "Global Leaderboard", description: "Classic · Scores & player cards", color: "#69d9ff" },
   { name: "Ranked Ratings", description: "1v1 ? Competitive standings", color: "#d0a0ff" },

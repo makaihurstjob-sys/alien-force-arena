@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BulletRunRouteImport } from './routes/bullet-run'
 import { Route as ClassicRouteImport } from './routes/classic'
 import { Route as PracticeRouteImport } from './routes/practice'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BulletRunRoute = BulletRunRouteImport.update({
+  id: '/bullet-run',
+  path: '/bullet-run',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClassicRoute = ClassicRouteImport.update({
@@ -31,30 +37,34 @@ const PracticeRoute = PracticeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bullet-run': typeof BulletRunRoute
   '/classic': typeof ClassicRoute
   '/practice': typeof PracticeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bullet-run': typeof BulletRunRoute
   '/classic': typeof ClassicRoute
   '/practice': typeof PracticeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bullet-run': typeof BulletRunRoute
   '/classic': typeof ClassicRoute
   '/practice': typeof PracticeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/classic' | '/practice'
+  fullPaths: '/' | '/bullet-run' | '/classic' | '/practice'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/classic' | '/practice'
-  id: '__root__' | '/' | '/classic' | '/practice'
+  to: '/' | '/bullet-run' | '/classic' | '/practice'
+  id: '__root__' | '/' | '/bullet-run' | '/classic' | '/practice'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BulletRunRoute: typeof BulletRunRoute
   ClassicRoute: typeof ClassicRoute
   PracticeRoute: typeof PracticeRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bullet-run': {
+      id: '/bullet-run'
+      path: '/bullet-run'
+      fullPath: '/bullet-run'
+      preLoaderRoute: typeof BulletRunRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/classic': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BulletRunRoute: BulletRunRoute,
   ClassicRoute: ClassicRoute,
   PracticeRoute: PracticeRoute,
 }
