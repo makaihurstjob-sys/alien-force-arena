@@ -1,5 +1,29 @@
 # Public Alien Force testing
 
+## Bullet Run release verification
+
+Source `56d835f` was published as assets commit `a641dd9`. GitHub Pages run
+`36281981428` completed successfully; the public site returned HTTP 200 and served
+`index-DHOg2DpQ.js` and `index-B9bWwgja.css`.
+
+`python scripts/test-bullet-live.py` passed against the public site using two
+independent browser identities: create/join, Realtime match start, guest movement
+and shooting reflected in host snapshots, desktop and 390px mobile layout, host
+closure notification, and both players leaving. No browser runtime errors were
+reported. This is browser emulation, not a physical-phone or 24-player load test.
+The test closes its room and removes memberships; anonymous auth/profile records
+and the closed room are retained by the application.
+
+Supabase migration history contains `20260926231400 bullet_run`. The visible
+migration SQL includes the expected tables, lobby function and access grants;
+full text equivalence was not verified. No migration was rerun. Live room actions
+passed against that database. Local migration tests also passed access controls,
+the 24-player cap, retry/leave behavior and closed-room handling.
+
+Before publication, all 64 unit tests, Bullet Run engine tests, TypeScript,
+the Pages build, and menu/navigation checks at 1440, 768 and 390px passed.
+Classic, Practice and both ranked experiments passed those navigation checks.
+
 Public URL: https://makaihurstjob-sys.github.io/alien-force-classic/
 Source: makaihurstjob-sys/alien-force-arena, branch main.
 Published assets: makaihurstjob-sys/alien-force-classic, branch main.
