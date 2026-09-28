@@ -88,9 +88,21 @@ describe("enemy progression", () => {
       const s = playingClassic();
       s.invulnerable = Infinity;
       s.enemies = [{ id: 1, x, y, direction }];
-      for (let frame = 0; frame < 120; frame++) tickClassic(s, idle, 1 / 60, () => 0.9);
+      let maxDisplacement = 0;
+      for (let frame = 0; frame < 120; frame++) {
+        const before = { ...s.enemies[0]! };
+        tickClassic(s, idle, 1 / 60, () => 0.9);
+        const current = s.enemies[0]!;
+        // A legal out-and-back route can finish at the starting point.
+        expect(Math.hypot(current.x - before.x, current.y - before.y)).toBeGreaterThan(0.1);
+        maxDisplacement = Math.max(maxDisplacement, Math.hypot(current.x - x, current.y - y));
+        expect(current.x).toBeGreaterThanOrEqual(12);
+        expect(current.x).toBeLessThanOrEqual(412);
+        expect(current.y).toBeGreaterThanOrEqual(12);
+        expect(current.y).toBeLessThanOrEqual(412);
+      }
       const enemy = s.enemies[0]!;
-      expect(Math.hypot(enemy.x - x, enemy.y - y)).toBeGreaterThan(10);
+      expect(maxDisplacement).toBeGreaterThan(10);
       expect(enemy.x).toBeGreaterThanOrEqual(12);
       expect(enemy.x).toBeLessThanOrEqual(412);
       expect(enemy.y).toBeGreaterThanOrEqual(12);
