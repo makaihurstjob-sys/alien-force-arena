@@ -14,7 +14,7 @@ Practice remains the separate arena-duel mode.
 - One projectile per ship. Shots expire outside the playfield; enemies do not hurt other enemies.
 - Each shot costs 10 points, clamped at zero (penalty still provisional).
 - Three lives; one hit/contact loses a life. Respawn resets the enemy wave and gives two seconds of protection.
-- Clearing a wave advances the level after 1.5 seconds; enemies increase up to ten and speed increases with a cap.
+- Clearing a wave advances the level after 1.5 seconds; each wave has ten enemies. Level 999 repeats at maximum difficulty.
 - Enemy steering favors the player's coordinates at intersections and firing is random.
 
 All tuning is in src/game/classic/engine.ts. The simulation runs at 60 fixed ticks
@@ -59,9 +59,27 @@ Re-read Aforce.hlp from the original archive ZIP: it describes simple early enem
 increasing intelligence at higher levels, and the later introduction of return fire.
 The RGB Classic Games description (https://www.classicdosgames.com/game/Alien_Force.html)
 specifies no return fire on level 1 and some shooters beginning on level 2.
-Implemented those firing thresholds. The current shooter count (level minus one,
-capped at the wave size), pursuit probability, enemy count, and speeds are provisional.
+Implemented those firing thresholds. The current shooter count, pursuit probability,
+enemy count, armor, and speeds are provisional.
 AI now makes one decision per intersection passage and chooses in-bounds directions.
 Level 1 mostly wanders; pursuit increases with level. That probability curve is a
 playable approximation, not a recovered original algorithm. Exact video URL requested
 again for side-by-side fidelity checks. User's no-stop correction remains authoritative.
+
+## User-directed level progression
+
+The supplied Python `alienforce1.py` through `alienforce4.py` are partial learning stages:
+they establish a 420px grid, cardinal lane movement, and single-shot firing, but do
+not implement enemies or difficulty. The current TypeScript engine keeps its own
+enemy simulation and adds the requested progression. Level 1 has ten one-hit
+non-shooting drones at speed 40. Level 2 enables one randomly selected shooter.
+Additional shooters arrive at each ten-level milestone, up to ten. Speed grows
+from 40 at level 1 to about 160 at level 999; each shooter's firing rate rises
+gradually too. One randomly selected drone gains a second hit at level 10,
+two at level 20, and so on until all ten have two hits at level 100. From
+level 110 onward, the cycle adds third hits. At level 999, nine drones
+have eleven hits and one has ten.
+Armor badges show the remaining hits. Quick direction taps stay queued until
+the next lane intersection. All scaling applies both to Options > Current
+Playing Level and to subsequent waves. These are new game-design choices, not
+claims about Epps's original behavior.
