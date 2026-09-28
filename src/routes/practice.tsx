@@ -31,7 +31,7 @@ const PLAYERS: PlayerSeed[] = [
   { id: "bot", name: "BOT", team: 1 },
 ];
 
-export function Practice() {
+export function Practice({ onReturn }: { onReturn?: () => void } = {}) {
   const [paused, setPaused] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [layoutIndex, setLayoutIndex] = useState(0);
@@ -113,12 +113,12 @@ export function Practice() {
     <main className="min-h-screen bg-background px-3 py-4 font-mono text-foreground">
       <div className="mx-auto max-w-[560px] space-y-4">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-          <Link
+          {onReturn ? <button onClick={onReturn} className="text-left text-xs text-primary">Return to lobby</button> : <Link
             to="/"
             className="truncate text-xs uppercase tracking-widest text-primary hover:underline"
           >
             &lt; Main menu
-          </Link>
+          </Link>}
           <span className="shrink-0 text-[10px] uppercase tracking-widest text-muted-foreground">
             Offline practice
           </span>

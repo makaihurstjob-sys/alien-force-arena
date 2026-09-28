@@ -17,10 +17,9 @@ async def main():
             errors = []
             page.on('pageerror', lambda e: errors.append(str(e)))
             await page.route('**/src/lib/multiplayer.ts', lambda r: r.fulfill(content_type='application/javascript', body=MOCK))
-            await page.goto('http://127.0.0.1:5198/alien-force-classic/')
-            await page.get_by_role('button', name='Create Room', exact=True).click()
-            await page.get_by_role('button', name='Bullet Run Free for all', exact=False).click()
-            await page.get_by_role('button', name='Create Bullet Run room').click()
+            await page.goto('http://100.88.192.111:5198/alien-force-classic/')
+            await page.get_by_role('button', name='Bullet Run' if width == 1440 else 'Show Bullet Run', exact=True).click()
+            await page.locator('.desktop-play:visible, .mobile-play:visible').click()
             await page.locator('.hangar-lobby').wait_for()
             await page.evaluate('''() => {
                 const r=window.fixtureRoom; r.host_id=r.members[0].player_id;
@@ -40,9 +39,9 @@ async def main():
             assert await page.locator('.hangar-lobby').is_visible()
             assert await page.locator('.hangar-game-selector').evaluate('(e)=>e===document.activeElement')
             await page.get_by_text('2/3 pilots ready', exact=True).wait_for()
-            for close_button in ['Close game selector', 'Bullet Run Free for all Current game']:
+            for close_button in ['Close game selector', 'Bullet Run Free for all' ]:
                 await page.locator('.hangar-game-selector').click()
-                await page.get_by_role('button', name=close_button, exact=True).click()
+                await page.get_by_role('button', name=close_button, exact=close_button == 'Close game selector').click()
                 assert await page.locator('.hangar-lobby').is_visible()
                 await page.get_by_text('2/3 pilots ready', exact=True).wait_for()
             for count, expected in [(4, 5), (5, 6), (6, 6)]:
@@ -53,7 +52,7 @@ async def main():
             assert await page.locator('.is-hangar').evaluate('(e)=>e.scrollWidth<=e.clientWidth+1')
             await page.screenshot(path=str(OUT / f'hangar-six-implementation-{width}.png'))
             await page.get_by_role('button', name='Leave room', exact=True).click()
-            await page.get_by_role('button', name='Create Room', exact=True).wait_for()
+            await page.locator('.desktop-play:visible, .mobile-play:visible').wait_for()
             assert not await page.locator('dialog[open]').count()
             assert not errors, errors
             print(f'PASS {width}: full-screen lobby, readiness, overlay/focus, 4/5/6 slots, no overflow, leave returns home', flush=True)

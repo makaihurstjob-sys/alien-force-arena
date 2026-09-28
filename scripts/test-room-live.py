@@ -46,16 +46,15 @@ async def main():
                 if width == 390:
                     page.on('websocket', lambda ws: ws.on('framereceived', frame_received))
                 await page.goto(URL)
-                await page.get_by_role('button', name='Create Room', exact=True).click()
-                await page.get_by_role('button', name='Bullet Run Free for all', exact=False).click()
+                if width == 1440:
+                    await page.get_by_role('button', name='Bullet Run', exact=True).click()
+                    await page.locator('.desktop-play:visible').click()
             host, guest = pages
-            await host.get_by_role('button', name='Create Bullet Run room').click()
             room_label = host.locator('.hangar-tabs > strong, .bullet-lobby > strong')
             await room_label.wait_for()
             code = (await room_label.inner_text()).split()[-1]
             assert re.fullmatch(r'[A-Z0-9]+', code)
-            await guest.locator('#bullet-code').fill(code)
-            await guest.get_by_role('button', name='Join room', exact=True).click()
+            await guest.goto(URL + '#room=' + code + '&mode=bullet')
             for page in pages:
                 await page.get_by_text('0/2 pilots ready', exact=True).wait_for()
             identities = [await page.evaluate("JSON.parse(localStorage.getItem('alien-force-multiplayer')).user.id") for page in pages]

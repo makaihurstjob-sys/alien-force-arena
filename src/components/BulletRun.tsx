@@ -41,9 +41,10 @@ function validState(v: unknown, roster: string[]): v is State {
     Array.isArray(s.bullets) && s.bullets.length <= 400 && s.bullets.every(b => roster.includes(b.owner) &&
       [b.x,b.y,b.vx,b.vy,b.life].every(Number.isFinite));
 }
-export default function BulletRun({ embedded = false, onBusyChange, onLeave }: { embedded?: boolean; onBusyChange?: (busy: boolean) => void; onLeave?: (() => void) | undefined } = {}) {
+export default function BulletRun({ embedded = false, autoEnter = false, initialCode, onBusyChange, onLeave }: { embedded?: boolean; autoEnter?: boolean; initialCode?: string | undefined; onBusyChange?: (busy: boolean) => void; onLeave?: (() => void) | undefined } = {}) {
   const [room, setRoom] = useState<BulletLobby | null>(null);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(initialCode ?? '');
+  const entered = useRef(false);
   const [player, setPlayer] = useState('');
   const [state, setState] = useState<State | null>(null);
   const [error, setError] = useState('');
@@ -61,7 +62,7 @@ export default function BulletRun({ embedded = false, onBusyChange, onLeave }: {
   const channel = useRef<RealtimeChannel | null>(null);
   const connected = useRef(false);
   const canvas = useRef<HTMLCanvasElement>(null);
-  const link = room ? `${window.location.origin}${import.meta.env.BASE_URL}bullet-run#room=${room.code}` : '';
+  const link = room ? `${window.location.origin}${import.meta.env.BASE_URL}#room=${room.code}&mode=bullet` : '';
   const act = useCallback(async (action: 'create' | 'join' | 'leave') => {
     requestEpoch.current++; mutationPending.current = true;
     setBusy(true); setError('');
@@ -73,6 +74,9 @@ export default function BulletRun({ embedded = false, onBusyChange, onLeave }: {
     } catch (e) { setError(e instanceof Error ? e.message : 'Could not connect to Bullet Run.'); }
     finally { requestEpoch.current++; mutationPending.current = false; setBusy(false); }
   }, [code, embedded, onLeave]);
+  useEffect(() => {
+    if (autoEnter && !entered.current) { entered.current = true; void act(initialCode ? 'join' : 'create'); }
+  }, [autoEnter, initialCode, act]);
   useEffect(() => {
     const invite = new URLSearchParams(window.location.hash.slice(1)).get('room');
     if (invite && /^[A-Z0-9]{6}$/i.test(invite)) setCode(invite.toUpperCase());
@@ -214,7 +218,11 @@ export default function BulletRun({ embedded = false, onBusyChange, onLeave }: {
     <header hidden={embedded && !!room}>{!embedded && <Link to="/">← Main menu</Link>}<h1>Bullet Run</h1><p>Up to 6 pilots · Free for all</p></header>
     {error && <p role="alert" className="bullet-error">{error}</p>}
     {!multiplayerConfigured && <p role="status">Online play requires the arena connection.</p>}
-    {!room ? <section className="bullet-lobby"><h2>Enter the arena</h2>
+    {!room && autoEnter ? <section className="bullet-lobby" aria-label="Connecting to lobby">
+      <p role="status">{busy ? initialCode ? 'Joining lobby...' : 'Creating lobby...' : 'Could not enter the lobby.'}</p>
+      {!busy && <button onClick={() => void act(initialCode ? 'join' : 'create')}>Try again</button>}
+      <button disabled={busy} onClick={onLeave}>Back to home</button>
+    </section> : !room ? <section className="bullet-lobby"><h2>Enter the arena</h2>
       <button disabled={busy || !multiplayerConfigured} onClick={() => void act('create')}>Create Bullet Run room</button>
       <form onSubmit={e => { e.preventDefault(); void act('join'); }}><label htmlFor="bullet-code">Room code</label>
         <input id="bullet-code" value={code} maxLength={6} minLength={6} required pattern="[A-Za-z0-9]{6}" onChange={e => setCode(e.target.value.toUpperCase())} />

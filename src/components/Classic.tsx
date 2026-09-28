@@ -11,7 +11,7 @@ import {
 import "@/routes/classic-controls.css";
 import { renderClassic } from "@/game/classic/render";
 import { useClassicRecords } from "@/game/useClassicRecords";
-export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
+export default function Classic({ menuHref = "/", onReturn }: { menuHref?: string; onReturn?: () => void }) {
   const [mobileArena, setMobileArena] = useState(false);
   useEffect(() => {
     const query = window.matchMedia("(pointer: coarse)");
@@ -155,10 +155,11 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
       const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a");
       if (link?.getAttribute("href") === menuHref && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
-        void records.finish("abandoned").finally(() => window.location.assign(menuHref));
+        void records.finish("abandoned").finally(() => onReturn ? onReturn() : window.location.assign(menuHref));
       }
     }}>
       <div className="classic-shell mx-auto max-w-4xl space-y-4">
+        {onReturn && <button onClick={() => { void records.finish("abandoned").finally(onReturn); }}>Return to lobby</button>}
         <ClassicWindow
           controllerRef={menuController}
           paused={simulationPaused}

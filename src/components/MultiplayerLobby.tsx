@@ -1,16 +1,21 @@
 import { createPortal } from "react-dom";
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { lobbyAction, lobbyPlayerId, multiplayerConfigured, type Lobby } from "@/lib/multiplayer";
 import { useOnlineDuel } from "@/game/useOnlineDuel";
 import { OnlineDuel } from "./OnlineDuel";
+import HangarLobby from "./HangarLobby";
 
 export default function MultiplayerLobby({
   entryMode,
+  embedded = false,
+  onLeave,
   initialCode,
   onBusyChange,
   onMatchChange,
 }: {
   entryMode?: "create" | "join";
+  embedded?: boolean;
+  onLeave?: () => void;
   initialCode?: string | undefined;
   onBusyChange?: (busy: boolean) => void;
   onMatchChange?: (playing: boolean) => void;
@@ -28,20 +33,20 @@ export default function MultiplayerLobby({
     if (wasPlaying.current && !playing && lobby?.status === "open") {
       inFlight.current = true;
       setBusy(true);
-      onBusyChange?.(true);
       void lobbyAction("ready", lobby.code, false).then(next => {
         if (mounted.current) setLobby(next);
       }).catch(e => {
         if (mounted.current) setError(e instanceof Error ? e.message : "Unable to reset readiness.");
       }).finally(() => {
         inFlight.current = false;
-        onBusyChange?.(false);
         if (mounted.current) setBusy(false);
       });
     }
     wasPlaying.current = playing;
   }, [!!duel.view]);
-  const [busy, setBusy] = useState(entryMode === "create");
+  const [busy, setBusy] = useState(entryMode === "create" || !!initialCode);
+  useEffect(() => { onBusyChange?.(busy || !!lobby); }, [busy, !!lobby, onBusyChange]);
+  useEffect(() => () => onBusyChange?.(false), [onBusyChange]);
   const started = useRef(false);
   const inFlight = useRef(false);
   const [copiedButton, setCopiedButton] = useState<"copy" | "share" | null>(null);
@@ -60,7 +65,6 @@ export default function MultiplayerLobby({
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
-    onBusyChange?.(true);
     setError("");
     try {
       const next = await lobbyAction(
@@ -75,23 +79,23 @@ export default function MultiplayerLobby({
         setLobby(next);
         setCode(next?.code ?? "");
         setPlayer(id);
+        if (action === "leave") onLeave?.();
       }
     } catch (e) {
       if (mounted.current)
         setError(e instanceof Error ? e.message : "Unable to connect. Try again.");
     } finally {
       inFlight.current = false;
-      onBusyChange?.(false);
       if (mounted.current) setBusy(false);
     }
   }
   useEffect(() => {
-    if (entryMode === "create" && !started.current) {
+    if ((entryMode === "create" || (entryMode === "join" && initialCode)) && !started.current) {
       started.current = true;
-      void run("create");
+      void run(entryMode === "join" ? "join" : "create");
     }
-  }, [entryMode]);
-  const roomLink = lobby ? `${window.location.origin}${import.meta.env.BASE_URL}#room=${encodeURIComponent(lobby.code)}` : "";
+  }, [entryMode, initialCode]);
+  const roomLink = lobby ? `${window.location.origin}${import.meta.env.BASE_URL}#room=${encodeURIComponent(lobby.code)}&mode=duel` : "";
   async function shareRoom(copyOnly = false) {
     setShareStatus("");
     setCopiedButton(null);
@@ -138,6 +142,13 @@ export default function MultiplayerLobby({
     <OnlineDuel duel={duel} player={player} busy={busy}
       onReturn={duel.reset} onLeave={() => void run("leave")} />
   </main>, document.body);
+  if (embedded && lobby) return <>
+    {error && <p role="alert">{error}</p>}
+    <HangarLobby mode="duel" room={{ ...lobby, status: lobby.status === 'open' ? 'open' : 'closed', phase: 'lobby', members: lobby.members.map(m => ({ ...m, ready: m.is_ready })) }}
+      player={player ?? ''} busy={busy} connected={duel.connectionStatus === 'Both players connected' || duel.connectionStatus === 'Waiting for the other player'}
+      unavailable={!!error} readinessAvailable selfReady={lobby.members.some(m => m.player_id === player && m.is_ready)} allReady={duel.canStart}
+      status={duel.connectionStatus} invite={roomLink} onLeave={() => void run('leave')} onReady={() => void run('ready')} onStart={duel.start} />
+  </>;
   return (
     <div className="classic-lobby">
       <p>Private 1v1 room · Unranked</p>

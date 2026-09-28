@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Link2, Users, X, Trophy, Medal } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Trophy, Medal } from "lucide-react";
 import { PlayerProfile } from "./PlayerProfile";
 import { DesktopArena } from "./DesktopArena";
 import "@/routes/desktop-main-menu.css";
 import { ShipIcon } from "./ShipIcon";
 import RoomEntry from "./RoomEntry";
+import type { LobbyMode } from "@/lib/lobby-modes";
 import ClassicLeaderboard from "./ClassicLeaderboard";
 import RankedRatings from "./RankedRatings";
 import { createClassic, tickClassic } from "@/game/classic/engine";
@@ -16,6 +16,7 @@ import { ARENA } from "@/game/config";
 
 const modes = [
   { name: "Classic", description: "Original arena combat", color: "#3ee08a" },
+  { name: "Classic 1v1", description: "Private duel \u00b7 2 pilots", color: "#69d9ff" },
   { name: "Ranked", description: "Competitive 1v1 matches", color: "#d0a0ff" },
   { name: "Arcade", description: "Power-ups · Wraparound routes", color: "#ffe066" },
   { name: "Bullet Run", description: "Free for all · Up to 6 pilots", color: "#ff704d" },
@@ -95,11 +96,19 @@ function StandingsPreview({ ranked = false }: { ranked?: boolean }) {
 
 export function MobileMainMenu() {
   const [selected, setSelected] = useState(0);
-  const [team, setTeam] = useState(1);
-  const [panel, setPanel] = useState<"create" | "join" | "solo" | "bullet" | "settings" | "leaderboard" | "ratings" | null>(null);
+  const [panel, setPanel] = useState<"lobby" | "settings" | "leaderboard" | "ratings" | null>(null);
   const [roomBusy, setRoomBusy] = useState(false);
   const [roomPlaying, setRoomPlaying] = useState(false);
   const [inviteCode, setInviteCode] = useState<string>();
+  const [lobbyMode, setLobbyMode] = useState<LobbyMode>('solo');
+  const enterMode = () => {
+    const modeMap: Record<string, LobbyMode> = { Classic: 'solo', 'Classic 1v1': 'duel', Practice: 'practice', 'Bullet Run': 'bullet', Ranked: 'ranked', Arcade: 'arcade' };
+    setInviteCode(undefined); setLobbyMode(modeMap[modes[selected]!.name] ?? 'solo'); setPanel('lobby');
+  };
+  const leaveLobby = () => {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    setInviteCode(undefined); setPanel(null); setRoomPlaying(false); setRoomBusy(false);
+  };
   useEffect(() => {
     const readInvite = () => {
       const player = new URLSearchParams(window.location.hash.slice(1)).get("player");
@@ -110,7 +119,8 @@ export function MobileMainMenu() {
       const code = new URLSearchParams(window.location.hash.slice(1)).get("room");
       if (code && /^[a-z0-9]{6}$/i.test(code)) {
         setInviteCode(code.toUpperCase());
-        setPanel("join");
+        setLobbyMode(new URLSearchParams(window.location.hash.slice(1)).get("mode") === "bullet" ? "bullet" : "duel");
+        setPanel("lobby");
       }
     };
     readInvite();
@@ -134,7 +144,7 @@ export function MobileMainMenu() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [panel, roomPlaying]);
-  const hangar = panel === 'create' || panel === 'join' || panel === 'solo' || panel === 'bullet';
+  const hangar = panel === 'lobby';
   const dialog = useRef<HTMLDialogElement>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
   const mode = modes[selected] ?? modes[0];
@@ -161,20 +171,8 @@ export function MobileMainMenu() {
         <p>{mode.description}</p>
         {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
           <button className="desktop-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight /></button>
-        ) : mode.name === "Bullet Run" ? (
-          <button className="desktop-play" onClick={() => setPanel("bullet")}>Play <ChevronRight /></button>
-        ) : (mode.name === "Ranked" || mode.name === "Arcade") ? (
-          <button className="desktop-play" disabled>
-            Coming Soon
-          </button>
-        ) : mode.name === "Classic" ? (
-          <button className="desktop-play" onClick={() => setPanel("solo")}>Play <ChevronRight /></button>
-        ) : (
-          <Link className="desktop-play" to="/practice">
-            Play
-            <ChevronRight />
-          </Link>
-        )}
+        ) : <button className="desktop-play" onClick={enterMode}>Play <ChevronRight /></button>}
+
       </div>
       <nav
         className="desktop-mode-picker"
@@ -295,44 +293,7 @@ export function MobileMainMenu() {
       <div className="mobile-mode-actions" aria-live="polite">
         {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
           <button className="mobile-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight size={22} /></button>
-        ) : mode.name === "Bullet Run" ? (
-          <button className="mobile-play" onClick={() => setPanel("bullet")}>Play <ChevronRight size={22} /></button>
-        ) : (mode.name === "Ranked" || mode.name === "Arcade") ? (
-          <>
-            {mode.name === "Arcade" && <div className="team-options" aria-label="Planned Arcade team size">
-              {[1, 2].map((size) => (
-                <button key={size} aria-pressed={team === size} onClick={() => setTeam(size)}>
-                  {size}v{size}
-                </button>
-              ))}
-            </div>}
-            <button className="mobile-play" disabled>
-              Coming Soon
-            </button>
-          </>
-        ) : mode.name === "Classic" ? (
-          <button className="mobile-play" onClick={() => setPanel("solo")}>Play <ChevronRight size={22} /></button>
-        ) : (
-          <Link className="mobile-play" to="/practice">
-            Play
-            <ChevronRight size={22} />
-          </Link>
-        )}
-      </div>
-      <div className="mobile-room-actions">
-        <button
-          onClick={() => {
-            setRoomBusy(false);
-            setPanel("create");
-          }}
-        >
-          <Users />
-          Create Room
-        </button>
-        <button onClick={() => setPanel("join")}>
-          <Link2 />
-          Join Room
-        </button>
+        ) : <button className="mobile-play" onClick={enterMode}>Play <ChevronRight size={22} /></button>}
       </div>
       <footer>Fight · Adapt · Survive</footer>
       <dialog
@@ -355,9 +316,7 @@ export function MobileMainMenu() {
           <h2 id="mobile-panel-title" className={(panel === "leaderboard" || panel === "ratings") ? "sr-only" : undefined}>
             {panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
               ? "About the game"
-              : panel === "bullet" ? "Bullet Run Room" : panel === "solo" ? "Classic Solo Room" : panel === "join"
-                ? "Join Room"
-                : "Create Room"}
+              : "Game lobby"}
           </h2>
           <button aria-label="Close dialog" disabled={roomBusy || roomPlaying} onClick={() => setPanel(null)}>
             <X />
@@ -372,11 +331,10 @@ export function MobileMainMenu() {
         ) : (
           panel && (
             <RoomEntry
-              key={`${panel}-${inviteCode ?? ""}`}
-              entryMode={panel === "solo" || panel === "bullet" ? "create" : panel}
-              initialMode={panel === "solo" || panel === "bullet" ? panel : undefined}
-              initialCode={panel === "join" ? inviteCode : undefined}
-              onLeave={() => setPanel(null)}
+              key={`${lobbyMode}-${inviteCode ?? ""}`}
+              initialMode={lobbyMode}
+              initialCode={inviteCode}
+              onLeave={leaveLobby}
               onBusyChange={setRoomBusy}
               onMatchChange={setRoomPlaying}
             />

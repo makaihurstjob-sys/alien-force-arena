@@ -16,7 +16,7 @@
 .is-empty .hangar-dock canvas { opacity:.16; filter:grayscale(1); }
 .hangar-plus { position:absolute; font-size:48px; color:#bdcdd0; }
 .hangar-plaque { padding:12px; border:1px solid #6a8188; border-radius:5px; background:#071015ed; display:grid; gap:10px; text-align:center; }
-.hangar-pilot-name { display:flex; align-items:center; gap:8px; justify-content:space-between; }
+.hangar-pilot-name { display:flex; min-width:0; align-items:center; gap:8px; justify-content:space-between; }
 .hangar-pilot-name strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .hangar-pilot-name > span { font-size:13px; white-space:nowrap; }
 .hangar-readiness { background:#3a141e; color:#ff7a88; padding:10px 4px; border-radius:3px; }
