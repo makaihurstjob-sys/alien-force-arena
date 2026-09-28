@@ -17,6 +17,8 @@
   cursor: pointer;
 }
 .player-profile-button img { width: 100%; height: 100%; object-fit: cover; }
+.player-profile-button > svg { width:25px; height:25px; }
+.is-hangar > .player-profile-button { top:8px; right:14px; }
 .player-profile-dialog .profile-option {
   display: block;
   width: 100%;

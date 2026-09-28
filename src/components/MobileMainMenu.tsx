@@ -158,7 +158,7 @@ export function MobileMainMenu() {
 
   return (
     <section className="mobile-main-menu" aria-label="Main menu">
-      <PlayerProfile />
+      {!hangar && <PlayerProfile />}
       <div className="desktop-arena" aria-hidden="true">
         <DesktopArena mode={mode.name === "Arcade" ? 1 : mode.name === "Practice" ? 2 : 0} />
       </div>
@@ -311,7 +311,7 @@ export function MobileMainMenu() {
             window.history.replaceState(null, "", window.location.pathname + window.location.search);
         } }}
       >
-        {hangar && <><div className="hangar-backdrop" aria-hidden="true"><DesktopArena mode={0} /></div><div className="hangar-brand" aria-hidden="true">Alien Force Arena</div></>}
+        {hangar && <><PlayerProfile /><div className="hangar-backdrop" aria-hidden="true"><DesktopArena mode={0} /></div><div className="hangar-brand" aria-hidden="true">Alien Force Arena</div></>}
         <div className={`mobile-panel-heading ${hangar ? 'hangar-entry-heading' : ''}`}>
           <h2 id="mobile-panel-title" className={(panel === "leaderboard" || panel === "ratings") ? "sr-only" : undefined}>
             {panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
