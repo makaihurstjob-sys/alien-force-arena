@@ -6,6 +6,7 @@ import "@/routes/desktop-main-menu.css";
 import { ShipIcon } from "./ShipIcon";
 import RoomEntry from "./RoomEntry";
 import type { LobbyMode } from "@/lib/lobby-modes";
+import { animateLobbyExit } from "@/lib/lobby-exit";
 import ClassicLeaderboard from "./ClassicLeaderboard";
 import RankedRatings from "./RankedRatings";
 import { createClassic, tickClassic } from "@/game/classic/engine";
@@ -106,6 +107,7 @@ export function MobileMainMenu() {
     setInviteCode(undefined); setLobbyMode(modeMap[modes[selected]!.name] ?? 'solo'); setPanel('lobby');
   };
   const leaveLobby = () => {
+    animateLobbyExit(dialog.current);
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
     setInviteCode(undefined); setPanel(null); setRoomPlaying(false); setRoomBusy(false);
   };
