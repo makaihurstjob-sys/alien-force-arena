@@ -17,14 +17,15 @@
 .hangar-dock canvas { margin:0; max-width:100%; }
 .is-empty .hangar-dock canvas { opacity:.16; filter:grayscale(1); }
 .hangar-plus { position:absolute; font-size:48px; color:#bdcdd0; }
-.hangar-plaque { height:140px; box-sizing:border-box; padding:12px; border:1px solid #6a8188; border-radius:5px; background:#071015ed; display:grid; grid-template-rows:minmax(0,1fr) 48px; gap:10px; text-align:center; }
-.hangar-plaque > strong { align-self:center; }
+.hangar-plaque { height:96px; box-sizing:border-box; display:grid; grid-template-rows:44px 44px; gap:8px; text-align:center; }
+.hangar-plaque > strong,.hangar-pilot-name { border:1px solid #6a8188; border-radius:4px; background:#071015ed; padding:8px; }
+.hangar-plaque > strong { display:flex; align-items:center; justify-content:center; }
 .hangar-plaque > button,.hangar-readiness { display:flex; align-items:center; justify-content:center; }
-.hangar-pilot-name { display:flex; min-width:0; align-items:center; gap:8px; justify-content:space-between; }
+.hangar-pilot-name { display:flex; min-width:0; align-items:center; gap:8px; justify-content:center; }
 .hangar-pilot-name strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.hangar-pilot-name > span { font-size:13px; white-space:nowrap; }
-.hangar-readiness { background:#3a141e; color:#ff7a88; padding:10px 4px; border-radius:3px; }
-.hangar-readiness.is-ready { color:#021c12; background:#16df89; }
+.hangar-pilot-name .hangar-host-crown { color:#ffda45; font-size:20px; flex-shrink:0; line-height:1; }
+.hangar-lobby .hangar-readiness { background:#3a141e; color:#ff7a88; padding:10px 4px; border-radius:3px; }
+.hangar-lobby .hangar-readiness.is-ready { color:#021c12; background:#16df89; }
 .hangar-actions { display:flex; gap:20px; align-items:center; justify-content:space-between; margin-top:36px; padding:16px; background:#071317eb; border:1px solid #608187; border-radius:5px; }
 .hangar-actions strong { color:#48e8b1; } .hangar-actions > span { color:#adbdc4; }
 .hangar-actions .hangar-start:not(:disabled) { background:#20e680; color:#03170b; }
@@ -42,8 +43,8 @@
 @media(max-width:767px) {
  .hangar-tabs { flex-wrap:wrap; } .hangar-tabs > * { padding:10px; font-size:14px; } .hangar-tabs > :last-child { margin-left:0; }
  .hangar-slots { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 10px; margin:22px 0; }
- .hangar-dock { height:150px; margin:0 4px 12px; } .hangar-plaque { padding:8px; font-size:14px; }
- .hangar-pilot-name { flex-direction:column; gap:4px; } .hangar-pilot-name strong { max-width:100%; }
+ .hangar-dock { height:clamp(96px,17dvh,150px); margin:0 4px 8px; } .hangar-plaque { font-size:14px; }
+ .hangar-pilot-name { gap:4px; } .hangar-pilot-name strong { min-width:0; }
  .hangar-actions { flex-wrap:wrap; justify-content:center; gap:12px; margin-top:auto; padding:12px; }
  .hangar-actions button { flex:1 1 130px; } .hangar-game-cards { grid-template-columns:1fr; } .hangar-selector { padding:16px; }
 }
@@ -57,3 +58,11 @@
 .is-hangar .bullet-page header[hidden] { display:none; }
 @media(prefers-reduced-motion:reduce) { .hangar-brand { animation:none; } }
 @media(max-width:767px) { .mobile-menu-dialog.is-hangar { padding:60px 14px 16px; } .hangar-brand { left:14px; top:14px; } }
+@media(max-width:767px) {
+ .mobile-menu-dialog.is-hangar { height:100dvh; max-height:100dvh; padding-bottom:max(16px,env(safe-area-inset-bottom)); }
+ .is-hangar .hangar-lobby { height:calc(100dvh - 76px - env(safe-area-inset-bottom)); min-height:0; }
+ .is-hangar .hangar-tabs,.is-hangar .hangar-connection,.is-hangar .hangar-actions { flex-shrink:0; }
+ .is-hangar .hangar-slots { flex:1; min-height:0; overflow-y:auto; align-items:start; align-content:start; margin:12px 0; padding:4px; }
+ .is-hangar .hangar-actions { margin-top:0; gap:8px; padding:8px; }
+ .is-hangar .hangar-actions > span { font-size:12px; }
+}

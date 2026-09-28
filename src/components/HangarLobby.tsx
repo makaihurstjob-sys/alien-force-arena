@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Crown } from 'lucide-react';
 import { DesktopArena } from './DesktopArena';
 import { ShipIcon } from './ShipIcon';
 import type { BulletLobby } from '@/lib/bullet-lobby';
@@ -40,8 +41,10 @@ export default function HangarLobby({ room, player, busy, connected, unavailable
         return <li className={`hangar-slot ${member ? '' : 'is-empty'}`} key={member?.player_id ?? `empty-${i}`}>
           <div className="hangar-dock"><div style={{ filter: `hue-rotate(${i * 65}deg)` }}><ShipIcon size={96} /></div>{!member && <span className="hangar-plus" aria-hidden="true">+</span>}</div>
           <div className="hangar-plaque">{member ? <>
-            <div className="hangar-pilot-name"><strong title={member.display_name}>{member.display_name}</strong>{member.player_id === room.host_id && <span>♛ Host</span>}</div>
-            <span className={`hangar-readiness ${member.ready ? 'is-ready' : ''}`}>{member.ready ? '✓ Ready' : '○ Not ready'}{member.player_id === player ? ' · You' : ''}</span>
+            <div className="hangar-pilot-name">{member.player_id === room.host_id && <Crown className="hangar-host-crown" role="img" aria-label="Host" size={18} fill="currentColor" />}<strong title={member.display_name}>{member.display_name}</strong></div>
+            <button className={`hangar-readiness ${member.ready ? 'is-ready' : ''}`} aria-label={member.player_id === player ? selfReady ? 'Cancel ready' : 'Ready up' : `${member.display_name}: ${member.ready ? 'Ready' : 'Not ready'}`}
+              aria-pressed={member.ready} disabled={member.player_id !== player || busy || !open || unavailable || !readinessAvailable || !connected || !game.playable}
+              onClick={member.player_id === player ? onReady : undefined}>{member.ready ? 'Ready' : 'Not ready'}</button>
           </> : <><strong>{game.max === 1 ? 'Solo mode' : 'Open slot'}</strong><button disabled={!open || unavailable || !canInvite} onClick={() => void copy()}>{canInvite ? '+ Invite' : game.max === 1 ? '1 pilot' : 'Unavailable'}</button></>}</div>
         </li>;
       })}
@@ -49,7 +52,6 @@ export default function HangarLobby({ room, player, busy, connected, unavailable
     {copied && <div className="hangar-invite"><p role="status">{copied}</p><label>Invite link<input readOnly value={invite} onFocus={e => e.currentTarget.select()} /></label></div>}
     <div className="hangar-actions">
       <button aria-label="Leave room" disabled={busy} onClick={onLeave}>← Leave room</button>
-      <button disabled={busy || !open || unavailable || !readinessAvailable || !connected || !game.playable} onClick={onReady}>{selfReady ? 'Cancel ready' : 'Ready up'}</button>
       <strong>{ready}/{room.members.length} pilots ready</strong>
       {room.host_id === player ? <button aria-label={game.playable ? 'Start match' : 'Coming soon'} className="hangar-start" disabled={busy || !open || unavailable || !allReady || !connected || !game.playable} onClick={onStart}>{game.playable ? '▶ Start match' : 'Coming soon'}</button> : <span>Waiting for the host to start…</span>}
       <span>{!game.playable ? 'This game is coming soon.' : !readinessAvailable && open ? 'Room readiness setup is pending.' : !open ? 'Room closed' : room.members.length < game.min ? 'Invite another pilot to start.' : allReady ? 'All pilots ready' : 'Waiting for all pilots'}</span>
