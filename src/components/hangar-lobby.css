@@ -6,6 +6,8 @@
 .hangar-lobby button:hover:not(:disabled),.hangar-lobby button:focus-visible { outline:2px solid #42eca9; outline-offset:3px; }
 .hangar-lobby button:disabled { opacity:.45; cursor:not-allowed; }
 .hangar-tabs .hangar-game-selector { align-self:stretch; border:0; border-bottom:3px solid #36eda7; border-radius:0; display:flex; align-items:center; gap:28px; }
+.mobile-main-menu .hangar-tabs .hangar-game-selector { outline:none; }
+.mobile-main-menu .hangar-tabs .hangar-game-selector:focus-visible { background:#21443f; border-bottom-color:#fff; }
 .hangar-connection { color:#a1b6ba; font-size:14px; margin:8px 0; min-height:20px; }
 .hangar-slots { display:grid; grid-template-columns:repeat(var(--slot-count),minmax(0,1fr)); gap:clamp(12px,2vw,32px); list-style:none; padding:0; margin:auto 0; align-items:center; }
 .hangar-slot { min-width:0; }
@@ -15,7 +17,9 @@
 .hangar-dock canvas { margin:0; max-width:100%; }
 .is-empty .hangar-dock canvas { opacity:.16; filter:grayscale(1); }
 .hangar-plus { position:absolute; font-size:48px; color:#bdcdd0; }
-.hangar-plaque { padding:12px; border:1px solid #6a8188; border-radius:5px; background:#071015ed; display:grid; gap:10px; text-align:center; }
+.hangar-plaque { height:140px; box-sizing:border-box; padding:12px; border:1px solid #6a8188; border-radius:5px; background:#071015ed; display:grid; grid-template-rows:minmax(0,1fr) 48px; gap:10px; text-align:center; }
+.hangar-plaque > strong { align-self:center; }
+.hangar-plaque > button,.hangar-readiness { display:flex; align-items:center; justify-content:center; }
 .hangar-pilot-name { display:flex; min-width:0; align-items:center; gap:8px; justify-content:space-between; }
 .hangar-pilot-name strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .hangar-pilot-name > span { font-size:13px; white-space:nowrap; }
