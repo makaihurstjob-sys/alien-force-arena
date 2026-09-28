@@ -5,15 +5,16 @@ import MultiplayerLobby from './MultiplayerLobby';
 import { ShipIcon } from './ShipIcon';
 import './room-entry.css';
 
-export default function RoomEntry({ entryMode, initialCode, initialMode, onBusyChange, onMatchChange }: {
+export default function RoomEntry({ entryMode, initialCode, initialMode, onBusyChange, onMatchChange, onLeave }: {
   entryMode: 'create' | 'join'; initialCode?: string | undefined; initialMode?: 'solo' | 'bullet' | undefined;
+  onLeave?: () => void;
   onBusyChange: (busy: boolean) => void; onMatchChange: (playing: boolean) => void;
 }) {
   const [mode, setMode] = useState<'solo' | 'duel' | 'bullet' | null>(initialCode ? 'duel' : initialMode ?? null);
   const [bulletBusy, setBulletBusy] = useState(false);
   const [ready, setReady] = useState(false);
   const handleBulletBusy = useCallback((busy: boolean) => { setBulletBusy(busy); onBusyChange(busy); }, [onBusyChange]);
-  if (mode === 'bullet') return <section className="shared-room-entry"><button disabled={bulletBusy} onClick={() => setMode(null)}>Choose mode</button><BulletRun embedded onBusyChange={handleBulletBusy} /></section>;
+  if (mode === 'bullet') return <section className="shared-room-entry"><button hidden={bulletBusy} onClick={() => setMode(null)}>Choose mode</button><BulletRun embedded onBusyChange={handleBulletBusy} onLeave={onLeave} /></section>;
   if (mode === 'duel') return <MultiplayerLobby entryMode={entryMode} initialCode={initialCode}
     onBusyChange={onBusyChange} onMatchChange={onMatchChange} />;
   if (mode === 'solo') return <section className="shared-room-entry">

@@ -10,6 +10,7 @@ try {
   await db.exec(fs.readFileSync('drizzle/migrations/0000_alien_force_arena_core_schema.sql', 'utf8'));
   await db.exec(fs.readFileSync('supabase/migrations/202609230000_bullet_run.sql', 'utf8'));
   await db.exec(fs.readFileSync('supabase/migrations/202609270000_bullet_readiness.sql', 'utf8'));
+  await db.exec(fs.readFileSync('supabase/migrations/202609290000_hangar_capacity.sql', 'utf8'));
   const host = crypto.randomUUID(), guest = crypto.randomUUID(), stranger = crypto.randomUUID();
   async function call(id, action, code = '') {
     await db.query("select set_config('test.uid', $1, false)", [id]);
@@ -67,11 +68,11 @@ try {
   await assert.rejects(call(host, 'launch', room.code), /must be ready/);
   await assert.rejects(call(stranger, 'get', room.code), /not a member/);
   await assert.rejects(call('', 'create'), /Sign in/);
-  for (let i = 0; i < 22; i++) await call(crypto.randomUUID(), 'join', room.code);
-  assert.equal((await call(host, 'get', room.code)).members.length, 24);
+  for (let i = 0; i < 4; i++) await call(crypto.randomUUID(), 'join', room.code);
+  assert.equal((await call(host, 'get', room.code)).members.length, 6);
   await assert.rejects(call(stranger, 'join', room.code), /full/);
   await call(guest, 'leave', room.code);
-  assert.equal((await call(stranger, 'join', room.code)).members.length, 24);
+  assert.equal((await call(stranger, 'join', room.code)).members.length, 6);
   await db.exec('set role authenticated');
   await assert.rejects(db.query('select * from bullet_rooms'), /permission denied/);
   await db.exec('reset role; set role anon');
@@ -83,5 +84,5 @@ try {
   await assert.rejects(call(stranger, 'ready', room.code), /closed/);
   await assert.rejects(call(stranger, 'unready', room.code), /closed/);
   await assert.rejects(call(stranger, 'launch', room.code), /closed/);
-  console.log('PASS local Bullet Run migration: core schema compatibility, create/join/retry/leave, 24-player limit, closed rooms, access controls, shared readiness, rejoin reset and host launch validation');
+  console.log('PASS local Bullet Run migration: core schema compatibility, create/join/retry/leave, 6-player limit, closed rooms, access controls, shared readiness, rejoin reset and host launch validation');
 } finally { await db.close(); }

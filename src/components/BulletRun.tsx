@@ -6,6 +6,7 @@ import { bulletLobby, type BulletLobby } from '@/lib/bullet-lobby';
 import { BULLET_RUN, createState, idleInput, obstacles, step, weapon, type Input, type State } from '@/game/bullet-run';
 import './bullet-run.css';
 import { ShipIcon } from './ShipIcon';
+import HangarLobby from './HangarLobby';
 
 const keys: Record<string, keyof Pick<Input, 'up' | 'down' | 'left' | 'right' | 'fire'>> = {
   KeyW: 'up', ArrowUp: 'up', KeyS: 'down', ArrowDown: 'down', KeyA: 'left', ArrowLeft: 'left',
@@ -39,7 +40,7 @@ function validState(v: unknown, roster: string[]): v is State {
     Array.isArray(s.bullets) && s.bullets.length <= 400 && s.bullets.every(b => roster.includes(b.owner) &&
       [b.x,b.y,b.vx,b.vy,b.life].every(Number.isFinite));
 }
-export default function BulletRun({ embedded = false, onBusyChange }: { embedded?: boolean; onBusyChange?: (busy: boolean) => void } = {}) {
+export default function BulletRun({ embedded = false, onBusyChange, onLeave }: { embedded?: boolean; onBusyChange?: (busy: boolean) => void; onLeave?: (() => void) | undefined } = {}) {
   const [room, setRoom] = useState<BulletLobby | null>(null);
   const [code, setCode] = useState('');
   const [player, setPlayer] = useState('');
@@ -67,10 +68,10 @@ export default function BulletRun({ embedded = false, onBusyChange }: { embedded
       const next = await bulletLobby(action, action === 'join' ? code : roomRef.current?.code);
       setRoom(next); setState(null); setRoomUnavailable(false); setStatus('');
       const id = await lobbyPlayerId(); if (id) setPlayer(id);
-      if (action === 'leave') { window.history.replaceState(null, '', embedded ? window.location.pathname + window.location.search : `${import.meta.env.BASE_URL}bullet-run`); setCode(''); }
+      if (action === 'leave') { window.history.replaceState(null, '', embedded ? window.location.pathname + window.location.search : `${import.meta.env.BASE_URL}bullet-run`); setCode(''); onLeave?.(); }
     } catch (e) { setError(e instanceof Error ? e.message : 'Could not connect to Bullet Run.'); }
     finally { requestEpoch.current++; mutationPending.current = false; setBusy(false); }
-  }, [code, embedded]);
+  }, [code, embedded, onLeave]);
   useEffect(() => {
     const invite = new URLSearchParams(window.location.hash.slice(1)).get('room');
     if (invite && /^[A-Z0-9]{6}$/i.test(invite)) setCode(invite.toUpperCase());
@@ -209,7 +210,7 @@ export default function BulletRun({ embedded = false, onBusyChange }: { embedded
   };
   const you = state?.pilots.find(p => p.id === player);
   return <main className={`bullet-page ${embedded ? "bullet-embedded" : ""}`}>
-    <header>{!embedded && <Link to="/">← Main menu</Link>}<h1>Bullet Run</h1><p>Up to 24 pilots · Free for all</p></header>
+    <header hidden={embedded && !!room}>{!embedded && <Link to="/">← Main menu</Link>}<h1>Bullet Run</h1><p>Up to 6 pilots · Free for all</p></header>
     {error && <p role="alert" className="bullet-error">{error}</p>}
     {!multiplayerConfigured && <p role="status">Online play requires the arena connection.</p>}
     {!room ? <section className="bullet-lobby"><h2>Enter the arena</h2>
@@ -217,7 +218,7 @@ export default function BulletRun({ embedded = false, onBusyChange }: { embedded
       <form onSubmit={e => { e.preventDefault(); void act('join'); }}><label htmlFor="bullet-code">Room code</label>
         <input id="bullet-code" value={code} maxLength={6} minLength={6} required pattern="[A-Za-z0-9]{6}" onChange={e => setCode(e.target.value.toUpperCase())} />
         <button disabled={busy || !multiplayerConfigured}>Join room</button></form></section> : <>
-      <section className="bullet-lobby"><strong>Room {room.code}</strong> · {room.members.length}/24 players
+      {embedded && room.phase !== 'playing' && !state ? <HangarLobby room={room} player={player} busy={busy} connected={connected.current} unavailable={roomUnavailable} readinessAvailable={!!readinessAvailable} selfReady={selfReady} allReady={!!allReady} status={status} onLeave={() => void act('leave')} onReady={() => void setReady()} onStart={() => void start()} invite={link} /> : <section className="bullet-lobby"><strong>Room {room.code}</strong> · {room.members.length}/6 players
         <button onClick={() => void act('leave')} disabled={busy}>Leave room</button>
         <p role="status">{room.status === 'closed' ? 'The host closed this room.' : roomUnavailable ? 'Waiting for the room connection to recover.' : status}</p>
         {room.status === 'closed' && <p>Leave this room to create or join another one.</p>}
@@ -237,7 +238,7 @@ export default function BulletRun({ embedded = false, onBusyChange }: { embedded
           {room.members.length < 2 && <p>Invite another pilot to start. Bullet Run needs at least two players.</p>}
           {room.host_id === player ? <button disabled={busy || !allReady || !connected.current} onClick={() => void start()}>Start match</button> : <p>Waiting for the host to start...</p>}</>}
         {room.phase === 'playing' && room.status === 'open' && !roomUnavailable && <>{!state && <p>{room.match_roster?.includes(player) ? 'Waiting for the host arena...' : 'Round in progress. You will join the next round.'}</p>}{room.host_id === player && <button onClick={() => void returnToRoom()} disabled={busy}>Return everyone to room</button>}</>}
-      </section>
+      </section>}
       {state && room.status === 'open' && !roomUnavailable && <section className="bullet-match"><div className="bullet-hud"><span>Kills: {you?.kills ?? 0}</span><span>Deaths: {you?.deaths ?? 0}</span>
         <span>Weapon: {weapon(you?.kills ?? 0).stage} × {weapon(you?.kills ?? 0).count}</span>
         {you && you.kills >= 11 && <span>Sniper: {Math.ceil(you.sniperCooldown / 1000)}s</span>}</div>

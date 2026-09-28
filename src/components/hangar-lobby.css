@@ -1,0 +1,55 @@
+.hangar-lobby { display: flex; flex-direction: column; min-height: calc(100svh - 100px); color: #edf6f3; font-family: 'Windows Bold', monospace; }
+.hangar-tabs { display:flex; align-items:center; gap:0; border-bottom:1px solid #45e4aa; background:#091416e8; min-height:56px; }
+.hangar-tabs > * { padding:12px 22px; border-right:1px solid #56676c; white-space:nowrap; }
+.hangar-tabs > :last-child { margin-left:auto; }
+.hangar-lobby button { border:1px solid #68838b; border-radius:4px; background:#102123; color:#eff7f5; padding:12px 18px; cursor:pointer; }
+.hangar-lobby button:hover:not(:disabled),.hangar-lobby button:focus-visible { outline:2px solid #42eca9; outline-offset:3px; }
+.hangar-lobby button:disabled { opacity:.45; cursor:not-allowed; }
+.hangar-tabs .hangar-game-selector { align-self:stretch; border:0; border-bottom:3px solid #36eda7; border-radius:0; display:flex; align-items:center; gap:28px; }
+.hangar-connection { color:#a1b6ba; font-size:14px; margin:8px 0; min-height:20px; }
+.hangar-slots { display:grid; grid-template-columns:repeat(var(--slot-count),minmax(0,1fr)); gap:clamp(12px,2vw,32px); list-style:none; padding:0; margin:auto 0; align-items:center; }
+.hangar-slot { min-width:0; }
+.hangar-dock { position:relative; height:clamp(150px,28vh,290px); display:grid; place-items:center; border:4px ridge #555f5b; background:linear-gradient(#333a3abb,#242c2ddd); box-shadow:8px 8px #0008; margin:0 8px 16px; }
+.hangar-dock::before,.hangar-dock::after { content:''; position:absolute; left:8px; right:8px; height:16px; background:repeating-linear-gradient(130deg,#3b4039 0 12px,#bbaa57 12px 24px); border:2px solid #777b6b; }
+.hangar-dock::before { top:0; } .hangar-dock::after { bottom:0; }
+.hangar-dock canvas { margin:0; max-width:100%; }
+.is-empty .hangar-dock canvas { opacity:.16; filter:grayscale(1); }
+.hangar-plus { position:absolute; font-size:48px; color:#bdcdd0; }
+.hangar-plaque { padding:12px; border:1px solid #6a8188; border-radius:5px; background:#071015ed; display:grid; gap:10px; text-align:center; }
+.hangar-pilot-name { display:flex; align-items:center; gap:8px; justify-content:space-between; }
+.hangar-pilot-name strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hangar-pilot-name > span { font-size:13px; white-space:nowrap; }
+.hangar-readiness { background:#3a141e; color:#ff7a88; padding:10px 4px; border-radius:3px; }
+.hangar-readiness.is-ready { color:#021c12; background:#16df89; }
+.hangar-actions { display:flex; gap:20px; align-items:center; justify-content:space-between; margin-top:36px; padding:16px; background:#071317eb; border:1px solid #608187; border-radius:5px; }
+.hangar-actions strong { color:#48e8b1; } .hangar-actions > span { color:#adbdc4; }
+.hangar-actions .hangar-start:not(:disabled) { background:#20e680; color:#03170b; }
+.hangar-invite { margin:16px 0; } .hangar-invite input { width:100%; background:#112328; color:white; padding:8px; }
+.hangar-selector { width:min(1100px,94vw); max-height:90svh; padding:28px; border:1px solid #43eab1; border-radius:8px; color:#eff7f5; background:#091418; font-family:'Windows Bold',monospace; }
+.hangar-selector::backdrop { background:#000a; }
+.hangar-selector header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.hangar-selector h2 { font-size:32px; text-transform:uppercase; }
+.hangar-game-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
+.hangar-game-cards button { padding:8px; text-align:left; display:grid; gap:10px; }
+.hangar-game-cards button[aria-pressed=true] { border:2px solid #22eb95; }
+.hangar-game-cards strong { font-size:24px; } .hangar-game-cards small,.hangar-selector p { color:#a5b8bf; }
+.hangar-thumbnail { aspect-ratio:16/9; overflow:hidden; background:#202727; } .hangar-thumbnail canvas { width:100%; height:100%; object-fit:cover; }
+.hangar-selector > p { margin-top:20px; }
+@media(max-width:767px) {
+ .hangar-tabs { flex-wrap:wrap; } .hangar-tabs > * { padding:10px; font-size:14px; } .hangar-tabs > :last-child { margin-left:0; }
+ .hangar-slots { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 10px; margin:22px 0; }
+ .hangar-dock { height:150px; margin:0 4px 12px; } .hangar-plaque { padding:8px; font-size:14px; }
+ .hangar-pilot-name { flex-direction:column; gap:4px; } .hangar-pilot-name strong { max-width:100%; }
+ .hangar-actions { flex-wrap:wrap; justify-content:center; gap:12px; margin-top:auto; padding:12px; }
+ .hangar-actions button { flex:1 1 130px; } .hangar-game-cards { grid-template-columns:1fr; } .hangar-selector { padding:16px; }
+}
+.mobile-menu-dialog.is-hangar { position:fixed; inset:0; margin:0; width:100vw; max-width:100vw; height:100svh; max-height:100svh; padding:76px 3.3vw 24px; border:0; border-radius:0; background:#151c1c; isolation:isolate; overflow:auto; }
+.hangar-backdrop { position:fixed; inset:0; z-index:-2; pointer-events:none; background:repeating-linear-gradient(0deg,transparent 0 62px,#050b0b 63px 64px),repeating-linear-gradient(90deg,#1a2222 0 62px,#050b0b 63px 64px); }
+.hangar-backdrop canvas { width:100%; height:100%; object-fit:cover; opacity:.4; }
+.hangar-brand { position:absolute; left:3.3vw; top:16px; font-family:'Windows Bold',monospace; text-transform:uppercase; font-size:clamp(34px,4.3vw,72px); line-height:1; transform:scale(.5); transform-origin:top left; background:linear-gradient(90deg,#00ebed,#00f72f,#fcff00,#ff3c00,#00dbe4); background-clip:text; color:transparent; white-space:nowrap; animation:hangar-logo-enter .4s ease-out; }
+@keyframes hangar-logo-enter { from { transform:translateY(28px) scale(1); } to { transform:translateY(0) scale(.5); } }
+.is-hangar .shared-room-entry { background:transparent; padding:0; }
+.is-hangar:has(.hangar-lobby) > .hangar-entry-heading { display:none; }
+.is-hangar .bullet-page header[hidden] { display:none; }
+@media(prefers-reduced-motion:reduce) { .hangar-brand { animation:none; } }
+@media(max-width:767px) { .mobile-menu-dialog.is-hangar { padding:60px 14px 16px; } .hangar-brand { left:14px; top:14px; } }

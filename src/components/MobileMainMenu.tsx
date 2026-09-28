@@ -18,7 +18,7 @@ const modes = [
   { name: "Classic", description: "Original arena combat", color: "#3ee08a" },
   { name: "Ranked", description: "Competitive 1v1 matches", color: "#d0a0ff" },
   { name: "Arcade", description: "Power-ups · Wraparound routes", color: "#ffe066" },
-  { name: "Bullet Run", description: "Free for all · Up to 24 pilots", color: "#ff704d" },
+  { name: "Bullet Run", description: "Free for all · Up to 6 pilots", color: "#ff704d" },
   { name: "Practice", description: "Local 1v1 · Training bot", color: "#3ee08a" },
   { name: "Global Leaderboard", description: "Classic · Scores & player cards", color: "#69d9ff" },
   { name: "Ranked Ratings", description: "1v1 ? Competitive standings", color: "#d0a0ff" },
@@ -134,6 +134,7 @@ export function MobileMainMenu() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [panel, roomPlaying]);
+  const hangar = panel === 'create' || panel === 'join' || panel === 'solo' || panel === 'bullet';
   const dialog = useRef<HTMLDialogElement>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
   const mode = modes[selected] ?? modes[0];
@@ -336,19 +337,21 @@ export function MobileMainMenu() {
       <footer>Fight · Adapt · Survive</footer>
       <dialog
         ref={dialog}
-        className={`mobile-menu-dialog ${roomPlaying ? "is-playing" : ""} ${(panel === "leaderboard" || panel === "ratings") ? "classic-tracker-dialog" : ""}`}
+        className={`mobile-menu-dialog ${hangar ? "is-hangar" : ""} ${roomPlaying ? "is-playing" : ""} ${(panel === "leaderboard" || panel === "ratings") ? "classic-tracker-dialog" : ""}`}
         aria-labelledby="mobile-panel-title"
         onCancel={(event) => {
+          if (event.target !== event.currentTarget) return;
           if (roomBusy || roomPlaying) event.preventDefault();
           else setPanel(null);
         }}
-        onClose={() => { if (!roomPlaying) {
+        onClose={(event) => { if (event.target !== event.currentTarget) return; if (!roomPlaying) {
           setPanel(null);
           if (new URLSearchParams(window.location.hash.slice(1)).has("player"))
             window.history.replaceState(null, "", window.location.pathname + window.location.search);
         } }}
       >
-        <div className="mobile-panel-heading">
+        {hangar && <><div className="hangar-backdrop" aria-hidden="true"><DesktopArena mode={0} /></div><div className="hangar-brand" aria-hidden="true">Alien Force Arena</div></>}
+        <div className={`mobile-panel-heading ${hangar ? 'hangar-entry-heading' : ''}`}>
           <h2 id="mobile-panel-title" className={(panel === "leaderboard" || panel === "ratings") ? "sr-only" : undefined}>
             {panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
               ? "About the game"
@@ -373,6 +376,7 @@ export function MobileMainMenu() {
               entryMode={panel === "solo" || panel === "bullet" ? "create" : panel}
               initialMode={panel === "solo" || panel === "bullet" ? panel : undefined}
               initialCode={panel === "join" ? inviteCode : undefined}
+              onLeave={() => setPanel(null)}
               onBusyChange={setRoomBusy}
               onMatchChange={setRoomPlaying}
             />
