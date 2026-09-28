@@ -1,3 +1,4 @@
+import { randomId } from '@/lib/random-id';
 import { useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { connection, type Lobby } from "@/lib/multiplayer";
@@ -54,7 +55,7 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
     let lastSend = 0;
     let frame = 0;
     let duplicate = false;
-    const instance = crypto.randomUUID();
+    const instance = randomId();
     const isHost = hostId === player;
     const retiredMatches = new Set<string>();
     const snapshotSequences = new Map<string, number>();
@@ -117,7 +118,7 @@ export function useOnlineDuel(lobby: Lobby | null, player: string | undefined) {
       if (!isHost || !readyToStart(performance.now())) return;
       const room = latestLobby.current!;
       host = new DuelHost(
-        crypto.randomUUID(),
+        randomId(),
         room.members.map((m) => ({
           id: m.player_id,
           name: m.team === 0 ? "WHITE" : "ORANGE",

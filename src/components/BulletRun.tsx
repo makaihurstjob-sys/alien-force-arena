@@ -1,3 +1,4 @@
+import { randomId } from '@/lib/random-id';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { Link } from '@tanstack/react-router';
@@ -100,7 +101,7 @@ export default function BulletRun({ embedded = false, onBusyChange, onLeave }: {
     let disposed = false, frame = 0, lastTick = 0, lastSend = 0, sequence = -1;
     let sequenceMatch: string | null | undefined;
     const host = room.host_id === player;
-    const instance = crypto.randomUUID();
+    const instance = randomId();
     const send = (event: string, payload: unknown) => {
       if (connected.current && channel.current) void channel.current.send({ type: 'broadcast', event, payload }).catch(() => {});
     };

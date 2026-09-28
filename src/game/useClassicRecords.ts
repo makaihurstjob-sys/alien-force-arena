@@ -1,3 +1,4 @@
+import { randomId } from '@/lib/random-id';
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import type { ClassicState } from "./classic/engine";
 import { classicPlayer, snapshotRun, submitClassicRun, type RunOutcome, type RunSubmission } from "@/lib/classic-records";
@@ -60,7 +61,7 @@ export function useClassicRecords(game: RefObject<ClassicState>) {
     if (!state || state.elapsed <= 0 || processed.current.has(state)) return;
     processed.current.add(state);
     // Freeze the run before awaiting authentication; a restart replaces game.current.
-    const id = crypto.randomUUID();
+    const id = randomId();
     waiting.current.set(id, { state: { ...state }, outcome });
     await flush();
   }, [game, player, flush]);
