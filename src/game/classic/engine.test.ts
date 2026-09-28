@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createClassic, tickClassic, moveActor, classicDifficulty, CLASSIC, type Direction } from "./engine";
 const idle = { direction: null, fire: false };
-// Existing combat tests begin after the opening countdown.
+// Existing combat tests begin after the first movement input.
 function playingClassic(level = 1) {
   const s = createClassic(level);
-  tickClassic(s, idle, CLASSIC.countdown);
+  tickClassic(s, { ...idle, direction: "left" }, 0);
+  s.playerMoving = false;
+  s.queuedDirection = null;
   return s;
 }
 describe("classic simulation", () => {
@@ -37,7 +39,8 @@ describe("classic simulation", () => {
     expect(s.phase).toBe("level_clear");
     for (let i = 0; i < 100; i++) tickClassic(s, idle, 1 / 60, () => 1);
     expect(s.level).toBe(2);
-    expect(s.phase).toBe("playing");
+    expect(s.phase).toBe("waiting");
+    expect(s.waitingReason).toBe("next_level");
   });
   it("loses one life on contact and protects the respawn", () => {
     const s = playingClassic();
@@ -148,8 +151,13 @@ describe("enemy progression", () => {
   });
   it("increases movement and shooting frequency from level 1 through 999", () => {
     const speeds = [1, 2, 10, 20, 999].map(level => classicDifficulty(level).enemySpeed);
+    const pilotSpeeds = [1, 2, 10, 20, 999].map(level => classicDifficulty(level).playerSpeed);
     expect(speeds).toEqual([...speeds].sort((a, b) => a - b));
     expect(new Set(speeds).size).toBe(speeds.length);
+    expect(pilotSpeeds).toEqual([...pilotSpeeds].sort((a, b) => a - b));
+    expect(new Set(pilotSpeeds).size).toBe(pilotSpeeds.length);
+    expect(speeds[0]).toBeLessThan(40);
+    expect(pilotSpeeds[0]).toBeLessThan(110);
     expect(classicDifficulty(1).shooters).toBe(0);
     expect(classicDifficulty(2).shooters).toBe(1);
     expect(classicDifficulty(10).shooters).toBe(2);
@@ -181,10 +189,11 @@ describe("enemy progression", () => {
     expect(s.hits).toBe(1);
     expect(s.enemies).toHaveLength(1);
     expect(s.enemies[0]?.health).toBe(1);
-    expect(s.score).toBe(0); // No kill score for damaging armor.
+    expect(s.score).toBe(CLASSIC.killScore);
     for (let frame = 0; frame < 60 && s.hits < 2; frame++) tickClassic(s, { ...idle, fire: true }, 1 / 60, () => 1);
     expect(s.hits).toBe(2);
     expect(s.phase).toBe("level_clear");
+    expect(s.score).toBe(2 * CLASSIC.killScore - CLASSIC.shotCost + CLASSIC.levelBonus);
   });
   it("keeps level 999 at maximum difficulty after clearing a wave", () => {
     const high = playingClassic(999);
@@ -220,7 +229,7 @@ it("remembers a quick turn tap until the next lane crossing", () => {
   s.invulnerable = Infinity;
   for (let i = 0; i < 10; i++) tickClassic(s, { ...idle, direction: "left" }, 1 / 60, () => 1);
   tickClassic(s, { ...idle, direction: "up" }, 1 / 60, () => 1);
-  for (let i = 0; i < 18; i++) tickClassic(s, idle, 1 / 60, () => 1);
+  for (let i = 0; i < 120; i++) tickClassic(s, idle, 1 / 60, () => 1);
   expect(s.player.direction).toBe("up");
   expect(s.player.y).toBeLessThan(412);
   expect(s.queuedDirection).toBe(null);
@@ -255,46 +264,57 @@ describe("original opening", () => {
     s.enemies = [{ ...s.player, id: 1 }];
     tickClassic(s, idle, 1 / 60, () => 1);
     expect(s.lives).toBe(2);
-    expect(s.enemies).toHaveLength(10);
+    expect(s.enemies).toHaveLength(1);
     expect(s.playerMoving).toBe(false);
     tickClassic(s, idle);
-    expect(s.player.x).toBe(412);
+    expect(s.phase).toBe("waiting");
   });
 });
 
 
-describe("opening countdown", () => {
-  it("freezes all gameplay and ignores input for three seconds", () => {
+describe("move to start and resume", () => {
+  it("freezes indefinitely until a direction moves the pilot", () => {
     const s = createClassic();
-    const player = { ...s.player }, enemies = structuredClone(s.enemies);
-    const input = { direction: "up" as const, fire: true, reverse: true };
-    for (let second = 3; second > 0; second--) {
-      expect(Math.ceil(s.timer)).toBe(second);
-      tickClassic(s, input, 1);
-      expect(s.player).toEqual(player);
-      expect(s.enemies).toEqual(enemies);
-      expect(s.shots).toHaveLength(0);
-      expect(s.elapsed).toBe(0);
-      expect(s.invulnerable).toBe(CLASSIC.invulnerability);
-      expect(s.playerMoving).toBe(false);
-    }
-    expect(s.phase).toBe("playing");
-    tickClassic(s, idle);
-    expect(s.player).toEqual(player);
-    expect(s.enemies).not.toEqual(enemies);
-    tickClassic(s, { ...idle, direction: "up" });
-    expect(s.player.y).toBeLessThan(player.y);
-  });
-  it("restarts the countdown after a lost life", () => {
-    const s = playingClassic();
-    s.invulnerable = 0;
-    s.enemies = [{ ...s.player, id: 1 }];
-    tickClassic(s, idle);
-    expect(s.phase).toBe("countdown");
-    expect(s.timer).toBe(3);
     const enemies = structuredClone(s.enemies);
-    tickClassic(s, idle, 2);
+    tickClassic(s, idle, 120);
+    tickClassic(s, { ...idle, fire: true, reverse: true }, 120);
+    expect(s.phase).toBe("waiting");
+    expect(s.elapsed).toBe(0);
     expect(s.enemies).toEqual(enemies);
+    expect(s.shots).toHaveLength(0);
+    tickClassic(s, { ...idle, direction: "up" }, 1 / 60, () => 1);
+    expect(s.phase).toBe("playing");
+    expect(s.player.y).toBeLessThan(412);
+  });
+  it("preserves damaged drones and pauses after death until movement", () => {
+    const s = playingClassic(10);
+    s.invulnerable = 0;
+    s.enemies = [{ ...s.player, id: 1, health: 2, maxHealth: 2 }];
+    tickClassic(s, idle, 1 / 60, () => 1);
     expect(s.lives).toBe(2);
+    expect(s.phase).toBe("waiting");
+    expect(s.waitingReason).toBe("respawn");
+    expect(s.enemies).toHaveLength(1);
+    expect(s.enemies[0]?.health).toBe(2);
+    const enemies = structuredClone(s.enemies);
+    const elapsed = s.elapsed;
+    tickClassic(s, idle, 120);
+    expect(s.enemies).toEqual(enemies);
+    expect(s.elapsed).toBe(elapsed);
+    tickClassic(s, { ...idle, direction: "up" }, 1 / 60, () => 1);
+    expect(s.phase).toBe("playing");
+    expect(s.enemies).toHaveLength(1);
+  });
+  it("requires a fresh movement input when a direction remains held across a wave", () => {
+    const s = playingClassic();
+    s.enemies = [];
+    tickClassic(s, { ...idle, direction: "left" }, 1 / 60);
+    tickClassic(s, { ...idle, direction: "left" }, 2);
+    expect(s.phase).toBe("waiting");
+    tickClassic(s, { ...idle, direction: "left" }, 10);
+    expect(s.phase).toBe("waiting");
+    tickClassic(s, idle);
+    tickClassic(s, { ...idle, direction: "left" });
+    expect(s.phase).toBe("playing");
   });
 });
