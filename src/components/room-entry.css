@@ -1,0 +1,14 @@
+.shared-room-entry { color: #edf6f3; background: #0c171d; padding: 20px; }
+.shared-room-entry h3 { font-size: 26px; margin: 20px 0; }
+.shared-room-entry p { color: #aec4cb; margin: 0 0 18px; }
+.room-mode-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.room-mode-options button,.room-mode-options a,.shared-room-entry > button,.room-launch { display: block; border: 1px solid #48636a; background: #162930; padding: 16px; text-align: left; color: #edf6f3; text-decoration: none; }
+.room-mode-options strong,.room-mode-options span { display: block; }
+.room-mode-options strong { font-size: 24px; }
+.room-mode-options span { color: #abc0c6; font-size: 17px; margin-top: 8px; }
+.shared-room-entry button:disabled { opacity: .5; cursor: not-allowed; }
+.room-mode-options a:hover,.room-mode-options button:not(:disabled):hover { border-color: #50e2a1; }
+.room-pilot { border: 1px solid #50e2a1; padding: 24px; text-align: center; margin-bottom: 16px; }
+.room-pilot canvas { display: block; }
+.room-launch { background: #50e2a1; color: #10241a; margin-top: 12px; }
+@media(max-width:480px) { .room-mode-options { grid-template-columns: 1fr; } .shared-room-entry { padding: 12px; } }

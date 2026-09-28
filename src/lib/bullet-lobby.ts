@@ -1,6 +1,6 @@
 import { connection } from './multiplayer';
-export type BulletLobby = { id: string; code: string; host_id: string; status: 'open' | 'closed'; members: { player_id: string; display_name: string }[] };
-export async function bulletLobby(action: 'create' | 'join' | 'get' | 'leave', code = ''): Promise<BulletLobby | null> {
+export type BulletLobby = { id: string; code: string; host_id: string; status: 'open' | 'closed'; phase?: 'lobby' | 'playing'; match_id?: string | null; match_roster?: string[]; members: { player_id: string; display_name: string; ready?: boolean }[] };
+export async function bulletLobby(action: 'create' | 'join' | 'get' | 'leave' | 'ready' | 'unready' | 'launch' | 'return', code = ''): Promise<BulletLobby | null> {
   const db = await connection();
   const { data: session, error: sessionError } = await db.auth.getSession();
   if (sessionError) throw sessionError;

@@ -9,6 +9,7 @@ try {
     grant usage on schema public, auth to anon, authenticated;`);
   await db.exec(fs.readFileSync('drizzle/migrations/0000_alien_force_arena_core_schema.sql', 'utf8'));
   await db.exec(fs.readFileSync('supabase/migrations/202609230000_bullet_run.sql', 'utf8'));
+  await db.exec(fs.readFileSync('supabase/migrations/202609270000_bullet_readiness.sql', 'utf8'));
   const host = crypto.randomUUID(), guest = crypto.randomUUID(), stranger = crypto.randomUUID();
   async function call(id, action, code = '') {
     await db.query("select set_config('test.uid', $1, false)", [id]);
@@ -18,8 +19,52 @@ try {
   }
   const room = await call(host, 'create');
   assert.equal((await call(host, 'create')).id, room.id);
+  await assert.rejects(call(host, 'launch', room.code), /two pilots/);
   assert.equal((await call(guest, 'join', room.code.toLowerCase())).members.length, 2);
   assert.equal((await call(guest, 'join', room.code)).members.length, 2);
+  assert.ok((await call(host, 'get', room.code)).members.every(m => m.ready === false));
+  const readyRoom = await call(guest, 'ready', room.code);
+  assert.equal(readyRoom.members.find(m => m.player_id === guest).ready, true);
+  assert.equal(readyRoom.members.find(m => m.player_id === host).ready, false);
+  assert.equal((await call(guest, 'ready', room.code)).members.find(m => m.player_id === guest).ready, true);
+  assert.equal((await call(guest, 'unready', room.code)).members.find(m => m.player_id === guest).ready, false);
+  await assert.rejects(call(stranger, 'ready', room.code), /not a member/);
+  await call(guest, 'ready', room.code);
+  await call(guest, 'leave', room.code);
+  assert.equal((await call(guest, 'join', room.code)).members.find(m => m.player_id === guest).ready, false);
+  await assert.rejects(call(guest, 'launch', room.code), /Only the host/);
+  await assert.rejects(call(stranger, 'launch', room.code), /not a member/);
+  await assert.rejects(call(host, 'launch', room.code), /must be ready/);
+  await call(host, 'ready', room.code);
+  await call(guest, 'ready', room.code);
+  const launched = await call(host, 'launch', room.code);
+  assert.equal(launched.phase, 'playing');
+  assert.ok(launched.match_id);
+  assert.equal(launched.match_roster.length, 2);
+  assert.ok(launched.members.every(m => !m.ready));
+  await assert.rejects(call(host, 'launch', room.code), /already running/);
+  await assert.rejects(call(guest, 'ready', room.code), /next round/);
+  await assert.rejects(call(guest, 'return', room.code), /Only the host/);
+  const late = await call(stranger, 'join', room.code);
+  assert.equal(late.members.length, 3);
+  assert.ok(!late.match_roster.includes(stranger));
+  await call(stranger, 'leave', room.code);
+  const returned = await call(host, 'return', room.code);
+  assert.equal(returned.phase, 'lobby');
+  assert.equal(returned.match_id, null);
+  assert.deepEqual(returned.match_roster, []);
+  assert.ok(returned.members.every(m => !m.ready));
+  await assert.rejects(call(host, 'launch', room.code), /must be ready/);
+  await call(host, 'ready', room.code);
+  await call(guest, 'ready', room.code);
+  const rematch = await call(host, 'launch', room.code);
+  assert.notEqual(rematch.match_id, launched.match_id);
+  await call(host, 'return', room.code);
+  await call(host, 'ready', room.code);
+  // Retrying return in the lobby must not cancel a newly ready pilot.
+  assert.ok((await call(host, 'return', room.code)).members.find(m => m.player_id === host).ready);
+  await call(guest, 'unready', room.code);
+  await assert.rejects(call(host, 'launch', room.code), /must be ready/);
   await assert.rejects(call(stranger, 'get', room.code), /not a member/);
   await assert.rejects(call('', 'create'), /Sign in/);
   for (let i = 0; i < 22; i++) await call(crypto.randomUUID(), 'join', room.code);
@@ -35,5 +80,8 @@ try {
   await call(host, 'leave', room.code);
   assert.equal((await call(stranger, 'get', room.code)).status, 'closed');
   await assert.rejects(call(guest, 'join', room.code), /closed/);
-  console.log('PASS local Bullet Run migration: core schema compatibility, create/join/retry/leave, 24-player limit, closed rooms, access controls');
+  await assert.rejects(call(stranger, 'ready', room.code), /closed/);
+  await assert.rejects(call(stranger, 'unready', room.code), /closed/);
+  await assert.rejects(call(stranger, 'launch', room.code), /closed/);
+  console.log('PASS local Bullet Run migration: core schema compatibility, create/join/retry/leave, 24-player limit, closed rooms, access controls, shared readiness, rejoin reset and host launch validation');
 } finally { await db.close(); }

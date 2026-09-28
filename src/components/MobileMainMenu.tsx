@@ -5,7 +5,7 @@ import { PlayerProfile } from "./PlayerProfile";
 import { DesktopArena } from "./DesktopArena";
 import "@/routes/desktop-main-menu.css";
 import { ShipIcon } from "./ShipIcon";
-import MultiplayerLobby from "./MultiplayerLobby";
+import RoomEntry from "./RoomEntry";
 import ClassicLeaderboard from "./ClassicLeaderboard";
 import RankedRatings from "./RankedRatings";
 import { createClassic, tickClassic } from "@/game/classic/engine";
@@ -96,7 +96,7 @@ function StandingsPreview({ ranked = false }: { ranked?: boolean }) {
 export function MobileMainMenu() {
   const [selected, setSelected] = useState(0);
   const [team, setTeam] = useState(1);
-  const [panel, setPanel] = useState<"create" | "join" | "settings" | "leaderboard" | "ratings" | null>(null);
+  const [panel, setPanel] = useState<"create" | "join" | "solo" | "bullet" | "settings" | "leaderboard" | "ratings" | null>(null);
   const [roomBusy, setRoomBusy] = useState(false);
   const [roomPlaying, setRoomPlaying] = useState(false);
   const [inviteCode, setInviteCode] = useState<string>();
@@ -161,13 +161,15 @@ export function MobileMainMenu() {
         {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
           <button className="desktop-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight /></button>
         ) : mode.name === "Bullet Run" ? (
-          <Link className="desktop-play" to="/bullet-run">Play <ChevronRight /></Link>
+          <button className="desktop-play" onClick={() => setPanel("bullet")}>Play <ChevronRight /></button>
         ) : (mode.name === "Ranked" || mode.name === "Arcade") ? (
           <button className="desktop-play" disabled>
             Coming Soon
           </button>
+        ) : mode.name === "Classic" ? (
+          <button className="desktop-play" onClick={() => setPanel("solo")}>Play <ChevronRight /></button>
         ) : (
-          <Link className="desktop-play" to={mode.name === "Classic" ? "/classic" : "/practice"}>
+          <Link className="desktop-play" to="/practice">
             Play
             <ChevronRight />
           </Link>
@@ -293,7 +295,7 @@ export function MobileMainMenu() {
         {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
           <button className="mobile-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight size={22} /></button>
         ) : mode.name === "Bullet Run" ? (
-          <Link className="mobile-play" to="/bullet-run">Play <ChevronRight size={22} /></Link>
+          <button className="mobile-play" onClick={() => setPanel("bullet")}>Play <ChevronRight size={22} /></button>
         ) : (mode.name === "Ranked" || mode.name === "Arcade") ? (
           <>
             {mode.name === "Arcade" && <div className="team-options" aria-label="Planned Arcade team size">
@@ -307,8 +309,10 @@ export function MobileMainMenu() {
               Coming Soon
             </button>
           </>
+        ) : mode.name === "Classic" ? (
+          <button className="mobile-play" onClick={() => setPanel("solo")}>Play <ChevronRight size={22} /></button>
         ) : (
-          <Link className="mobile-play" to={mode.name === "Classic" ? "/classic" : "/practice"}>
+          <Link className="mobile-play" to="/practice">
             Play
             <ChevronRight size={22} />
           </Link>
@@ -317,7 +321,7 @@ export function MobileMainMenu() {
       <div className="mobile-room-actions">
         <button
           onClick={() => {
-            setRoomBusy(true);
+            setRoomBusy(false);
             setPanel("create");
           }}
         >
@@ -348,7 +352,7 @@ export function MobileMainMenu() {
           <h2 id="mobile-panel-title" className={(panel === "leaderboard" || panel === "ratings") ? "sr-only" : undefined}>
             {panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
               ? "About the game"
-              : panel === "join"
+              : panel === "bullet" ? "Bullet Run Room" : panel === "solo" ? "Classic Solo Room" : panel === "join"
                 ? "Join Room"
                 : "Create Room"}
           </h2>
@@ -364,10 +368,11 @@ export function MobileMainMenu() {
           </p>
         ) : (
           panel && (
-            <MultiplayerLobby
+            <RoomEntry
               key={`${panel}-${inviteCode ?? ""}`}
-              entryMode={panel}
-              initialCode={inviteCode}
+              entryMode={panel === "solo" || panel === "bullet" ? "create" : panel}
+              initialMode={panel === "solo" || panel === "bullet" ? panel : undefined}
+              initialCode={panel === "join" ? inviteCode : undefined}
               onBusyChange={setRoomBusy}
               onMatchChange={setRoomPlaying}
             />
