@@ -1,6 +1,7 @@
 // Video-informed geometry; timing and combat values are provisional.
 export const CLASSIC = {
   cells: 10,
+  enemyCount: 10,
   spacing: 40,
   margin: 12,
   block: 20,
@@ -54,17 +55,17 @@ export type ClassicInput = {
 const lane = (n: number) => CLASSIC.margin + n * CLASSIC.spacing;
 const nearest = (v: number) => lane(Math.round((v - CLASSIC.margin) / CLASSIC.spacing));
 /** Each level raises speed and fire rate. Every tenth level adds one armor hit
- * to a randomly chosen drone, cycling through all nine before adding a third. */
+ * to a randomly chosen drone, cycling through all ten before adding a third. */
 export function classicDifficulty(level: number) {
   return {
     enemySpeed: CLASSIC.enemySpeed + 12 * Math.log2(level),
-    shooters: level === 1 ? 0 : Math.min(9, 1 + Math.floor(level / 10)),
+    shooters: level === 1 ? 0 : Math.min(CLASSIC.enemyCount, 1 + Math.floor(level / 10)),
     fireRate: level === 1 ? 0 : 0.1 + 0.025 * Math.sqrt(level - 1),
     armorHits: Math.floor(level / 10),
   };
 }
 function shuffledIds(random: () => number) {
-  const ids = Array.from({ length: 9 }, (_, i) => i + 1);
+  const ids = Array.from({ length: CLASSIC.enemyCount }, (_, i) => i + 1);
   for (let i = ids.length - 1; i > 0; i--) {
     const j = Math.min(i, Math.floor(random() * (i + 1)));
     [ids[i], ids[j]] = [ids[j]!, ids[i]!];
@@ -76,8 +77,8 @@ function wave(level: number, random: () => number): Enemy[] {
   const shooterIds = shooters ? new Set(shuffledIds(random).slice(0, shooters)) : new Set<number>();
   const armorIds = armorHits ? shuffledIds(random) : [];
   const health = new Map<number, number>(armorIds.map((id, index): [number, number] =>
-    [id, 1 + Math.floor(armorHits / 9) + Number(index < armorHits % 9)]));
-  return Array.from({ length: 9 }, (_, i) => ({
+    [id, 1 + Math.floor(armorHits / CLASSIC.enemyCount) + Number(index < armorHits % CLASSIC.enemyCount)]));
+  return Array.from({ length: CLASSIC.enemyCount }, (_, i) => ({
     id: i + 1,
     x: lane(i),
     y: lane(0),

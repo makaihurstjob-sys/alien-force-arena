@@ -141,11 +141,11 @@ describe("enemy progression", () => {
     expect(classicDifficulty(1).shooters).toBe(0);
     expect(classicDifficulty(2).shooters).toBe(1);
     expect(classicDifficulty(10).shooters).toBe(2);
-    expect(classicDifficulty(999).shooters).toBe(9);
+    expect(classicDifficulty(999).shooters).toBe(10);
     expect(classicDifficulty(999).fireRate).toBeGreaterThan(classicDifficulty(20).fireRate);
     for (const level of [1, 2, 10, 20, 999]) {
       const s = createClassic(level, () => 0.5);
-      expect(s.enemies).toHaveLength(9);
+      expect(s.enemies).toHaveLength(10);
       expect(s.enemies.filter(e => e.canFire)).toHaveLength(classicDifficulty(level).shooters);
     }
   });
@@ -155,9 +155,11 @@ describe("enemy progression", () => {
     expect(first.enemies.filter(e => e.health === 2)).toHaveLength(1);
     expect(first.enemies.find(e => e.health === 2)?.id).not.toBe(other.enemies.find(e => e.health === 2)?.id);
     expect(createClassic(20).enemies.filter(e => e.health === 2)).toHaveLength(2);
-    expect(createClassic(90).enemies.every(e => e.health === 2)).toBe(true);
-    expect(createClassic(100).enemies.filter(e => e.health === 3)).toHaveLength(1);
-    expect(createClassic(999).enemies.every(e => e.health === 12)).toBe(true);
+    expect(createClassic(90).enemies.filter(e => e.health === 2)).toHaveLength(9);
+    expect(createClassic(100).enemies.every(e => e.health === 2)).toBe(true);
+    expect(createClassic(110).enemies.filter(e => e.health === 3)).toHaveLength(1);
+    expect(createClassic(999).enemies.filter(e => e.health === 11)).toHaveLength(9);
+    expect(createClassic(999).enemies.filter(e => e.health === 10)).toHaveLength(1);
   });
   it("requires two hits for an armored drone and counts each hit", () => {
     const s = playingClassic(10);
@@ -179,8 +181,8 @@ describe("enemy progression", () => {
     high.timer = 0;
     tickClassic(high, idle, 1 / 60, () => 0.5);
     expect(high.level).toBe(999);
-    expect(high.enemies).toHaveLength(9);
-    expect(high.enemies.every(e => e.health === 12 && e.canFire)).toBe(true);
+    expect(high.enemies).toHaveLength(10);
+    expect(high.enemies.every(e => e.health! >= 10 && e.canFire)).toBe(true);
   });
   it.each([0, -1, 1.5, NaN, Infinity, 1000])("rejects invalid selected level %s", (level) => {
     expect(() => createClassic(level)).toThrow(RangeError);
@@ -214,10 +216,10 @@ it("remembers a quick turn tap until the next lane crossing", () => {
 
 
 describe("original opening", () => {
-  it("places nine enemies in the first nine top lanes", () => {
+  it("places ten enemies in the ten top lanes", () => {
     const s = playingClassic();
-    expect(s.enemies).toHaveLength(9);
-    expect(s.enemies.map(e => e.x)).toEqual(Array.from({ length: 9 }, (_, i) => CLASSIC.margin + i * CLASSIC.spacing));
+    expect(s.enemies).toHaveLength(10);
+    expect(s.enemies.map(e => e.x)).toEqual(Array.from({ length: 10 }, (_, i) => CLASSIC.margin + i * CLASSIC.spacing));
     expect(s.enemies.every(e => e.y === CLASSIC.margin && e.direction === "down")).toBe(true);
   });
   it("waits for steering, even when firing or reversing", () => {
@@ -241,7 +243,7 @@ describe("original opening", () => {
     s.enemies = [{ ...s.player, id: 1 }];
     tickClassic(s, idle, 1 / 60, () => 1);
     expect(s.lives).toBe(2);
-    expect(s.enemies).toHaveLength(9);
+    expect(s.enemies).toHaveLength(10);
     expect(s.playerMoving).toBe(false);
     tickClassic(s, idle);
     expect(s.player.x).toBe(412);
