@@ -1,37 +1,34 @@
-# Shared room release review
+# Bullet Run readiness — release record
 
-## Included local changes
+## Authorization
+Owner authorized applying the readiness migration and publishing the updated
+game on 2026-09-28.
 
-- Classic Play enters the solo Ready/Start room on desktop and mobile.
-- Create Room offers Classic Solo, existing Classic 1v1, and embedded Bullet Run.
-- Classic 2vE is labeled as future work, not playable.
-- Bullet Run shows all 24 pilots, identity labels, shared readiness and host launch.
-- Rounds record a match ID and starting roster; launch clears readiness.
-- Host return clears round state; late arrivals wait for the next round.
-- Close and mode changes require leaving the room; embedded Leave retains the menu.
-- Interrupted/closed-room controls and stale-round snapshots are guarded.
+## Database
+Applied migration `bullet_readiness` (version 20260928150721) to Supabase
+project `jtshieblptpxtkociseo` (Alien Force Multiplayer). Confirmed via
+`list_migrations` that it now follows `20260926231400 bullet_run`. Advisor
+scan after applying shows only the expected `RLS enabled, no policy` INFO
+findings on `bullet_members`/`bullet_rooms`, consistent with the existing
+`classic_lobby` pattern (access is gated through the SECURITY DEFINER RPC).
+No new or unexpected findings.
 
-## Verification
+## Source
+Committed the readiness client/server work (`15ee9ed` locally, rebased onto
+origin/main as `3853c23`) to `makaihurstjob-sys/alien-force-arena` branch
+`main`. Rebase onto two unrelated upstream commits (Classic difficulty
+rebalance, PR #3) had no file overlap. Full `build:pages` production build
+passed after the rebase, before pushing.
 
-Prior implementation checks passed TypeScript, Pages build, local PGlite
-migration tests and desktop/mobile browser fixtures at 1440px and 390px.
-Both screenshots were inspected. The final two-session test passed two rounds,
-guest snapshots, readiness reset and host closure without page errors.
-The synchronization test uses shared local RPC/realtime fixtures, not Supabase.
+## Publish
+Ran `scripts/publish-pages.ps1 -PublishCheckout "../alien-force-public-release"`,
+pushing compiled assets to `makaihurstjob-sys/alien-force-classic` (`9628406`).
+GitHub Pages run `36441703480` completed successfully. Verified the public
+site directly: `https://makaihurstjob-sys.github.io/alien-force-classic/`
+returns HTTP 200 and serves `index-tcSAHPnB.js` / `index-0HPp29pt.css`,
+matching the hashes from the local production build byte-for-byte.
 
-## Release boundary
-
-Nothing has been published and no live database migration has been applied.
-The additive migration is `supabase/migrations/202609270000_bullet_readiness.sql`.
-Apply it before publishing the new client. The new client keeps launch disabled
-when the required lifecycle/readiness fields are absent. Coordinate the rollout
-with no active Bullet Run rooms: existing clients lack the new lifecycle contract.
-
-Live verification must cover two signed-in guests, invite entry, readiness,
-launch, rematch, recovery and closure after migration and publication. Existing
-realtime transport trusts claimed host IDs; this work does not provide an
-authoritative or cheat-resistant match server. The screenshot's original Load
-failed cause has not been reproduced on the live service; local recovery is tested.
-
-Publication and live database changes require owner authorization. Local UI and
-fixture verification are complete for this slice.
+## Still unverified
+Live two-account multiplayer readiness sync (real Supabase Realtime, not the
+local two-session browser simulation) has not been tested against the
+published site.
