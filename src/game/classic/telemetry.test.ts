@@ -4,7 +4,7 @@ import { snapshotRun } from "../../lib/classic-records";
 
 const idle = { direction: null, fire: false };
 describe("Classic run telemetry", () => {
-  it("counts life-losing collisions once, ignoring invulnerability and countdowns", () => {
+  it("counts life-losing collisions once, ignoring invulnerability and waiting", () => {
     const s = createClassic(); s.phase = "playing"; s.invulnerable = 0;
     s.enemies = [{ ...s.player, id: 1 }];
     tickClassic(s, idle, 0);
@@ -29,10 +29,11 @@ describe("Classic run telemetry", () => {
     s.enemies = [{ ...s.player, id: 1 }]; tickClassic(s, idle, 0);
     expect(s.shotsFired).toBe(1);
   });
-  it("tracks cleared levels once and excludes countdown time", () => {
+  it("tracks cleared levels once and excludes waiting time", () => {
     const s = createClassic(4);
     tickClassic(s, idle, 3); expect(s.elapsed).toBe(0);
-    s.enemies = []; tickClassic(s, idle, 0.25);
+    tickClassic(s, { ...idle, direction: "left" }, 0);
+    s.playerMoving = false; s.enemies = []; tickClassic(s, idle, 0.25);
     expect(s.levelsCleared).toBe(1);
     tickClassic(s, idle, 2);
     expect(s.levelsCleared).toBe(1); expect(s.level).toBe(5); expect(s.startLevel).toBe(4);

@@ -13,7 +13,7 @@ Practice remains the separate arena-duel mode.
 - Perpendicular turns buffer until a lane intersection; precise original turning tolerance is unverified.
 - One projectile per ship. Shots expire outside the playfield; enemies do not hurt other enemies.
 - Each shot costs 10 points, clamped at zero (penalty still provisional).
-- Three lives; one hit/contact loses a life. Respawn resets the enemy wave and gives two seconds of protection.
+- Three lives; one hit/contact loses a life. Respawn keeps the current wave and damaged drones, places the pilot near the center, and gives two seconds of protection after movement resumes.
 - Clearing a wave advances the level after 1.5 seconds; each wave has ten enemies. Level 999 repeats at maximum difficulty.
 - Enemy steering favors the player's coordinates at intersections and firing is random.
 
@@ -72,9 +72,9 @@ The supplied Python `alienforce1.py` through `alienforce4.py` are partial learni
 they establish a 420px grid, cardinal lane movement, and single-shot firing, but do
 not implement enemies or difficulty. The current TypeScript engine keeps its own
 enemy simulation and adds the requested progression. Level 1 has ten one-hit
-non-shooting drones at speed 40. Level 2 enables one randomly selected shooter.
+non-shooting drones at speed 28. Level 2 enables one randomly selected shooter.
 Additional shooters arrive at each ten-level milestone, up to ten. Speed grows
-from 40 at level 1 to about 160 at level 999; each shooter's firing rate rises
+from 28 at level 1 to about 88 at level 999; the pilot grows from 38 to about 108. Each shooter's firing rate rises
 gradually too. One randomly selected drone gains a second hit at level 10,
 two at level 20, and so on until all ten have two hits at level 100. From
 level 110 onward, the cycle adds third hits. At level 999, nine drones
@@ -83,3 +83,7 @@ Armor badges show the remaining hits. Quick direction taps stay queued until
 the next lane intersection. All scaling applies both to Options > Current
 Playing Level and to subsequent waves. These are new game-design choices, not
 claims about Epps's original behavior.
+
+Each successful hit awards 100 points, including damage to armor; a fired shot
+still costs 10 points. The first level and every new wave wait for a pilot movement
+input. Death freezes the current wave indefinitely, and movement resumes it.
