@@ -10,7 +10,7 @@ export function renderClassicDuel(ctx: CanvasRenderingContext2D, state: GameStat
     player: actor(host), enemies: guest.alive ? [actor(guest)] : [],
     shots: state.projectiles.map((p, id) => ({ id, owner: p.team, x: p.x, y: p.y,
       direction: directionFromAngle(Math.atan2(p.vy, p.vx)) })),
-    score: 0, lives: 0, level: 1, phase: 'playing', timer: 0, invulnerable: 0,
+    score: 0, lives: 0, level: 1, phase: 'playing', waitingReason: 'start', awaitDirectionRelease: false, timer: 0, invulnerable: 0,
     elapsed: 0, shotsFired: 0, hits: 0, playerMoving: true,
     startLevel: 1, crashes: 0, shotDeaths: 0, levelsCleared: 0,
   }, false, host.alive);

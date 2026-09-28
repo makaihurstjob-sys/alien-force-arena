@@ -6,8 +6,8 @@ export const CLASSIC = {
   margin: 12,
   block: 20,
   size: 424,
-  playerSpeed: 110,
-  enemySpeed: 40,
+  playerSpeed: 38,
+  enemySpeed: 28,
   bulletSpeed: 250,
   killScore: 100,
   levelBonus: 500,
@@ -15,7 +15,6 @@ export const CLASSIC = {
   lives: 3,
   invulnerability: 2,
   transition: 1.5,
-  countdown: 3,
 };
 export type Direction = "up" | "down" | "left" | "right";
 export const vectors: Record<Direction, [number, number]> = {
@@ -36,7 +35,9 @@ export type ClassicState = {
   score: number;
   lives: number;
   level: number;
-  phase: "countdown" | "playing" | "level_clear" | "game_over";
+  phase: "waiting" | "playing" | "level_clear" | "game_over";
+  waitingReason: "start" | "next_level" | "respawn";
+  awaitDirectionRelease: boolean;
   timer: number;
   invulnerable: number;
   elapsed: number;
@@ -58,7 +59,8 @@ const nearest = (v: number) => lane(Math.round((v - CLASSIC.margin) / CLASSIC.sp
  * to a randomly chosen drone, cycling through all ten before adding a third. */
 export function classicDifficulty(level: number) {
   return {
-    enemySpeed: CLASSIC.enemySpeed + 12 * Math.log2(level),
+    playerSpeed: CLASSIC.playerSpeed + 7 * Math.log2(level),
+    enemySpeed: CLASSIC.enemySpeed + 6 * Math.log2(level),
     shooters: level === 1 ? 0 : Math.min(CLASSIC.enemyCount, 1 + Math.floor(level / 10)),
     fireRate: level === 1 ? 0 : 0.1 + 0.025 * Math.sqrt(level - 1),
     armorHits: Math.floor(level / 10),
@@ -100,8 +102,10 @@ export function createClassic(level = 1, random: () => number = Math.random): Cl
     score: 0,
     lives: CLASSIC.lives,
     level,
-    phase: "countdown",
-    timer: CLASSIC.countdown,
+    phase: "waiting",
+    waitingReason: "start",
+    awaitDirectionRelease: false,
+    timer: 0,
     invulnerable: CLASSIC.invulnerability,
     elapsed: 0,
     shotsFired: 0,
@@ -141,7 +145,7 @@ function fire(s: ClassicState, actor: Actor) {
     s.score = Math.max(0, s.score - CLASSIC.shotCost);
   }
 }
-function loseLife(s: ClassicState, cause: "crash" | "shot", random: () => number) {
+function loseLife(s: ClassicState, cause: "crash" | "shot", directionHeld: boolean) {
   if (s.invulnerable > 0) return;
   if (cause === "crash") s.crashes++;
   else s.shotDeaths++;
@@ -151,12 +155,19 @@ function loseLife(s: ClassicState, cause: "crash" | "shot", random: () => number
     s.phase = "game_over";
     return;
   }
-  s.player = { id: 0, x: lane(10), y: lane(10), direction: "left" };
+  // Choose the closest clear crossing to the center. The damaged drones stay
+  // exactly where they were; brief invulnerability protects the resumed run.
+  const crossings = Array.from({ length: 121 }, (_, i) => ({ x: lane(i % 11), y: lane(Math.floor(i / 11)) }));
+  const safe = crossings.filter(({ x, y }) => s.enemies.every(e => Math.hypot(e.x - x, e.y - y) >= 28));
+  const spawn = (safe.length ? safe : crossings).sort((a, b) =>
+    Math.hypot(a.x - lane(5), a.y - lane(5)) - Math.hypot(b.x - lane(5), b.y - lane(5)))[0]!;
+  s.player = { id: 0, ...spawn, direction: "left" };
   s.playerMoving = false;
   s.queuedDirection = null;
-  s.phase = "countdown";
-  s.timer = CLASSIC.countdown;
-  s.enemies = wave(s.level, random);
+  s.phase = "waiting";
+  s.waitingReason = "respawn";
+  s.awaitDirectionRelease = directionHeld;
+  s.timer = 0;
   s.invulnerable = CLASSIC.invulnerability;
 }
 export function tickClassic(
@@ -166,13 +177,13 @@ export function tickClassic(
   random: () => number = Math.random,
 ) {
   if (s.phase === "game_over") return;
-  if (s.phase === "countdown") {
-    s.timer = Math.max(0, s.timer - dt);
-    if (s.timer < 1e-9) {
-      s.timer = 0;
-      s.phase = "playing";
+  if (s.phase === "waiting") {
+    if (s.awaitDirectionRelease) {
+      if (!input.direction) s.awaitDirectionRelease = false;
+      return;
     }
-    return;
+    if (!input.direction) return;
+    s.phase = "playing";
   }
   if (s.phase === "level_clear") {
     s.timer -= dt;
@@ -180,7 +191,11 @@ export function tickClassic(
       s.level = Math.min(999, s.level + 1);
       s.enemies = wave(s.level, random);
       s.shots = [];
-      s.phase = "playing";
+      s.phase = "waiting";
+      s.waitingReason = "next_level";
+      s.awaitDirectionRelease = Boolean(input.direction);
+      s.playerMoving = false;
+      s.queuedDirection = null;
       s.invulnerable = CLASSIC.invulnerability;
     }
     return;
@@ -200,10 +215,10 @@ export function tickClassic(
     s.playerMoving = true;
     s.queuedDirection = input.direction;
   }
-  if (s.playerMoving && moveActor(s.player, input.reverse ? null : s.queuedDirection ?? null, CLASSIC.playerSpeed * dt))
+  const difficulty = classicDifficulty(s.level);
+  if (s.playerMoving && moveActor(s.player, input.reverse ? null : s.queuedDirection ?? null, difficulty.playerSpeed * dt))
     s.queuedDirection = null;
   if (input.fire) fire(s, s.player);
-  const difficulty = classicDifficulty(s.level);
   for (const enemy of s.enemies) {
     // Stop exactly at each crossing before choosing a turn. A proximity check
     // can consume a decision before moveActor is close enough to accept it.
@@ -274,9 +289,9 @@ export function tickClassic(
         const target = s.enemies.find((e) => Math.hypot(e.x - b.x, e.y - b.y) < 9);
         if (target) {
           target.health = (target.health ?? 1) - 1;
+          s.score += CLASSIC.killScore;
           if (target.health <= 0) {
             s.enemies = s.enemies.filter((e) => e.id !== target.id);
-            s.score += CLASSIC.killScore;
           }
           s.hits++;
           consumed = true;
@@ -290,7 +305,7 @@ export function tickClassic(
   }
   s.shots = survivors;
   if (playerHit || s.enemies.some((e) => Math.hypot(e.x - s.player.x, e.y - s.player.y) < 12))
-    loseLife(s, playerHit ? "shot" : "crash", random);
+    loseLife(s, playerHit ? "shot" : "crash", Boolean(input.direction));
   if (s.phase === "playing" && s.enemies.length === 0) {
     s.score += CLASSIC.levelBonus;
     s.levelsCleared++;
