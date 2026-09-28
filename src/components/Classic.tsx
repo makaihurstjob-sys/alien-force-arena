@@ -71,6 +71,7 @@ export default function Classic({ menuHref = "/" }: { menuHref?: string }) {
       if (d || e.code === "Space") e.preventDefault();
       if (d || e.code === "Space" || e.code === "KeyR") resumeFromAway();
       if (d) {
+        if (e.repeat && held.has(e.code)) return;
         held.delete(e.code);
         held.set(e.code, d);
         input.current.direction = d;

@@ -6,7 +6,7 @@ export const CLASSIC = {
   block: 20,
   size: 424,
   playerSpeed: 110,
-  enemySpeed: 55,
+  enemySpeed: 40,
   bulletSpeed: 250,
   killScore: 100,
   levelBonus: 500,
@@ -24,11 +24,12 @@ export const vectors: Record<Direction, [number, number]> = {
   right: [1, 0],
 };
 export type Actor = { id: number; x: number; y: number; direction: Direction };
-export type Enemy = Actor & { canFire?: boolean; lastDecision?: string };
+export type Enemy = Actor & { canFire?: boolean; health?: number; maxHealth?: number; lastDecision?: string };
 type Shot = Actor & { owner: number };
 export type ClassicState = {
   player: Actor;
   playerMoving: boolean;
+  queuedDirection?: Direction | null;
   enemies: Enemy[];
   shots: Shot[];
   score: number;
@@ -52,23 +53,48 @@ export type ClassicInput = {
 };
 const lane = (n: number) => CLASSIC.margin + n * CLASSIC.spacing;
 const nearest = (v: number) => lane(Math.round((v - CLASSIC.margin) / CLASSIC.spacing));
-function wave(): Enemy[] {
+/** Each level raises speed and fire rate. Every tenth level adds one armor hit
+ * to a randomly chosen drone, cycling through all nine before adding a third. */
+export function classicDifficulty(level: number) {
+  return {
+    enemySpeed: CLASSIC.enemySpeed + 12 * Math.log2(level),
+    shooters: level === 1 ? 0 : Math.min(9, 1 + Math.floor(level / 10)),
+    fireRate: level === 1 ? 0 : 0.1 + 0.025 * Math.sqrt(level - 1),
+    armorHits: Math.floor(level / 10),
+  };
+}
+function shuffledIds(random: () => number) {
+  const ids = Array.from({ length: 9 }, (_, i) => i + 1);
+  for (let i = ids.length - 1; i > 0; i--) {
+    const j = Math.min(i, Math.floor(random() * (i + 1)));
+    [ids[i], ids[j]] = [ids[j]!, ids[i]!];
+  }
+  return ids;
+}
+function wave(level: number, random: () => number): Enemy[] {
+  const { shooters, armorHits } = classicDifficulty(level);
+  const shooterIds = shooters ? new Set(shuffledIds(random).slice(0, shooters)) : new Set<number>();
+  const armorIds = armorHits ? shuffledIds(random) : [];
+  const health = new Map<number, number>(armorIds.map((id, index): [number, number] =>
+    [id, 1 + Math.floor(armorHits / 9) + Number(index < armorHits % 9)]));
   return Array.from({ length: 9 }, (_, i) => ({
     id: i + 1,
     x: lane(i),
     y: lane(0),
     direction: "down",
-    // Keep the current level-one baseline at every selected level.
-    canFire: false,
+    canFire: shooterIds.has(i + 1),
+    health: health.get(i + 1) ?? 1,
+    maxHealth: health.get(i + 1) ?? 1,
   }));
 }
-export function createClassic(level = 1): ClassicState {
+export function createClassic(level = 1, random: () => number = Math.random): ClassicState {
   if (!Number.isInteger(level) || level < 1 || level > 999)
     throw new RangeError("Level must be between 1 and 999");
   return {
     player: { id: 0, x: lane(10), y: lane(10), direction: "left" },
     playerMoving: false,
-    enemies: wave(),
+    queuedDirection: null,
+    enemies: wave(level, random),
     shots: [],
     score: 0,
     lives: CLASSIC.lives,
@@ -87,6 +113,7 @@ export function createClassic(level = 1): ClassicState {
 }
 // Turns are accepted only at lane intersections; held input is buffered until then.
 export function moveActor(a: Actor, wanted: Direction | null, distance: number) {
+  let turned = false;
   for (let remaining = distance; remaining > 0; remaining -= 1) {
     if (wanted) {
       const [wx] = vectors[wanted];
@@ -95,6 +122,7 @@ export function moveActor(a: Actor, wanted: Direction | null, distance: number) 
         if (wx) a.y = nearest(a.y);
         else a.x = nearest(a.x);
         a.direction = wanted;
+        turned = true;
       }
     }
     const [dx, dy] = vectors[a.direction];
@@ -102,6 +130,7 @@ export function moveActor(a: Actor, wanted: Direction | null, distance: number) 
     a.x = Math.max(lane(0), Math.min(lane(10), a.x + dx * step));
     a.y = Math.max(lane(0), Math.min(lane(10), a.y + dy * step));
   }
+  return turned;
 }
 function fire(s: ClassicState, actor: Actor) {
   if (s.shots.some((b) => b.owner === actor.id)) return;
@@ -111,7 +140,7 @@ function fire(s: ClassicState, actor: Actor) {
     s.score = Math.max(0, s.score - CLASSIC.shotCost);
   }
 }
-function loseLife(s: ClassicState, cause: "crash" | "shot") {
+function loseLife(s: ClassicState, cause: "crash" | "shot", random: () => number) {
   if (s.invulnerable > 0) return;
   if (cause === "crash") s.crashes++;
   else s.shotDeaths++;
@@ -123,9 +152,10 @@ function loseLife(s: ClassicState, cause: "crash" | "shot") {
   }
   s.player = { id: 0, x: lane(10), y: lane(10), direction: "left" };
   s.playerMoving = false;
+  s.queuedDirection = null;
   s.phase = "countdown";
   s.timer = CLASSIC.countdown;
-  s.enemies = wave();
+  s.enemies = wave(s.level, random);
   s.invulnerable = CLASSIC.invulnerability;
 }
 export function tickClassic(
@@ -146,8 +176,8 @@ export function tickClassic(
   if (s.phase === "level_clear") {
     s.timer -= dt;
     if (s.timer <= 0) {
-      s.level++;
-      s.enemies = wave();
+      s.level = Math.min(999, s.level + 1);
+      s.enemies = wave(s.level, random);
       s.shots = [];
       s.phase = "playing";
       s.invulnerable = CLASSIC.invulnerability;
@@ -165,14 +195,18 @@ export function tickClassic(
     };
     s.player.direction = opposite[s.player.direction];
   }
-  if (input.direction) s.playerMoving = true;
-  if (s.playerMoving)
-    moveActor(s.player, input.reverse ? null : input.direction, CLASSIC.playerSpeed * dt);
+  if (input.direction) {
+    s.playerMoving = true;
+    s.queuedDirection = input.direction;
+  }
+  if (s.playerMoving && moveActor(s.player, input.reverse ? null : s.queuedDirection ?? null, CLASSIC.playerSpeed * dt))
+    s.queuedDirection = null;
   if (input.fire) fire(s, s.player);
+  const difficulty = classicDifficulty(s.level);
   for (const enemy of s.enemies) {
     // Stop exactly at each crossing before choosing a turn. A proximity check
     // can consume a decision before moveActor is close enough to accept it.
-    let remaining = CLASSIC.enemySpeed * dt;
+    let remaining = difficulty.enemySpeed * dt;
     while (remaining > 1e-7) {
       const atCrossing =
         Math.abs(enemy.x - nearest(enemy.x)) < 1e-7 && Math.abs(enemy.y - nearest(enemy.y)) < 1e-7;
@@ -198,8 +232,7 @@ export function tickClassic(
               enemy.y + dy <= lane(CLASSIC.cells)
             );
           });
-          // Difficulty stays constant while original gameplay is being matched.
-          const pursuit = 0.1;
+          const pursuit = Math.min(0.45, 0.1 + 0.035 * Math.log2(s.level));
           const chasing = legal.filter((direction) => {
             const [dx, dy] = vectors[direction];
             return dx * (s.player.x - enemy.x) + dy * (s.player.y - enemy.y) > 0;
@@ -223,7 +256,7 @@ export function tickClassic(
       remaining -= distance;
       if (distance > 1e-7) delete enemy.lastDecision;
     }
-    if (enemy.canFire && random() < dt * 0.35) fire(s, enemy);
+    if (enemy.canFire && random() < dt * difficulty.fireRate) fire(s, enemy);
   }
   // Substeps keep fast shots from skipping a ship between simulation ticks.
   const survivors: Shot[] = [];
@@ -239,8 +272,11 @@ export function tickClassic(
       if (b.owner === 0) {
         const target = s.enemies.find((e) => Math.hypot(e.x - b.x, e.y - b.y) < 9);
         if (target) {
-          s.enemies = s.enemies.filter((e) => e.id !== target.id);
-          s.score += CLASSIC.killScore;
+          target.health = (target.health ?? 1) - 1;
+          if (target.health <= 0) {
+            s.enemies = s.enemies.filter((e) => e.id !== target.id);
+            s.score += CLASSIC.killScore;
+          }
           s.hits++;
           consumed = true;
         }
@@ -253,7 +289,7 @@ export function tickClassic(
   }
   s.shots = survivors;
   if (playerHit || s.enemies.some((e) => Math.hypot(e.x - s.player.x, e.y - s.player.y) < 12))
-    loseLife(s, playerHit ? "shot" : "crash");
+    loseLife(s, playerHit ? "shot" : "crash", random);
   if (s.phase === "playing" && s.enemies.length === 0) {
     s.score += CLASSIC.levelBonus;
     s.levelsCleared++;

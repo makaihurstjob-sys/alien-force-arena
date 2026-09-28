@@ -37,7 +37,18 @@ export function renderClassic(ctx: CanvasRenderingContext2D, s: ClassicState, pa
       16,
     );
   };
-  for (const e of s.enemies) ship(e);
+  for (const e of s.enemies) {
+    ship(e);
+    if ((e.maxHealth ?? 1) > 1) {
+      ctx.fillStyle = "#ffcf53";
+      ctx.fillRect(Math.round(e.x) + 5, Math.round(e.y) - 13, 12, 11);
+      ctx.fillStyle = "#171717";
+      ctx.font = '9px monospace';
+      ctx.textAlign = "center";
+      ctx.fillText(String(e.health ?? 1), Math.round(e.x) + 11, Math.round(e.y) - 4);
+      ctx.textAlign = "left";
+    }
+  }
   if (showPlayer && (s.invulnerable === 0 || Math.floor(s.elapsed * 10) % 2 === 0)) ship(s.player);
   for (const b of s.shots) {
     ctx.fillStyle = b.owner === 0 ? "white" : "#ffb000";
