@@ -274,6 +274,38 @@ describe("original opening", () => {
 
 
 describe("move to start and resume", () => {
+  it.each([[52, 52], [412, 412], [212, 92]])("respawns near death at (%s, %s), clear of all drones", (x, y) => {
+    const s = playingClassic(10);
+    s.player.x = x; s.player.y = y; s.invulnerable = 0;
+    s.enemies = [{ id: 1, x, y, direction: "left", health: 1, maxHealth: 2 },
+      { id: 2, x: 132, y: 132, direction: "down", health: 2, maxHealth: 2 }];
+    const enemies = structuredClone(s.enemies);
+    tickClassic(s, idle, 0);
+    expect(s.lives).toBe(2);
+    expect(s.enemies).toEqual(enemies);
+    const gap = CLASSIC.spacing * 2;
+    for (const enemy of enemies) expect(Math.hypot(s.player.x - enemy.x, s.player.y - enemy.y)).toBeGreaterThanOrEqual(gap);
+    const candidates = Array.from({ length: 121 }, (_, i) => ({ x: 12 + i % 11 * 40, y: 12 + Math.floor(i / 11) * 40 }))
+      .filter(p => enemies.every(e => Math.hypot(p.x - e.x, p.y - e.y) >= gap));
+    expect(Math.hypot(s.player.x - x, s.player.y - y)).toBeCloseTo(Math.min(...candidates.map(p => Math.hypot(p.x - x, p.y - y))));
+    const spawn = { ...s.player };
+    tickClassic(s, idle, 120);
+    expect(s.player).toEqual(spawn);
+    expect(s.phase).toBe("waiting");
+  });
+  it("ends the last life and starts a fresh run in the bottom-right corner", () => {
+    const s = playingClassic();
+    s.lives = 1; s.invulnerable = 0; s.player.x = 92; s.player.y = 52;
+    s.enemies = [{ ...s.player, id: 1 }];
+    tickClassic(s, idle, 0);
+    expect(s.phase).toBe("game_over");
+    expect(s.lives).toBe(0);
+    const restarted = createClassic();
+    expect(restarted.player).toMatchObject({ x: 412, y: 412 });
+    expect(restarted.lives).toBe(3);
+    expect(restarted.score).toBe(0);
+    expect(restarted.phase).toBe("waiting");
+  });
   it("freezes indefinitely until a direction moves the pilot", () => {
     const s = createClassic();
     const enemies = structuredClone(s.enemies);

@@ -155,12 +155,15 @@ function loseLife(s: ClassicState, cause: "crash" | "shot", directionHeld: boole
     s.phase = "game_over";
     return;
   }
-  // Choose the closest clear crossing to the center. The damaged drones stay
+  // Choose the closest safe crossing to where the pilot died. The damaged drones stay
   // exactly where they were; brief invulnerability protects the resumed run.
   const crossings = Array.from({ length: 121 }, (_, i) => ({ x: lane(i % 11), y: lane(Math.floor(i / 11)) }));
-  const safe = crossings.filter(({ x, y }) => s.enemies.every(e => Math.hypot(e.x - x, e.y - y) >= 28));
+  const clearance = ({ x, y }: { x: number; y: number }) =>
+    Math.min(...s.enemies.map(e => Math.hypot(e.x - x, e.y - y)));
+  const safe = crossings.filter(point => clearance(point) >= CLASSIC.spacing * 2);
+  const distance = ({ x, y }: { x: number; y: number }) => Math.hypot(x - s.player.x, y - s.player.y);
   const spawn = (safe.length ? safe : crossings).sort((a, b) =>
-    Math.hypot(a.x - lane(5), a.y - lane(5)) - Math.hypot(b.x - lane(5), b.y - lane(5)))[0]!;
+    (safe.length ? 0 : clearance(b) - clearance(a)) || distance(a) - distance(b))[0]!;
   s.player = { id: 0, ...spawn, direction: "left" };
   s.playerMoving = false;
   s.queuedDirection = null;

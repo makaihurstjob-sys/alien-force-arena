@@ -13,7 +13,7 @@ Practice remains the separate arena-duel mode.
 - Perpendicular turns buffer until a lane intersection; precise original turning tolerance is unverified.
 - One projectile per ship. Shots expire outside the playfield; enemies do not hurt other enemies.
 - Each shot costs 10 points, clamped at zero (penalty still provisional).
-- Three lives; one hit/contact loses a life. Respawn keeps the current wave and damaged drones, places the pilot near the center, and gives two seconds of protection after movement resumes.
+- Three lives; one hit/contact loses a life. Respawn keeps the current wave and damaged drones, chooses the nearest crossing to the death location at least two lane spacings from every drone, and gives two seconds of protection after movement resumes. If no crossing has enough space, use the crossing with the greatest clearance. After game over, a new game starts in the original bottom-right corner.
 - Clearing a wave advances the level after 1.5 seconds; each wave has ten enemies. Level 999 repeats at maximum difficulty.
 - Enemy steering favors the player's coordinates at intersections and firing is random.
 
