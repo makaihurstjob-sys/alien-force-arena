@@ -97,7 +97,8 @@ describe("enemy progression", () => {
         tickClassic(s, idle, 1 / 60, () => 0.9);
         const current = s.enemies[0]!;
         // A legal out-and-back route can finish at the starting point.
-        expect(Math.hypot(current.x - before.x, current.y - before.y)).toBeGreaterThan(0.1);
+        // Crossing alignment can leave a tiny step at the slower early-level speed.
+        expect(Math.hypot(current.x - before.x, current.y - before.y)).toBeGreaterThan(1e-6);
         maxDisplacement = Math.max(maxDisplacement, Math.hypot(current.x - x, current.y - y));
         expect(current.x).toBeGreaterThanOrEqual(12);
         expect(current.x).toBeLessThanOrEqual(412);

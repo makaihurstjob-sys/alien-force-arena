@@ -11,10 +11,10 @@ function playing() {
   return s;
 }
 describe('Classic two-player rules', () => {
-  it('moves automatically at Classic speed without acceleration', () => {
+  it('preserves duel speed independently of solo Classic progression', () => {
     const s = playing();
     step(s, {});
-    expect(s.ships[0]!.x).toBeCloseTo(CLASSIC.margin + CLASSIC.playerSpeed / 60);
+    expect(s.ships[0]!.x).toBeCloseTo(CLASSIC.margin + 110 / 60);
     expect(s.ships[0]!.y).toBe(412);
   });
   it('buffers cardinal turns until a lane crossing', () => {
@@ -30,7 +30,7 @@ describe('Classic two-player rules', () => {
     const s = playing();
     s.ships[0]!.x = 100;
     for (let i = 0; i < 3; i++) step(s, { a: { ...EMPTY_INPUT, turnaround: true } });
-    expect(s.ships[0]!.x).toBeCloseTo(100 - CLASSIC.playerSpeed * 3 / 60);
+    expect(s.ships[0]!.x).toBeCloseTo(100 - 110 * 3 / 60);
     expect(s.ships[0]!.angle).toBe(Math.PI);
   });
   it('uses Classic bullet speed and one shot per player', () => {

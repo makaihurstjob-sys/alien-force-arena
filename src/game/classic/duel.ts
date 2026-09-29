@@ -4,6 +4,8 @@ import type { GameState, PlayerInput } from '../types';
 
 export type PlayerSeed = { id: string; name: string; team: 0 | 1 };
 const directions: Direction[] = ['right', 'down', 'left', 'up'];
+// Duel pacing is independent of solo Classic's level-based speed progression.
+const DUEL_PLAYER_SPEED = 110;
 export const directionFromAngle = (angle: number): Direction =>
   directions[((Math.round(angle / (Math.PI / 2)) % 4) + 4) % 4]!;
 
@@ -53,7 +55,7 @@ export function step(state: GameState, inputs: Record<string, PlayerInput>, rule
     ship.turnaroundHeld = !!input?.turnaround;
     if (reverseNow) actor.direction = directions[(directions.indexOf(actor.direction) + 2) % 4]!;
     const wanted = input?.thrust ? 'up' : input?.reverse ? 'down' : input?.left ? 'left' : input?.right ? 'right' : null;
-    moveActor(actor, reverseNow ? null : wanted, CLASSIC.playerSpeed * TICK_MS / 1000);
+    moveActor(actor, reverseNow ? null : wanted, DUEL_PLAYER_SPEED * TICK_MS / 1000);
     ship.x = actor.x;
     ship.y = actor.y;
     ship.angle = directions.indexOf(actor.direction) * Math.PI / 2;
