@@ -8,10 +8,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { TICK_MS } from "./config";
-import type { GameState, PlayerInput } from "./types";
+import type { PlayerInput } from "./types";
 
-export function useGameLoop(
-  getState: () => GameState,
+/** Generic over the state shape so non-Practice engines (e.g. Arcade) can reuse this loop. */
+export function useGameLoop<T>(
+  getState: () => T,
   tick: () => void,
   draw: (ctx: CanvasRenderingContext2D) => void,
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
@@ -49,6 +50,7 @@ export function useKeyboardInput(enabled = true) {
     left: false,
     right: false,
     fire: false,
+    dash: false,
   });
   const [pressedFire, setPressedFire] = useState(false);
 
@@ -77,6 +79,12 @@ export function useKeyboardInput(enabled = true) {
           i.fire = down;
           setPressedFire(down);
           break;
+        // Arcade mode only — plain engines never read PlayerInput.dash.
+        case "ShiftLeft":
+        case "ShiftRight":
+        case "KeyQ":
+          i.dash = down;
+          break;
         default:
           return;
       }
@@ -89,7 +97,14 @@ export function useKeyboardInput(enabled = true) {
     };
     const up = (e: KeyboardEvent) => set(e.code, false);
     const reset = () => {
-      inputRef.current = { thrust: false, reverse: false, left: false, right: false, fire: false };
+      inputRef.current = {
+        thrust: false,
+        reverse: false,
+        left: false,
+        right: false,
+        fire: false,
+        dash: false,
+      };
       setPressedFire(false);
     };
     window.addEventListener("keydown", down);

@@ -7,6 +7,8 @@ export type PlayerInput = {
   left: boolean;
   right: boolean;
   fire: boolean;
+  /** Consumes a dash charge (Arcade mode only; ignored elsewhere). */
+  dash?: boolean;
 };
 
 export const EMPTY_INPUT: PlayerInput = {
@@ -15,6 +17,7 @@ export const EMPTY_INPUT: PlayerInput = {
   left: false,
   right: false,
   fire: false,
+  dash: false,
 };
 
 export type Ship = {
