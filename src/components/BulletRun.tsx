@@ -1,3 +1,5 @@
+import type { LobbyMode } from '@/lib/lobby-modes';
+import { gameLobby } from '@/lib/game-lobby';
 import { randomId } from '@/lib/random-id';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -41,15 +43,20 @@ function validState(v: unknown, roster: string[]): v is State {
     Array.isArray(s.bullets) && s.bullets.length <= 400 && s.bullets.every(b => roster.includes(b.owner) &&
       [b.x,b.y,b.vx,b.vy,b.life].every(Number.isFinite));
 }
-export default function BulletRun({ embedded = false, autoEnter = false, initialCode, onBusyChange, onLeave }: { embedded?: boolean; autoEnter?: boolean; initialCode?: string | undefined; onBusyChange?: (busy: boolean) => void; onLeave?: (() => void) | undefined } = {}) {
-  const [room, setRoom] = useState<BulletLobby | null>(null);
+export default function BulletRun({ embedded = false, autoEnter = false, initialCode, onBusyChange, onLeave, shared }: { embedded?: boolean; autoEnter?: boolean; shared?: { room: BulletLobby; player: string; setRoom: (room: BulletLobby | null) => void; onModeChange: (mode: LobbyMode) => void; busy: boolean; request: typeof gameLobby }; initialCode?: string | undefined; onBusyChange?: (busy: boolean) => void; onLeave?: (() => void) | undefined } = {}) {
+  const [localRoom, setLocalRoom] = useState<BulletLobby | null>(null);
+  const room = shared ? shared.room : localRoom;
+  const setRoom = shared ? shared.setRoom : setLocalRoom;
+  const lobbyRequest = shared ? shared.request : bulletLobby;
   const [code, setCode] = useState(initialCode ?? '');
   const entered = useRef(false);
-  const [player, setPlayer] = useState('');
+  const [localPlayer, setPlayer] = useState('');
+  const player = shared ? shared.player : localPlayer;
   const [state, setState] = useState<State | null>(null);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [localBusy, setBusy] = useState(false);
+  const busy = localBusy || !!shared?.busy;
   const [roomUnavailable, setRoomUnavailable] = useState(false);
   const requestEpoch = useRef(0);
   const mutationPending = useRef(false);
@@ -57,6 +64,11 @@ export default function BulletRun({ embedded = false, autoEnter = false, initial
   useEffect(() => () => onBusyChange?.(false), [onBusyChange]);
   const roomRef = useRef(room); roomRef.current = room;
   const stateRef = useRef(state); stateRef.current = state;
+  useEffect(() => {
+    if (shared && (room?.phase !== 'playing' || room.status !== 'open')) {
+      stateRef.current = null; setState(null);
+    }
+  }, [!!shared, room?.phase, room?.status]);
   const input = useRef<Input>({ ...idleInput });
   const peers = useRef(new Map<string, { input: Input; at: number }>());
   const channel = useRef<RealtimeChannel | null>(null);
@@ -67,7 +79,7 @@ export default function BulletRun({ embedded = false, autoEnter = false, initial
     requestEpoch.current++; mutationPending.current = true;
     setBusy(true); setError('');
     try {
-      const next = await bulletLobby(action, action === 'join' ? code : roomRef.current?.code);
+      const next = await lobbyRequest(action, action === 'join' ? code : roomRef.current?.code);
       setRoom(next); setState(null); setRoomUnavailable(false); setStatus('');
       const id = await lobbyPlayerId(); if (id) setPlayer(id);
       if (action === 'leave') { window.history.replaceState(null, '', embedded ? window.location.pathname + window.location.search : `${import.meta.env.BASE_URL}bullet-run`); setCode(''); onLeave?.(); }
@@ -82,13 +94,13 @@ export default function BulletRun({ embedded = false, autoEnter = false, initial
     if (invite && /^[A-Z0-9]{6}$/i.test(invite)) setCode(invite.toUpperCase());
   }, []);
   useEffect(() => {
-    if (!room || room.status !== 'open' || !player) return;
+    if (shared || !room || room.status !== 'open' || !player) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
     const refresh = async () => {
       const epoch = requestEpoch.current;
       try {
-        const next = await bulletLobby('get', room.code);
+        const next = await lobbyRequest('get', room.code);
         if (!cancelled && !mutationPending.current && epoch === requestEpoch.current) {
           roomRef.current = next; setRoom(next); setRoomUnavailable(false); setError('');
           if (next?.phase !== 'playing') { stateRef.current = null; setState(null); }
@@ -161,7 +173,7 @@ export default function BulletRun({ embedded = false, autoEnter = false, initial
     requestEpoch.current++; mutationPending.current = true;
     setBusy(true); setError('');
     try {
-      const next = await bulletLobby(selfReady ? 'unready' : 'ready', room.code);
+      const next = await lobbyRequest(selfReady ? 'unready' : 'ready', room.code);
       if (roomRef.current?.id === room.id) setRoom(next);
     } catch (e) { setError(e instanceof Error ? e.message : 'Could not update readiness.'); }
     finally { requestEpoch.current++; mutationPending.current = false; setBusy(false); }
@@ -171,7 +183,7 @@ export default function BulletRun({ embedded = false, autoEnter = false, initial
     requestEpoch.current++; mutationPending.current = true;
     setBusy(true); setError('');
     try {
-      const next = await bulletLobby('return', room.code);
+      const next = await lobbyRequest('return', room.code);
       roomRef.current = next; setRoom(next); stateRef.current = null; setState(null);
     } catch (e) { setError(e instanceof Error ? e.message : 'Could not return to the room.'); }
     finally { requestEpoch.current++; mutationPending.current = false; setBusy(false); }
@@ -181,7 +193,7 @@ export default function BulletRun({ embedded = false, autoEnter = false, initial
     requestEpoch.current++; mutationPending.current = true;
     setBusy(true); setError('');
     try {
-      const approved = await bulletLobby('launch', room.code);
+      const approved = await lobbyRequest('launch', room.code);
       if (!approved || roomRef.current?.id !== room.id || roomRef.current.status !== 'open' || !connected.current) return;
       if (approved.status !== 'open' || approved.host_id !== player || approved.phase !== 'playing' || !approved.match_id || !approved.match_roster || approved.match_roster.length < 2) throw new Error('Every pilot must be ready.');
       roomRef.current = approved; setRoom(approved);
@@ -227,7 +239,7 @@ export default function BulletRun({ embedded = false, autoEnter = false, initial
       <form onSubmit={e => { e.preventDefault(); void act('join'); }}><label htmlFor="bullet-code">Room code</label>
         <input id="bullet-code" value={code} maxLength={6} minLength={6} required pattern="[A-Za-z0-9]{6}" onChange={e => setCode(e.target.value.toUpperCase())} />
         <button disabled={busy || !multiplayerConfigured}>Join room</button></form></section> : <>
-      {embedded && room.phase !== 'playing' && !state ? <HangarLobby room={room} player={player} busy={busy} connected={connected.current} unavailable={roomUnavailable} readinessAvailable={!!readinessAvailable} selfReady={selfReady} allReady={!!allReady} status={status} onLeave={() => void act('leave')} onReady={() => void setReady()} onStart={() => void start()} invite={link} /> : <section className="bullet-lobby"><strong>Room {room.code}</strong> · {room.members.length}/6 players
+      {embedded && room.phase !== 'playing' && !state ? <HangarLobby onModeChange={shared?.onModeChange} room={room} player={player} busy={busy} connected={connected.current} unavailable={roomUnavailable} readinessAvailable={!!readinessAvailable} selfReady={selfReady} allReady={!!allReady} status={status} onLeave={() => void act('leave')} onReady={() => void setReady()} onStart={() => void start()} invite={link} /> : <section className="bullet-lobby"><strong>Room {room.code}</strong> · {room.members.length}/6 players
         <button onClick={() => void act('leave')} disabled={busy}>Leave room</button>
         <p role="status">{room.status === 'closed' ? 'The host closed this room.' : roomUnavailable ? 'Waiting for the room connection to recover.' : status}</p>
         {room.status === 'closed' && <p>Leave this room to create or join another one.</p>}

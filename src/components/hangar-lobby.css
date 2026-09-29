@@ -30,7 +30,7 @@
 .hangar-actions strong { color:#48e8b1; } .hangar-actions > span { color:#adbdc4; }
 .hangar-actions .hangar-start:not(:disabled) { background:#20e680; color:#03170b; }
 .hangar-invite { margin:16px 0; } .hangar-invite input { width:100%; background:#112328; color:white; padding:8px; }
-.hangar-selector { width:min(1100px,94vw); max-height:90svh; padding:28px; border:1px solid #43eab1; border-radius:8px; color:#eff7f5; background:#091418; font-family:'Windows Bold',monospace; }
+.hangar-selector { position:fixed; inset:0; margin:auto; width:min(1100px,94vw); max-height:90svh; overflow:auto; padding:28px; border:1px solid #43eab1; border-radius:8px; color:#eff7f5; background:#091418; font-family:'Windows Bold',monospace; }
 .hangar-selector::backdrop { background:#000a; }
 .lobby-exit-snapshot::backdrop { background:transparent; }
 .hangar-selector header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }

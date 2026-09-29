@@ -60,7 +60,7 @@ export default function HangarLobby({ room, player, busy, connected, unavailable
       <header><h2 id="hangar-selector-title">Choose game</h2><button aria-label="Close game selector" onClick={() => setSelecting(false)}>×</button></header>
       <div className="hangar-game-cards">
         {(Object.entries(lobbyModes) as [LobbyMode, typeof lobbyModes[LobbyMode]][]).map(([key, item]) => <button key={key}
-          disabled={busy || (key !== mode && (!onModeChange || room.host_id !== player || room.members.length > item.max))}
+          disabled={busy || !open || unavailable || (key !== mode && (!onModeChange || room.host_id !== player || room.members.length > item.max))}
           aria-pressed={key === mode} onClick={() => { setSelecting(false); if (key !== mode) onModeChange?.(key); }}>
           <div className="hangar-thumbnail"><DesktopArena mode={key === 'arcade' ? 1 : key === 'practice' ? 2 : 0} thumbnail /></div>
           <strong>{item.name}</strong><span>{item.description} · {item.max} {item.max === 1 ? 'pilot' : 'pilots'}</span>
