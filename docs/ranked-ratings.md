@@ -33,3 +33,11 @@ Local test results never persist or award rating. Live standings/search remain d
 3. Skill-first queue, measured regional latency, forced ranked crossplay, Classic waiting experience, server-enforced disconnects/cooldowns. Casual crossplay setting and 30-second reconnect enforcement.
 4. Real standings, public cards, earned profile borders, separate hidden FFA rating.
 5. Two authenticated client tests and failure paths before enabling rating writes. This first slice includes no backend migration or deployment.
+
+## Approved format preference (September 29)
+
+One queue, Rounds off by default. Two players with Rounds off get an 80% stocks / 20% rounds draw per match. Rounds on first seeks another opted-in player within the allowed rating gap. After 10 seconds, that player may match a non-preference player in stocks. Two opted-in players still choose rounds after the deadline. Neither side can bypass the other player's ten-second wait. The matched format has no label or announcement.
+
+Implemented `src/lib/ranked-matchmaking.ts` as a pure, tested server policy, with skill gap supplied by the eventual queue service. It prioritizes nearest rating then oldest entry, and never widens the skill limit just to satisfy format preference. The queue service must provide trusted times, eligibility and ratings, sample randomness once per match, and atomically claim both entries. This helper is not a deployed matchmaking service.
+
+The Ranked settings checkbox persists per browser/device, defaults off, and applies to the next local test restart. The local two-player test assumes both players share that setting; it does not simulate online waiting. Its old 1A/1B selectors and format descriptions are removed. The initial paused arena remains stocks. Online matchmaking, authoritative simulation and rating settlement remain pending as listed above.
