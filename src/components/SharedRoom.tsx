@@ -4,12 +4,14 @@ import { gameLobby, type GameLobby, type RoomAction } from '@/lib/game-lobby';
 import { lobbyPlayerId } from '@/lib/multiplayer';
 import { lobbyModes, type LobbyMode } from '@/lib/lobby-modes';
 import { useOnlineDuel } from '@/game/useOnlineDuel';
+import { useOnlinePowerDuel } from '@/game/classic/useOnlinePowerDuel';
 import type { BulletLobby } from '@/lib/bullet-lobby';
 import HangarLobby from './HangarLobby';
 import BulletRun from './BulletRun';
 import Classic from './Classic';
 import { Practice } from '@/routes/practice';
 import { OnlineDuel } from './OnlineDuel';
+import { OnlineArcadeDuel } from './OnlineArcadeDuel';
 
 export default function SharedRoom({ initialCode, initialMode, onLeave, onBusyChange, onMatchChange }: {
   initialCode?: string | undefined; initialMode: LobbyMode; onLeave: () => void;
@@ -70,13 +72,21 @@ export default function SharedRoom({ initialCode, initialMode, onLeave, onBusyCh
     members: room.members.map((member, team) => ({ ...member, team, is_ready: true })),
   } : null;
   const duel = useOnlineDuel(duelRoom, player);
+  const arcadeRoom = room?.mode === 'arcade' && playing ? {
+    ...room, id: `${room.id}:${room.match_id}`,
+    members: room.members.map((member, team) => ({ ...member, team, is_ready: true })),
+  } : null;
+  const arcadeDuel = useOnlinePowerDuel(arcadeRoom, player);
   const launched = useRef<string | null>(null);
   useEffect(() => {
     if (!playing) { launched.current = null; return; }
     if (room?.mode === 'duel' && room.host_id === player && duel.canStart && !duel.view && launched.current !== room.match_id) {
       launched.current = room.match_id ?? null; duel.start();
     }
-  }, [playing, room?.match_id, room?.mode, room?.host_id, player, duel.canStart, !!duel.view]);
+    if (room?.mode === 'arcade' && room.host_id === player && arcadeDuel.canStart && !arcadeDuel.view && launched.current !== room.match_id) {
+      launched.current = room.match_id ?? null; arcadeDuel.start();
+    }
+  }, [playing, room?.match_id, room?.mode, room?.host_id, player, duel.canStart, !!duel.view, arcadeDuel.canStart, !!arcadeDuel.view]);
 
   if (!room) return <section className="bullet-lobby" aria-label="Connecting to lobby">
     <p role="status">{busy ? 'Connecting to lobby...' : error}</p>
@@ -106,6 +116,7 @@ export default function SharedRoom({ initialCode, initialMode, onLeave, onBusyCh
     {room.mode === 'solo' ? <Classic onReturn={returnToRoom} />
       : room.mode === 'practice' ? <Practice onReturn={returnToRoom} />
       : duel.view ? <OnlineDuel duel={duel} player={player} busy={busy} onReturn={returnToRoom} onLeave={leave} />
+      : arcadeDuel.view ? <OnlineArcadeDuel duel={arcadeDuel} player={player} busy={busy} onReturn={returnToRoom} onLeave={leave} />
       : <section><p role="status">Connecting to the other pilot...</p><button disabled={busy} onClick={returnToRoom}>Return to room</button><button disabled={busy} onClick={leave}>Leave room</button></section>}
   </main>, document.body);
   const mode = lobbyModes[room.mode];

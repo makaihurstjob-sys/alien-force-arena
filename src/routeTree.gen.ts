@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ArcadeRouteImport } from './routes/arcade'
 import { Route as BulletRunRouteImport } from './routes/bullet-run'
 import { Route as ClassicRouteImport } from './routes/classic'
 import { Route as PracticeRouteImport } from './routes/practice'
@@ -17,6 +18,11 @@ import { Route as PracticeRouteImport } from './routes/practice'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArcadeRoute = ArcadeRouteImport.update({
+  id: '/arcade',
+  path: '/arcade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BulletRunRoute = BulletRunRouteImport.update({
@@ -37,12 +43,14 @@ const PracticeRoute = PracticeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/arcade': typeof ArcadeRoute
   '/bullet-run': typeof BulletRunRoute
   '/classic': typeof ClassicRoute
   '/practice': typeof PracticeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/arcade': typeof ArcadeRoute
   '/bullet-run': typeof BulletRunRoute
   '/classic': typeof ClassicRoute
   '/practice': typeof PracticeRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/arcade': typeof ArcadeRoute
   '/bullet-run': typeof BulletRunRoute
   '/classic': typeof ClassicRoute
   '/practice': typeof PracticeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bullet-run' | '/classic' | '/practice'
+  fullPaths: '/' | '/arcade' | '/bullet-run' | '/classic' | '/practice'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bullet-run' | '/classic' | '/practice'
-  id: '__root__' | '/' | '/bullet-run' | '/classic' | '/practice'
+  to: '/' | '/arcade' | '/bullet-run' | '/classic' | '/practice'
+  id: '__root__' | '/' | '/arcade' | '/bullet-run' | '/classic' | '/practice'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ArcadeRoute: typeof ArcadeRoute
   BulletRunRoute: typeof BulletRunRoute
   ClassicRoute: typeof ClassicRoute
   PracticeRoute: typeof PracticeRoute
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arcade': {
+      id: '/arcade'
+      path: '/arcade'
+      fullPath: '/arcade'
+      preLoaderRoute: typeof ArcadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bullet-run': {
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ArcadeRoute: ArcadeRoute,
   BulletRunRoute: BulletRunRoute,
   ClassicRoute: ClassicRoute,
   PracticeRoute: PracticeRoute,

@@ -36,7 +36,7 @@ export function startRound(state: GameState, players: PlayerSeed[]) {
 }
 
 /** Classic's lane movement and shot physics, with two human pilots and round scoring. */
-export function step(state: GameState, inputs: Record<string, PlayerInput>, rules: { roundsToWin?: number; protectedIds?: ReadonlySet<string> } = {}) {
+export function step(state: GameState, inputs: Record<string, PlayerInput>, rules: { roundsToWin?: number; protectedIds?: ReadonlySet<string>; speedMultiplier?: Record<string, number> } = {}) {
   state.tick++;
   state.events = [];
   state.phaseTimerMs = Math.max(0, state.phaseTimerMs - TICK_MS);
@@ -55,7 +55,8 @@ export function step(state: GameState, inputs: Record<string, PlayerInput>, rule
     ship.turnaroundHeld = !!input?.turnaround;
     if (reverseNow) actor.direction = directions[(directions.indexOf(actor.direction) + 2) % 4]!;
     const wanted = input?.thrust ? 'up' : input?.reverse ? 'down' : input?.left ? 'left' : input?.right ? 'right' : null;
-    moveActor(actor, reverseNow ? null : wanted, DUEL_PLAYER_SPEED * TICK_MS / 1000);
+    const speed = DUEL_PLAYER_SPEED * (rules.speedMultiplier?.[ship.id] ?? 1);
+    moveActor(actor, reverseNow ? null : wanted, speed * TICK_MS / 1000);
     ship.x = actor.x;
     ship.y = actor.y;
     ship.angle = directions.indexOf(actor.direction) * Math.PI / 2;

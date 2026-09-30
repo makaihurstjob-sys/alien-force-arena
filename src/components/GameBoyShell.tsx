@@ -11,6 +11,7 @@ import type { PlayerInput } from "@/game/types";
  */
 
 type Btn = "up" | "down" | "left" | "right" | "a" | "b";
+type ButtonAction = "fire" | "dash";
 
 export function GameBoyShell({
   screen,
@@ -19,6 +20,8 @@ export function GameBoyShell({
   onSelect,
   statusLight,
   statusLabel,
+  aAction = "fire",
+  bAction = "fire",
 }: {
   screen: ReactNode;
   inputRef: React.RefObject<PlayerInput>;
@@ -26,6 +29,9 @@ export function GameBoyShell({
   onSelect: () => void;
   statusLight: boolean;
   statusLabel: string;
+  /** What the A/B buttons write into PlayerInput. Both default to "fire" (Practice's original behavior). */
+  aAction?: ButtonAction;
+  bAction?: ButtonAction;
 }) {
   // Track which pointer is holding which button so sliding a thumb off releases it.
   const held = useRef<Map<number, Btn>>(new Map());
@@ -38,9 +44,10 @@ export function GameBoyShell({
       if (btn === "down") i.reverse = down;
       if (btn === "left") i.left = down;
       if (btn === "right") i.right = down;
-      if (btn === "a" || btn === "b") i.fire = down;
+      if (btn === "a") (aAction === "dash" ? (i.dash = down) : (i.fire = down));
+      if (btn === "b") (bAction === "dash" ? (i.dash = down) : (i.fire = down));
     },
-    [inputRef],
+    [inputRef, aAction, bAction],
   );
 
   const press = (btn: Btn) => (e: React.PointerEvent) => {
@@ -136,8 +143,8 @@ export function GameBoyShell({
         {/* A / B */}
         <div className="flex -rotate-12 items-end gap-3">
           <button
-            aria-label="Fire (B)"
-            className="h-14 w-14 select-none touch-none rounded-full bg-[#8c2f5a] font-mono text-lg font-bold text-white shadow-[0_3px_0_rgba(0,0,0,0.45)] active:translate-y-[2px] active:shadow-none"
+            aria-label={bAction === "dash" ? "Dash (B)" : "Fire (B)"}
+            className={`h-14 w-14 select-none touch-none rounded-full font-mono text-lg font-bold text-white shadow-[0_3px_0_rgba(0,0,0,0.45)] active:translate-y-[2px] active:shadow-none ${bAction === "dash" ? "bg-[#2f5a8c]" : "bg-[#8c2f5a]"}`}
             onPointerDown={press("b")}
             onPointerUp={release("b")}
             onPointerLeave={release("b")}
@@ -146,8 +153,8 @@ export function GameBoyShell({
             B
           </button>
           <button
-            aria-label="Fire (A)"
-            className="h-14 w-14 select-none touch-none rounded-full bg-[#8c2f5a] font-mono text-lg font-bold text-white shadow-[0_3px_0_rgba(0,0,0,0.45)] active:translate-y-[2px] active:shadow-none"
+            aria-label={aAction === "dash" ? "Dash (A)" : "Fire (A)"}
+            className={`h-14 w-14 select-none touch-none rounded-full font-mono text-lg font-bold text-white shadow-[0_3px_0_rgba(0,0,0,0.45)] active:translate-y-[2px] active:shadow-none ${aAction === "dash" ? "bg-[#2f5a8c]" : "bg-[#8c2f5a]"}`}
             onPointerDown={press("a")}
             onPointerUp={release("a")}
             onPointerLeave={release("a")}

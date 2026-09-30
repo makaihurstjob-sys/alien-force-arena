@@ -19,7 +19,7 @@ const modes = [
   { name: "Classic", description: "Original arena combat", color: "#3ee08a" },
   { name: "Classic 1v1", description: "Private duel \u00b7 2 pilots", color: "#69d9ff" },
   { name: "Ranked", description: "Competitive 1v1 matches", color: "#d0a0ff" },
-  { name: "Arcade", description: "Power-ups · Wraparound routes", color: "#ffe066" },
+  { name: "Arcade", description: "Power-ups · Online 1v1", color: "#ffe066" },
   { name: "Bullet Run", description: "Free for all · Up to 6 pilots", color: "#ff704d" },
   { name: "Practice", description: "Local 1v1 · Training bot", color: "#3ee08a" },
   { name: "Global Leaderboard", description: "Classic · Scores & player cards", color: "#69d9ff" },
@@ -71,7 +71,7 @@ function ArenaPreview({
           ctx.restore();
         } else renderClassic(ctx, state, false);
         if (arcade) {
-          // Concept markers only; Arcade is not playable yet.
+          // Decorative preview markers only; real pickups render in-game.
           ctx.fillStyle = "#ffe066";
           ctx.font = '28px "Windows Bold", monospace';
           ctx.fillText("+", 100, 155);
@@ -195,7 +195,7 @@ export function MobileMainMenu() {
               {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : (item.name === "Classic" || item.name === "Practice") ? <ArenaPreview active={false} arcade={false} practice={item.name === "Practice"} desktop /> : <DesktopArena mode={item.name === "Arcade" ? 1 : 0} thumbnail />}
             </span>
             <strong>{item.name}</strong>
-            {(item.name === "Ranked" || item.name === "Arcade") && <small>Coming soon</small>}
+            {item.name === "Ranked" && <small>Coming soon</small>}
           </button>
         ))}
         <button className="desktop-mode-arrow" aria-label="Next mode" onClick={() => move(1)}>
@@ -249,7 +249,7 @@ export function MobileMainMenu() {
               className={`mode-card ${position}`}
               style={{ "--mode-color": item.color } as React.CSSProperties}
               tabIndex={selected === index ? 0 : -1}
-              aria-label={`Select ${item.name}${(item.name === "Ranked" || item.name === "Arcade") ? ", coming soon" : ""}`}
+              aria-label={`Select ${item.name}${item.name === "Ranked" ? ", coming soon" : ""}`}
               aria-pressed={selected === index}
               onClick={() => setSelected(index)}
             >
@@ -261,7 +261,7 @@ export function MobileMainMenu() {
               <span className="mode-caption">
                 <strong>{item.name}</strong>
                 <span>{item.description}</span>
-                {(item.name === "Ranked" || item.name === "Arcade") && <em>Coming soon</em>}
+                {item.name === "Ranked" && <em>Coming soon</em>}
               </span>
             </button>
           );
@@ -327,8 +327,9 @@ export function MobileMainMenu() {
         {panel === "leaderboard" ? <ClassicLeaderboard /> : panel === "ratings" ? <RankedRatings /> : panel === "settings" ? (
           <p>
             Classic is a reconstruction of the original game. Movement, timing and layouts are still
-            being tuned. Private 1v1 rooms are playable. Arcade power-ups and wraparound routes are in development.
-            Swipe the cards to choose a mode.
+            being tuned. Private 1v1 rooms are playable. Arcade is Classic's duel physics plus Shield,
+            Reflect Shield, Rapid Fire, Speed Boost and Dash pickups, playable online 1v1; more players
+            and wraparound routes are still in development. Swipe the cards to choose a mode.
           </p>
         ) : (
           panel && (
