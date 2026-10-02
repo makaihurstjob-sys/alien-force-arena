@@ -10,7 +10,7 @@ import type { PlayerInput } from '../types';
 import type { PowerDuelMatch } from './powerup-duel';
 
 const FIRE_TOLERANCE = 6; // px — "on the same lane" for firing purposes
-const DASH_RANGE = CLASSIC.spacing * 2; // only dash when the target is meaningfully far
+const TELEPORT_RANGE = CLASSIC.spacing * 2; // only teleport when the target is meaningfully far
 
 const IDLE: PlayerInput = { thrust: false, reverse: false, left: false, right: false, fire: false, dash: false };
 
@@ -42,8 +42,8 @@ export function duelBotInput(match: PowerDuelMatch, botId: string): PlayerInput 
     if (alignedX || alignedY) input.fire = true;
   }
 
-  const charges = match.dashCharges.get(botId) ?? 0;
-  if (charges > 0 && (Math.abs(dx) > DASH_RANGE || Math.abs(dy) > DASH_RANGE)) input.dash = true;
+  const charges = match.teleportCharges.get(botId) ?? 0;
+  if (charges > 0 && (Math.abs(dx) > TELEPORT_RANGE || Math.abs(dy) > TELEPORT_RANGE)) input.dash = true;
 
   return input;
 }

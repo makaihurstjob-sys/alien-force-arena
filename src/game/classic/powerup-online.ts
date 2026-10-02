@@ -3,9 +3,9 @@
  * pattern exactly (host-simulated, peer-trusted, Realtime Broadcast) but
  * driving the powerup-duel wrapper instead of plain Classic duel physics.
  *
- * Maps (buffs, dashCharges) don't survive JSON over the wire, so the
- * snapshot represents them as plain objects and PowerDuelHost converts
- * back to a real PowerDuelMatch for rendering on receipt.
+ * Maps (buffs, teleportCharges, frozenUntil) don't survive JSON over the
+ * wire, so the snapshot represents them as plain objects and PowerDuelHost
+ * converts back to a real PowerDuelMatch for rendering on receipt.
  */
 
 import { EMPTY_INPUT, type GameState } from "../types";
@@ -25,7 +25,7 @@ export const PEER_TIMEOUT_MS = 1500;
 export const INPUT_TIMEOUT_MS = 350;
 export const DISCONNECT_LIMIT_MS = 30000;
 
-type BuffKind = Exclude<PowerUpKind, "dash">;
+type BuffKind = Exclude<PowerUpKind, "teleport">;
 
 export type PowerDuelSnapshot = {
   matchId: string;
@@ -33,7 +33,8 @@ export type PowerDuelSnapshot = {
   game: GameState;
   pickup: Pickup | null;
   buffs: Record<string, { kind: BuffKind; untilTick: number }>;
-  dashCharges: Record<string, number>;
+  teleportCharges: Record<string, number>;
+  frozenUntil: Record<string, number>;
   paused: boolean;
   ended: string;
   rematch: string[];
@@ -47,7 +48,9 @@ export function matchFromSnapshot(snapshot: PowerDuelSnapshot, players: PlayerSe
     pickup: snapshot.pickup,
     nextSpawnAtTick: 0,
     buffs: new Map(Object.entries(snapshot.buffs)),
-    dashCharges: new Map(Object.entries(snapshot.dashCharges)),
+    teleportCharges: new Map(Object.entries(snapshot.teleportCharges)),
+    freezeInFlight: new Set(),
+    frozenUntil: new Map(Object.entries(snapshot.frozenUntil)),
   };
 }
 
@@ -65,8 +68,10 @@ export function isPowerDuelSnapshot(value: unknown, players: string[]): value is
     p.rematch.every((id) => players.includes(id)) &&
     !!p.buffs &&
     typeof p.buffs === "object" &&
-    !!p.dashCharges &&
-    typeof p.dashCharges === "object" &&
+    !!p.teleportCharges &&
+    typeof p.teleportCharges === "object" &&
+    !!p.frozenUntil &&
+    typeof p.frozenUntil === "object" &&
     (p.pickup === null ||
       (!!p.pickup && typeof p.pickup.x === "number" && typeof p.pickup.y === "number")) &&
     !!s &&
@@ -182,7 +187,8 @@ export class PowerDuelHost {
       game: structuredClone(this.match.game),
       pickup: this.match.pickup ? { ...this.match.pickup } : null,
       buffs: Object.fromEntries(this.match.buffs),
-      dashCharges: Object.fromEntries(this.match.dashCharges),
+      teleportCharges: Object.fromEntries(this.match.teleportCharges),
+      frozenUntil: Object.fromEntries(this.match.frozenUntil),
       paused: this.paused,
       ended: this.ended,
       rematch: this.rematchVotes,
@@ -203,6 +209,8 @@ export function interpolatePowerDuel(
     pickup: next.pickup,
     nextSpawnAtTick: 0,
     buffs: new Map(Object.entries(next.buffs)),
-    dashCharges: new Map(Object.entries(next.dashCharges)),
+    teleportCharges: new Map(Object.entries(next.teleportCharges)),
+    freezeInFlight: new Set(),
+    frozenUntil: new Map(Object.entries(next.frozenUntil)),
   };
 }

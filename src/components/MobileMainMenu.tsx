@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, X, Trophy, Medal } from "lucide-react";
 import { PlayerProfile } from "./PlayerProfile";
 import { DesktopArena } from "./DesktopArena";
@@ -20,6 +21,7 @@ const modes = [
   { name: "Classic 1v1", description: "Private duel \u00b7 2 pilots", color: "#69d9ff" },
   { name: "Ranked", description: "Competitive 1v1 matches", color: "#d0a0ff" },
   { name: "Arcade", description: "Power-ups · Online 1v1", color: "#ffe066" },
+  { name: "Arcade Practice", description: "Power-ups · Training bot", color: "#ffe066" },
   { name: "Bullet Run", description: "Free for all · Up to 6 pilots", color: "#ff704d" },
   { name: "Practice", description: "Local 1v1 · Training bot", color: "#3ee08a" },
   { name: "Global Leaderboard", description: "Classic · Scores & player cards", color: "#69d9ff" },
@@ -121,6 +123,11 @@ export function MobileMainMenu() {
       const code = new URLSearchParams(window.location.hash.slice(1)).get("room");
       if (code && /^[a-z0-9]{6}$/i.test(code)) {
         setInviteCode(code.toUpperCase());
+        // The invite link's mode param is just a placeholder for the very first
+        // join/create call -- join and get don't validate it, and the server's
+        // real room.mode (whatever the room actually is: arcade, duel, etc.)
+        // takes over for every call after that. Only legacy Bullet Run links
+        // need the literal "bullet" value recognized here.
         setLobbyMode(new URLSearchParams(window.location.hash.slice(1)).get("mode") === "bullet" ? "bullet" : "duel");
         setPanel("lobby");
       }
@@ -162,7 +169,7 @@ export function MobileMainMenu() {
     <section className="mobile-main-menu" aria-label="Main menu">
       {!hangar && <PlayerProfile />}
       <div className="desktop-arena" aria-hidden="true">
-        <DesktopArena mode={mode.name === "Arcade" ? 1 : mode.name === "Practice" ? 2 : 0} />
+        <DesktopArena mode={mode.name === "Arcade" || mode.name === "Arcade Practice" ? 1 : mode.name === "Practice" ? 2 : 0} />
       </div>
       <header className="desktop-menu-brand">
         <h1>Alien Force Arena</h1>
@@ -173,6 +180,8 @@ export function MobileMainMenu() {
         <p>{mode.description}</p>
         {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
           <button className="desktop-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight /></button>
+        ) : mode.name === "Arcade Practice" ? (
+          <Link className="desktop-play" to="/arcade">Play <ChevronRight /></Link>
         ) : <button className="desktop-play" onClick={enterMode}>Play <ChevronRight /></button>}
 
       </div>
@@ -192,7 +201,7 @@ export function MobileMainMenu() {
             onClick={() => setSelected(index)}
           >
             <span className="desktop-thumbnail">
-              {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : (item.name === "Classic" || item.name === "Practice") ? <ArenaPreview active={false} arcade={false} practice={item.name === "Practice"} desktop /> : <DesktopArena mode={item.name === "Arcade" ? 1 : 0} thumbnail />}
+              {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : (item.name === "Classic" || item.name === "Practice") ? <ArenaPreview active={false} arcade={false} practice={item.name === "Practice"} desktop /> : <DesktopArena mode={item.name === "Arcade" || item.name === "Arcade Practice" ? 1 : 0} thumbnail />}
             </span>
             <strong>{item.name}</strong>
             {item.name === "Ranked" && <small>Coming soon</small>}
@@ -255,7 +264,7 @@ export function MobileMainMenu() {
             >
               {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : <ArenaPreview
                 active={selected === index}
-                arcade={item.name === "Arcade"}
+                arcade={item.name === "Arcade" || item.name === "Arcade Practice"}
                 practice={item.name === "Practice"}
               />}
               <span className="mode-caption">
@@ -295,6 +304,8 @@ export function MobileMainMenu() {
       <div className="mobile-mode-actions" aria-live="polite">
         {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
           <button className="mobile-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight size={22} /></button>
+        ) : mode.name === "Arcade Practice" ? (
+          <Link className="mobile-play" to="/arcade">Play <ChevronRight size={22} /></Link>
         ) : <button className="mobile-play" onClick={enterMode}>Play <ChevronRight size={22} /></button>}
       </div>
       <footer>Fight · Adapt · Survive</footer>
@@ -328,7 +339,7 @@ export function MobileMainMenu() {
           <p>
             Classic is a reconstruction of the original game. Movement, timing and layouts are still
             being tuned. Private 1v1 rooms are playable. Arcade is Classic's duel physics plus Shield,
-            Reflect Shield, Rapid Fire, Speed Boost and Dash pickups, playable online 1v1; more players
+            a Freeze Shot, Rapid Fire, Speed Boost and Teleport pickups, playable online 1v1; more players
             and wraparound routes are still in development. Swipe the cards to choose a mode.
           </p>
         ) : (

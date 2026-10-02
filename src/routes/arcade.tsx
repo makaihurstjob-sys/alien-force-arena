@@ -23,7 +23,7 @@ export const Route = createFileRoute("/arcade")({
       {
         name: "description",
         content:
-          "Classic's real 1v1 duel physics, plus Shield, Reflect Shield, Rapid Fire, Speed Boost and Dash power-ups that spawn on the grid.",
+          "Classic's real 1v1 duel physics, plus Shield, Freeze Shot, Rapid Fire, Speed Boost and Teleport power-ups that spawn on the grid.",
       },
       { property: "og:title", content: "Arcade — Alien Force Arena" },
       { property: "og:description", content: "Classic-feel arena duel with power-up pickups, against a training bot." },
@@ -41,10 +41,10 @@ const PLAYERS: PlayerSeed[] = [
 
 const POWERUP_NAMES: Record<PowerUpKind, string> = {
   shield: "Shield",
-  reflect: "Reflect Shield",
+  freeze: "Freeze Shot",
   rapidFire: "Rapid Fire",
   speedBoost: "Speed Boost",
-  dash: "Dash",
+  teleport: "Teleport",
 };
 
 export function Arcade() {
@@ -110,6 +110,8 @@ export function Arcade() {
   const accuracy = you && you.shots > 0 ? Math.round((you.hits / you.shots) * 100) : 0;
   const buff = hud.buffs.you;
   const buffSecondsLeft = buff ? Math.max(0, Math.ceil(((buff.untilTick - hud.tick) * (1000 / 60)) / 1000)) : 0;
+  const youFrozen = hud.frozenUntil.you !== null && hud.tick < hud.frozenUntil.you;
+  const frozenSecondsLeft = youFrozen ? Math.max(0, Math.ceil((hud.frozenUntil.you! - hud.tick) / 60)) : 0;
 
   return (
     <main className="min-h-screen bg-background px-3 py-4 font-mono text-foreground">
@@ -131,7 +133,7 @@ export function Arcade() {
           onStart={restart}
           onSelect={restart}
           statusLight={hud.matchWinner === null}
-          statusLabel={you?.canFire ? "Ready" : "Reloading"}
+          statusLabel={youFrozen ? "Frozen" : you?.canFire ? "Ready" : "Reloading"}
           aAction="dash"
           screen={
             <div>
@@ -161,13 +163,18 @@ export function Arcade() {
                 <span className="text-primary">
                   {buff ? `${POWERUP_NAMES[buff.kind]} · ${buffSecondsLeft}s` : "No active buff"}
                 </span>
-                <span className={hud.dashCharges.you > 0 ? "text-primary" : "text-muted-foreground"}>
-                  Dash {hud.dashCharges.you > 0 ? "ready" : "empty"}
+                <span className={hud.teleportCharges.you > 0 ? "text-primary" : "text-muted-foreground"}>
+                  Teleport {hud.teleportCharges.you > 0 ? "ready" : "empty"}
                 </span>
               </div>
               {hud.pickup && (
                 <p className="bg-[#182130] py-1 text-center text-[10px] uppercase tracking-widest text-hud">
                   On field: {POWERUP_NAMES[hud.pickup]}
+                </p>
+              )}
+              {youFrozen && (
+                <p className="bg-[#182130] py-1 text-center text-[10px] font-bold uppercase tracking-widest text-hud">
+                  Frozen! Controls return in {frozenSecondsLeft}s
                 </p>
               )}
               {hud.matchWinner !== null && (
@@ -237,14 +244,14 @@ export function Arcade() {
           <p className="font-bold uppercase tracking-widest">Controls</p>
           <p className="mt-1">
             D-pad or WASD / arrows steer through Classic's lanes. <b>B</b> or <b>Space</b> to fire,{" "}
-            <b>A</b>, <b>Shift</b> or <b>Q</b> to dash. <b>Start</b> or <b>Select</b> restarts the
-            match. <b>Escape</b> pauses.
+            <b>A</b>, <b>Shift</b> or <b>Q</b> to teleport in whatever direction you're holding.{" "}
+            <b>Start</b> or <b>Select</b> restarts the match. <b>Escape</b> pauses.
           </p>
           <p className="mt-2">
             The exact same one-shot rule, lane movement and round scoring as Classic — plus a
-            power-up pickup that periodically appears on the grid. Fly into it for Shield, Reflect
-            Shield, Rapid Fire, Speed Boost or a Dash charge; you can hold one timed buff plus a
-            separate dash charge at a time.
+            power-up pickup that periodically appears on the grid. Fly into it for Shield, a Freeze
+            Shot, Rapid Fire, Speed Boost or a Teleport charge; you can hold one timed buff plus a
+            separate teleport charge at a time.
           </p>
         </div>
       </div>
@@ -265,9 +272,13 @@ function readHud(match: PowerDuelMatch) {
       you: match.buffs.get("you") ?? null,
       bot: match.buffs.get("bot") ?? null,
     },
-    dashCharges: {
-      you: match.dashCharges.get("you") ?? 0,
-      bot: match.dashCharges.get("bot") ?? 0,
+    teleportCharges: {
+      you: match.teleportCharges.get("you") ?? 0,
+      bot: match.teleportCharges.get("bot") ?? 0,
+    },
+    frozenUntil: {
+      you: match.frozenUntil.get("you") ?? null,
+      bot: match.frozenUntil.get("bot") ?? null,
     },
     ships: game.ships.map((s) => ({
       id: s.id,

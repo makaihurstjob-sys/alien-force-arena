@@ -35,6 +35,8 @@ export type Ship = {
   shots: number;
   hits: number;
   turnaroundHeld?: boolean;
+  /** Duel mode only: a direction press held until the next lane intersection, so a quick tap isn't lost. */
+  queuedDirection?: "up" | "down" | "left" | "right" | null;
 };
 
 export type Projectile = {

@@ -143,7 +143,7 @@ export function GameBoyShell({
         {/* A / B */}
         <div className="flex -rotate-12 items-end gap-3">
           <button
-            aria-label={bAction === "dash" ? "Dash (B)" : "Fire (B)"}
+            aria-label={bAction === "dash" ? "Teleport (B)" : "Fire (B)"}
             className={`h-14 w-14 select-none touch-none rounded-full font-mono text-lg font-bold text-white shadow-[0_3px_0_rgba(0,0,0,0.45)] active:translate-y-[2px] active:shadow-none ${bAction === "dash" ? "bg-[#2f5a8c]" : "bg-[#8c2f5a]"}`}
             onPointerDown={press("b")}
             onPointerUp={release("b")}
@@ -153,7 +153,7 @@ export function GameBoyShell({
             B
           </button>
           <button
-            aria-label={aAction === "dash" ? "Dash (A)" : "Fire (A)"}
+            aria-label={aAction === "dash" ? "Teleport (A)" : "Fire (A)"}
             className={`h-14 w-14 select-none touch-none rounded-full font-mono text-lg font-bold text-white shadow-[0_3px_0_rgba(0,0,0,0.45)] active:translate-y-[2px] active:shadow-none ${aAction === "dash" ? "bg-[#2f5a8c]" : "bg-[#8c2f5a]"}`}
             onPointerDown={press("a")}
             onPointerUp={release("a")}

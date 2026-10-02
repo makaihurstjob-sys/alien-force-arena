@@ -30,10 +30,10 @@ const mapping: Record<string, keyof PlayerInput> = {
 
 const POWERUP_NAMES: Record<PowerUpKind, string> = {
   shield: "Shield",
-  reflect: "Reflect Shield",
+  freeze: "Freeze Shot",
   rapidFire: "Rapid Fire",
   speedBoost: "Speed Boost",
-  dash: "Dash",
+  teleport: "Teleport",
 };
 
 export function OnlineArcadeDuel({
@@ -176,7 +176,10 @@ export function OnlineArcadeDuel({
   const paused = snapshot.paused || duel.stalled;
   const buff = snapshot.buffs[player];
   const buffSecondsLeft = buff ? Math.max(0, Math.ceil((buff.untilTick - game.tick) / 60)) : 0;
-  const dashCharges = snapshot.dashCharges[player] ?? 0;
+  const teleportCharges = snapshot.teleportCharges[player] ?? 0;
+  const frozenUntil = snapshot.frozenUntil[player];
+  const youFrozen = frozenUntil !== undefined && game.tick < frozenUntil;
+  const frozenSecondsLeft = youFrozen ? Math.max(0, Math.ceil((frozenUntil - game.tick) / 60)) : 0;
   return (
     <div className="online-classic-shell">
       <section
@@ -219,6 +222,12 @@ export function OnlineArcadeDuel({
                   {!snapshot.ended && <small>Keep the game visible on both devices.</small>}
                 </div>
               )}
+              {!windowBlocked && !snapshot.ended && !paused && youFrozen && (
+                <div className="duel-overlay" role="status">
+                  <strong>Frozen!</strong>
+                  <p>Hit by a freeze shot — controls return in {frozenSecondsLeft}s.</p>
+                </div>
+              )}
             </div>
             <header className="duel-scoreboard">
               <span className="duel-green">
@@ -247,8 +256,8 @@ export function OnlineArcadeDuel({
               <button
                 type="button"
                 data-control
-                aria-label="Dash"
-                disabled={dashCharges <= 0}
+                aria-label="Teleport"
+                disabled={teleportCharges <= 0}
                 onPointerDown={(e) => {
                   e.preventDefault();
                   dashPressed.current = true;
@@ -268,7 +277,7 @@ export function OnlineArcadeDuel({
                   updateInput();
                 }}
               >
-                Dash {dashCharges > 0 ? "ready" : "empty"}
+                Teleport {teleportCharges > 0 ? "ready" : "empty"}
               </button>
             </div>
           </div>
@@ -314,7 +323,8 @@ export function OnlineArcadeDuel({
                 }}
               />
               <p className="classic-keyboard-instructions">
-                WASD / arrows to steer. Space to fire. R to reverse. Shift or Q to dash.
+                WASD / arrows to steer. Space to fire. R to reverse. Hold a direction and press
+                Shift or Q to teleport that way.
               </p>
             </div>
           )
