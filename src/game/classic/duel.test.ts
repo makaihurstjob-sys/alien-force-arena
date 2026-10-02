@@ -26,6 +26,15 @@ describe('Classic two-player rules', () => {
     expect(s.ships[0]!.x).toBe(52);
     expect(s.ships[0]!.y).toBeLessThan(412);
   });
+  it('remembers a quick tap until the next lane intersection even after the key is released', () => {
+    const s = playing();
+    s.ships[0]!.x = 22; // short of the first crossing at x=52
+    step(s, { a: { ...EMPTY_INPUT, thrust: true } }); // a single tick's tap
+    expect(s.ships[0]!.y).toBe(412); // too far from the crossing to turn yet
+    for (let i = 0; i < 20; i++) step(s, {}); // key released, no more input at all
+    expect(s.ships[0]!.x).toBe(52);
+    expect(s.ships[0]!.y).toBeLessThan(412); // still turned, from the earlier tap
+  });
   it('reverses once per press even between intersections', () => {
     const s = playing();
     s.ships[0]!.x = 100;

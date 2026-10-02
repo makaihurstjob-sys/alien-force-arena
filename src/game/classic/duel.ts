@@ -36,7 +36,7 @@ export function startRound(state: GameState, players: PlayerSeed[]) {
 }
 
 /** Classic's lane movement and shot physics, with two human pilots and round scoring. */
-export function step(state: GameState, inputs: Record<string, PlayerInput>, rules: { roundsToWin?: number; protectedIds?: ReadonlySet<string> } = {}) {
+export function step(state: GameState, inputs: Record<string, PlayerInput>, rules: { roundsToWin?: number; protectedIds?: ReadonlySet<string>; speedMultiplier?: Record<string, number>; frozenIds?: ReadonlySet<string> } = {}) {
   state.tick++;
   state.events = [];
   state.phaseTimerMs = Math.max(0, state.phaseTimerMs - TICK_MS);
@@ -49,13 +49,19 @@ export function step(state: GameState, inputs: Record<string, PlayerInput>, rule
   }
   for (const ship of state.ships) {
     if (!ship.alive) continue;
+    if (rules.frozenIds?.has(ship.id)) continue;
     const input = inputs[ship.id];
     const actor = { id: ship.team, x: ship.x, y: ship.y, direction: directionFromAngle(ship.angle) };
     const reverseNow = !!input?.turnaround && !ship.turnaroundHeld;
     ship.turnaroundHeld = !!input?.turnaround;
     if (reverseNow) actor.direction = directions[(directions.indexOf(actor.direction) + 2) % 4]!;
     const wanted = input?.thrust ? 'up' : input?.reverse ? 'down' : input?.left ? 'left' : input?.right ? 'right' : null;
-    moveActor(actor, reverseNow ? null : wanted, DUEL_PLAYER_SPEED * TICK_MS / 1000);
+    // A quick tap is remembered until the next lane intersection instead of being
+    // lost if the key is released a tick early, same as Classic's solo mode.
+    if (wanted) ship.queuedDirection = wanted;
+    const speed = DUEL_PLAYER_SPEED * (rules.speedMultiplier?.[ship.id] ?? 1);
+    const turned = moveActor(actor, reverseNow ? null : (ship.queuedDirection ?? null), speed * TICK_MS / 1000);
+    if (turned) ship.queuedDirection = null;
     ship.x = actor.x;
     ship.y = actor.y;
     ship.angle = directions.indexOf(actor.direction) * Math.PI / 2;
