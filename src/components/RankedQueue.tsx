@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { connection } from "@/lib/multiplayer";
 import { ROUNDS_PREFERENCE_KEY } from "@/lib/ranked-matchmaking";
@@ -9,7 +10,12 @@ import {
 } from "@/lib/ranked-queue";
 import RankedMatchView from "./RankedMatchView";
 
-export default function RankedQueue() {
+type QueueProps = {
+  onMatchChange?: ((playing: boolean) => void) | undefined;
+  onActivityChange?: ((active: boolean) => void) | undefined;
+};
+
+export default function RankedQueue({ onMatchChange, onActivityChange }: QueueProps = {}) {
   const [player, setPlayer] = useState<string | null>(null);
   const [authError, setAuthError] = useState("");
   useEffect(() => {
@@ -37,7 +43,12 @@ export default function RankedQueue() {
     };
   }, []);
   return player ? (
-    <QueueControls key={player} player={player} />
+    <QueueControls
+      key={player}
+      player={player}
+      onMatchChange={onMatchChange}
+      onActivityChange={onActivityChange}
+    />
   ) : (
     <section className="ranked-settings">
       <h4>Ranked matchmaking</h4>
@@ -46,7 +57,11 @@ export default function RankedQueue() {
   );
 }
 
-function QueueControls({ player }: { player: string }) {
+function QueueControls({
+  player,
+  onMatchChange,
+  onActivityChange,
+}: { player: string } & QueueProps) {
   const [state, setState] = useState<RankedQueueState>({ status: "idle" });
   const [rounds, setRounds] = useState(false);
   const [busy, setBusy] = useState(true);
@@ -87,6 +102,14 @@ function QueueControls({ player }: { player: string }) {
       queue.stop();
     };
   }, []);
+  useEffect(() => {
+    onMatchChange?.(state.status === "matched");
+    onActivityChange?.(state.status !== "idle");
+    return () => {
+      onMatchChange?.(false);
+      onActivityChange?.(false);
+    };
+  }, [state.status, onMatchChange, onActivityChange]);
   async function act(action: QueueAction) {
     if (!session || busy) return;
     setBusy(true);
@@ -102,14 +125,17 @@ function QueueControls({ player }: { player: string }) {
     }
   }
   if (state.status === "matched") {
-    return (
-      <RankedMatchView
-        matchId={state.match_id}
-        player={player}
-        onExit={() => {
-          void session?.action("poll");
-        }}
-      />
+    return createPortal(
+      <main className="online-match-screen">
+        <RankedMatchView
+          matchId={state.match_id}
+          player={player}
+          onExit={() => {
+            void session?.action("poll");
+          }}
+        />
+      </main>,
+      document.body,
     );
   }
   return (
@@ -144,7 +170,7 @@ function QueueControls({ player }: { player: string }) {
       <div className="ranked-experiment-actions">
         {state.status === "idle" && (
           <button disabled={busy} onClick={() => void act("join")}>
-            Find match
+            Ready up / Find match
           </button>
         )}
         {state.status === "waiting" && (

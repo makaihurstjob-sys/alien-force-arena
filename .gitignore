@@ -44,3 +44,5 @@ package-lock.json
 
 # Trusted Ranked server credentials, never bundled for the browser
 .env.ranked-server
+
+supabase/.temp/

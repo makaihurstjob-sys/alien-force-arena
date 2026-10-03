@@ -4,6 +4,17 @@ Patch notes for Alien Force Arena, newest first. Grouped by theme/date rather th
 one line per commit — see `git log` for the exact commit history. When shipping a
 notable update, add a new dated section at the top of this file.
 
+## 2026-10-03 - Ranked lobby entry and Join Room
+
+- Connected the main-menu Ranked lobby to authenticated public matchmaking with
+  Ready up / Find match, cancellation, and full-screen authoritative gameplay.
+  Each player enters the queue separately; two room occupants are not required.
+- Selecting a game now updates an existing host-owned idle room to that mode,
+  fixing stale solo rooms with a one-pilot limit when opening Ranked.
+- Added Join Room inside the shared lobby. Room-code switching is transactional:
+  invalid, closed, full, or playing destinations preserve the current membership.
+  Successful switches leave the old room and close it if the switching player hosts it.
+
 ## 2026-10-03 - Ranked forfeit and deterministic Arcade tests
 
 - Added a confirmed Forfeit match button. An authenticated database request identifies
