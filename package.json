@@ -12,7 +12,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "build:pages": "vite build --config vite.pages.config.ts && node scripts/pages-fallback.mjs",
-    "test:classic-records-db": "node scripts/test-classic-records-db.mjs"
+    "test:classic-records-db": "node scripts/test-classic-records-db.mjs",
+    "test:ranked-db": "node scripts/test-ranked-db.mjs",
+    "ranked-server": "tsx scripts/ranked-server.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -92,6 +94,7 @@
     "nitro": "3.0.260603-beta",
     "postgres": "^3.4.9",
     "prettier": "^3.7.3",
+    "tsx": "^4.23.15",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "8.1.5",

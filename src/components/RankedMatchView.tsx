@@ -1,0 +1,263 @@
+import ClassicController from "./ClassicController";
+import type { MenuController } from "./ClassicWindow";
+import type { ClassicInput } from "@/game/classic/engine";
+import { CLASSIC } from "@/game/classic/engine";
+import { useCallback, useEffect, useRef } from "react";
+import { interpolateDuel } from "@/game/online";
+import { renderClassicDuel } from "@/game/classic/duel-render";
+import { EMPTY_INPUT, type PlayerInput } from "@/game/types";
+import { useRankedMatch } from "@/game/useRankedMatch";
+import { RANKED_RULES } from "@/lib/ranked-rules";
+import "./online-duel.css";
+
+const mapping: Record<string, keyof PlayerInput> = {
+  ArrowUp: "thrust",
+  KeyW: "thrust",
+  ArrowDown: "reverse",
+  KeyS: "reverse",
+  ArrowLeft: "left",
+  KeyA: "left",
+  ArrowRight: "right",
+  KeyD: "right",
+  Space: "fire",
+  KeyR: "turnaround",
+  KeyB: "turnaround",
+};
+
+/** No format label anywhere: players only ever see score, lives and respawn behavior. */
+export default function RankedMatchView({
+  matchId,
+  player,
+  onExit,
+}: {
+  matchId: string;
+  player: string;
+  onExit: () => void;
+}) {
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    document.body.classList.add("online-match-active");
+    window.scrollTo(0, 0);
+    return () => {
+      document.body.classList.remove("online-match-active");
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+  const {
+    view,
+    participants,
+    display,
+    inputRef,
+    connectionStatus,
+    stalled,
+    loadError,
+    localPaused,
+    requestPause,
+  } = useRankedMatch(matchId, player);
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const controllerInput = useRef<ClassicInput>({ direction: null, fire: false });
+  const reverseUntil = useRef(0);
+  const menuController = useRef<MenuController | null>(null);
+  const keys = useRef(new Set<string>());
+  const enabled = useRef(false);
+  const result = view?.result ?? null;
+  const paused = (view?.paused ?? false) || stalled;
+  enabled.current = !paused && !result;
+  const updateInput = useCallback(() => {
+    const input = { ...EMPTY_INPUT };
+    if (enabled.current) {
+      for (const code of keys.current) {
+        const key = mapping[code];
+        if (key) input[key] = true;
+      }
+      const direction = controllerInput.current.direction;
+      if (direction) {
+        input.thrust = direction === "up";
+        input.reverse = direction === "down";
+        input.left = direction === "left";
+        input.right = direction === "right";
+      }
+      input.fire ||= controllerInput.current.fire;
+      if (controllerInput.current.reverse) {
+        reverseUntil.current = performance.now() + 150;
+        controllerInput.current.reverse = false;
+      }
+      input.turnaround ||= performance.now() < reverseUntil.current;
+    }
+    inputRef.current = input;
+  }, [inputRef]);
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.code === "KeyP" && !(e.target instanceof HTMLInputElement)) {
+        e.preventDefault();
+        requestPause(!localPaused);
+        return;
+      }
+      if (!mapping[e.code] || e.target instanceof HTMLInputElement) return;
+      if (
+        e.code === "Space" &&
+        e.target instanceof HTMLButtonElement &&
+        !e.target.hasAttribute("data-control")
+      )
+        return;
+      e.preventDefault();
+      keys.current.add(e.code);
+      updateInput();
+    };
+    const up = (e: KeyboardEvent) => {
+      keys.current.delete(e.code);
+      updateInput();
+    };
+    const reset = () => {
+      keys.current.clear();
+      controllerInput.current = { direction: null, fire: false };
+      reverseUntil.current = 0;
+      inputRef.current = { ...EMPTY_INPUT };
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", reset);
+    document.addEventListener("visibilitychange", reset);
+    let frame = 0;
+    const draw = (now: number) => {
+      updateInput();
+      const frameState = display.current;
+      const ctx = canvas.current?.getContext("2d");
+      if (ctx && frameState)
+        renderClassicDuel(
+          ctx,
+          interpolateDuel(frameState.previous, frameState.current, (now - frameState.at) / 50),
+        );
+      frame = requestAnimationFrame(draw);
+    };
+    frame = requestAnimationFrame(draw);
+    canvas.current?.focus();
+    return () => {
+      cancelAnimationFrame(frame);
+      reset();
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", reset);
+      document.removeEventListener("visibilitychange", reset);
+    };
+  }, [inputRef, display, updateInput, localPaused, requestPause]);
+
+  if (loadError)
+    return (
+      <section className="online-duel" role="alert">
+        <p>{loadError}</p>
+        <button onClick={onExit}>Back to matchmaking</button>
+      </section>
+    );
+  if (!view || !participants)
+    return (
+      <section className="online-duel" aria-busy="true">
+        <p role="status">{connectionStatus}</p>
+      </section>
+    );
+
+  const state = view.state;
+  const you = state.ships.find((s) => s.id === player)!;
+  return (
+    <div className="online-classic-shell">
+      <section
+        className="online-duel"
+        aria-label="Ranked match"
+        data-match-id={view.matchId}
+        data-tick={state.tick}
+        data-phase={state.phase}
+        data-paused={paused}
+      >
+        <div className="duel-board">
+          <div className="duel-arena">
+            <canvas
+              ref={canvas}
+              width={CLASSIC.size}
+              height={CLASSIC.size}
+              tabIndex={0}
+              aria-label={`Arena. You control the ${you.team === 0 ? "white" : "orange"} ship.`}
+            />
+            {paused && !result && (
+              <div className="duel-overlay" role="status">
+                <strong>Match paused</strong>
+                <p>
+                  {localPaused
+                    ? "Press START to resume."
+                    : "Waiting for the other player to resume or reconnect."}
+                </p>
+                <small>Keep the game visible on both devices.</small>
+              </div>
+            )}
+          </div>
+          <header className="duel-scoreboard">
+            <span className="duel-green">
+              White <b>{state.score[0]}</b>
+            </span>
+            <span>
+              Round {state.round}
+              <small>First to {RANKED_RULES.stocks}</small>
+            </span>
+            <span className="duel-red">
+              <b>{state.score[1]}</b> Orange
+            </span>
+          </header>
+          <div className="duel-status">
+            <span className={you.team === 0 ? "duel-green" : "duel-red"}>
+              You are {you.team === 0 ? "WHITE" : "ORANGE"}
+            </span>
+            <span>{!you.alive ? "Eliminated" : you.canFire ? "Shot ready" : "Shot in flight"}</span>
+            <span>{Math.max(0, Math.ceil(state.phaseTimerMs / 1000))}s</span>
+          </div>
+        </div>
+        <div className="duel-mobile-hud" aria-label="Match status">
+          <span className="duel-green">White {state.score[0]}</span>
+          <span>Round {state.round}</span>
+          <span className="duel-red">{state.score[1]} Orange</span>
+          <span
+            title={`You are ${you.team === 0 ? "WHITE" : "ORANGE"}`}
+            className={`duel-mobile-shot ${you.team === 0 ? "duel-green" : "duel-red"}`}
+          >
+            {!you.alive ? "OUT" : you.canFire ? "READY" : "SHOT IN PLAY"}
+          </span>
+        </div>
+        {result ? (
+          <section className="duel-results" aria-label="Match results" aria-live="polite">
+            <h3>
+              {result.winner === null ? "Draw" : result.winner === you.team ? "Victory!" : "Defeat"}
+            </h3>
+            <p>
+              {you.shots} shots · {you.hits} hits ·{" "}
+              {you.shots ? Math.round((you.hits / you.shots) * 100) : 0}% accuracy
+            </p>
+            {result.disconnect && (
+              <p>
+                {result.winner === you.team
+                  ? "Your opponent disconnected."
+                  : "You disconnected and forfeited the match."}
+              </p>
+            )}
+            <button onClick={onExit}>Back to matchmaking</button>
+          </section>
+        ) : (
+          <div className="duel-controls">
+            <ClassicController
+              input={controllerInput}
+              menuController={menuController}
+              windowBlocked={false}
+              resumeFromAway={() => {}}
+              paused={localPaused}
+              onInputChange={updateInput}
+              onStart={() => requestPause(!localPaused)}
+            />
+            <p className="classic-keyboard-instructions">
+              WASD / arrows to steer. Space to fire. R to reverse. P to pause.
+            </p>
+          </div>
+        )}
+        <div className="duel-footer">
+          <span>{connectionStatus}</span>
+        </div>
+      </section>
+    </div>
+  );
+}

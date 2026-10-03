@@ -2,6 +2,11 @@
 
 ## Approved rules
 
+Server follow-up: queue/settlement SQL and PostgreSQL tests now exist locally. See
+[Ranked server contract](ranked-server.md) for RPCs, tuning, deployment status, and release
+gates. Earlier implementation notes below describe the local gameplay slice; live Ranked
+and authoritative simulation remain disconnected.
+
 Ranked is Discord-only 1v1, starting at Cadet I with no placements. Cadet, Scout, Pilot, Ace and Commander each have I–III, with 100 points per division. Promotion carries excess points forward. A loss reaching/crossing a division floor stops at zero; the next loss demotes by that loss amount. Winning rearms grace. Cadet I is the floor.
 
 Galactic Legend is exclusive to #1 after completing Commander III (1500 rating). Rating remains uncapped. Normal rating changes have baseline 30 and combined opponent/margin cap of 21–39. Exact rating, progress and actual gains/losses are visible when connected.

@@ -33,3 +33,11 @@ dist-ssr
 
 # Standalone GitHub Pages build
 dist-pages/
+
+# Python test-script byte code and ad-hoc screenshot artifacts dropped at repo root
+__pycache__/
+scripts/__pycache__/
+/*.png
+
+# npm lockfile — this project's canonical lockfile is bun.lock
+package-lock.json

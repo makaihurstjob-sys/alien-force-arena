@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, Medal, Search } from "lucide-react";
 import { ranks } from "@/lib/ranks";
-import RankedExperiment from './RankedExperiment';
+import RankedQueue from './RankedQueue';
 import "./classic-leaderboard.css";
 import "./ranked-ratings.css";
 
@@ -27,7 +27,7 @@ export default function RankedRatings() {
       </ol>
     </section>
     <p>Start at Cadet I. Earn 100 points per division, with one grace loss at zero. Galactic Legend requires the #1 spot and 1,500 rating.</p>
-    <RankedExperiment />
+    <RankedQueue />
     <div className="ranked-filters" aria-describedby="ranked-launch-note">
       <label className="ranked-search">Player
         <span><Search size={18} aria-hidden="true" /><input type="search" placeholder="Search players" disabled /></span>

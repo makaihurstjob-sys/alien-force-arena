@@ -190,3 +190,5 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+See [CHANGELOG.md](./CHANGELOG.md) for patch notes on what's shipped so far.
