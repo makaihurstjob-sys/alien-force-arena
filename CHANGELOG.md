@@ -4,6 +4,14 @@ Patch notes for Alien Force Arena, newest first. Grouped by theme/date rather th
 one line per commit — see `git log` for the exact commit history. When shipping a
 notable update, add a new dated section at the top of this file.
 
+## 2026-10-03 - Restore Ranked hangar controls
+
+- Removed the separate Ranked matchmaking panel from the lobby.
+- Restored pilot Ready buttons and the existing Start match button. Ready enables
+  Start for that pilot; Start joins public Ranked matchmaking, and the same button
+  cancels a waiting search. Queue status uses the existing lobby status line.
+- Preserved Discord eligibility, saved Rounds preference, and authoritative matches.
+
 ## 2026-10-03 - Ranked lobby entry and Join Room
 
 - Connected the main-menu Ranked lobby to authenticated public matchmaking with

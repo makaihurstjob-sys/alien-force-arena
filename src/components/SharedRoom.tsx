@@ -6,7 +6,7 @@ import { lobbyModes, type LobbyMode } from "@/lib/lobby-modes";
 import { useOnlineDuel } from "@/game/useOnlineDuel";
 import { useOnlinePowerDuel } from "@/game/classic/useOnlinePowerDuel";
 import type { BulletLobby } from "@/lib/bullet-lobby";
-import RankedQueue from "./RankedQueue";
+import RankedQueue, { type RankedLobbyControls } from "./RankedQueue";
 import HangarLobby from "./HangarLobby";
 import BulletRun from "./BulletRun";
 import Classic from "./Classic";
@@ -28,7 +28,6 @@ export default function SharedRoom({
   onMatchChange: (playing: boolean) => void;
 }) {
   const [rankedPlaying, setRankedPlaying] = useState(false);
-  const [rankedActive, setRankedActive] = useState(false);
   const [room, setRoom] = useState<GameLobby | null>(null);
   const [player, setPlayer] = useState("");
   const [busy, setBusy] = useState(true);
@@ -273,33 +272,41 @@ export default function SharedRoom({
     );
   const mode = lobbyModes[room.mode];
   const selfReady = room.members.some((member) => member.player_id === player && member.ready);
-  return (
+  const lobby = (ranked?: RankedLobbyControls) => (
     <>
       {error && <p role="alert">{error}</p>}
-      {room.mode === "ranked" && room.status === "open" && (
-        <RankedQueue onMatchChange={setRankedPlaying} onActivityChange={setRankedActive} />
-      )}
       <HangarLobby
         room={room}
         mode={room.mode}
         player={player}
-        busy={busy || rankedActive}
+        busy={busy || !!ranked?.busy}
         connected={!unavailable}
         unavailable={unavailable}
-        readinessAvailable
+        readinessAvailable={!ranked || (ranked.eligible && !ranked.waiting)}
         selfReady={selfReady}
         allReady={
-          room.members.length >= mode.min &&
-          room.members.length <= mode.max &&
-          room.members.every((member) => member.ready)
+          ranked
+            ? ranked.eligible && (selfReady || ranked.waiting)
+            : room.members.length >= mode.min &&
+              room.members.length <= mode.max &&
+              room.members.every((member) => member.ready)
         }
-        status={unavailable ? "Reconnecting to room..." : "Ready when you are"}
+        status={unavailable ? "Reconnecting to room..." : (ranked?.status ?? "Ready when you are")}
         invite={`${window.location.origin}${import.meta.env.BASE_URL}#room=${room.code}&mode=shared`}
         onLeave={leave}
-        onModeChange={changeMode}
+        onModeChange={ranked?.waiting ? undefined : changeMode}
         onReady={() => void mutate(selfReady ? "unready" : "ready")}
-        onStart={() => void mutate("launch")}
+        onStart={
+          ranked ? (ranked.waiting ? ranked.cancel : ranked.start) : () => void mutate("launch")
+        }
+        startLabel={ranked?.waiting ? "Cancel search" : "Start match"}
+        allowMemberStart={!!ranked}
       />
     </>
+  );
+  return room.mode === "ranked" && room.status === "open" ? (
+    <RankedQueue onMatchChange={setRankedPlaying} renderLobby={lobby} />
+  ) : (
+    lobby()
   );
 }

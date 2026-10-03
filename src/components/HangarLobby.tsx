@@ -26,7 +26,11 @@ export default function HangarLobby({
   invite,
   mode = "bullet",
   onModeChange,
+  startLabel = "Start match",
+  allowMemberStart = false,
 }: {
+  startLabel?: string;
+  allowMemberStart?: boolean;
   room: BulletLobby;
   player: string;
   busy: boolean;
@@ -133,7 +137,7 @@ export default function HangarLobby({
                           ? selfReady
                             ? "Cancel ready"
                             : "Ready up"
-                          : `${member.display_name}: ${mode === "ranked" ? "Use matchmaking above" : member.ready ? "Ready" : "Not ready"}`
+                          : `${member.display_name}: ${member.ready ? "Ready" : "Not ready"}`
                       }
                       aria-pressed={member.ready}
                       disabled={
@@ -147,11 +151,7 @@ export default function HangarLobby({
                       }
                       onClick={member.player_id === player ? onReady : undefined}
                     >
-                      {mode === "ranked"
-                        ? "Use matchmaking above"
-                        : member.ready
-                          ? "Ready"
-                          : "Not ready"}
+                      {member.ready ? "Ready" : "Not ready"}
                     </button>
                   </>
                 ) : (
@@ -186,11 +186,9 @@ export default function HangarLobby({
         <strong>
           {ready}/{room.members.length} pilots ready
         </strong>
-        {mode === "ranked" ? (
-          <span>Ready up in Ranked matchmaking above.</span>
-        ) : room.host_id === player ? (
+        {room.host_id === player || allowMemberStart ? (
           <button
-            aria-label={game.playable ? "Start match" : "Coming soon"}
+            aria-label={game.playable ? startLabel : "Coming soon"}
             className="hangar-start"
             disabled={busy || !open || unavailable || !allReady || !connected || !game.playable}
             onClick={onStart}
@@ -202,7 +200,9 @@ export default function HangarLobby({
         )}
         <span>
           {mode === "ranked"
-            ? "Each pilot searches separately; no two-player room is required."
+            ? allReady
+              ? "Ready to start"
+              : "Ready up to start"
             : !game.playable
               ? "This game is coming soon."
               : !readinessAvailable && open

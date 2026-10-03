@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { connection } from "@/lib/multiplayer";
 import { ROUNDS_PREFERENCE_KEY } from "@/lib/ranked-matchmaking";
 import {
@@ -10,12 +10,26 @@ import {
 } from "@/lib/ranked-queue";
 import RankedMatchView from "./RankedMatchView";
 
+export type RankedLobbyControls = {
+  busy: boolean;
+  waiting: boolean;
+  eligible: boolean;
+  status: string;
+  start: () => void;
+  cancel: () => void;
+};
+
 type QueueProps = {
+  renderLobby?: ((controls: RankedLobbyControls) => ReactNode) | undefined;
   onMatchChange?: ((playing: boolean) => void) | undefined;
   onActivityChange?: ((active: boolean) => void) | undefined;
 };
 
-export default function RankedQueue({ onMatchChange, onActivityChange }: QueueProps = {}) {
+export default function RankedQueue({
+  onMatchChange,
+  onActivityChange,
+  renderLobby,
+}: QueueProps = {}) {
   const [player, setPlayer] = useState<string | null>(null);
   const [authError, setAuthError] = useState("");
   useEffect(() => {
@@ -48,7 +62,17 @@ export default function RankedQueue({ onMatchChange, onActivityChange }: QueuePr
       player={player}
       onMatchChange={onMatchChange}
       onActivityChange={onActivityChange}
+      renderLobby={renderLobby}
     />
+  ) : renderLobby ? (
+    renderLobby({
+      busy: false,
+      waiting: false,
+      eligible: false,
+      status: authError || "Sign in with Discord through your player profile to play Ranked.",
+      start: () => {},
+      cancel: () => {},
+    })
   ) : (
     <section className="ranked-settings">
       <h4>Ranked matchmaking</h4>
@@ -61,6 +85,7 @@ function QueueControls({
   player,
   onMatchChange,
   onActivityChange,
+  renderLobby,
 }: { player: string } & QueueProps) {
   const [state, setState] = useState<RankedQueueState>({ status: "idle" });
   const [rounds, setRounds] = useState(false);
@@ -138,6 +163,19 @@ function QueueControls({
       document.body,
     );
   }
+  if (renderLobby)
+    return renderLobby({
+      busy,
+      waiting: state.status === "waiting",
+      eligible: true,
+      status:
+        error ||
+        (state.status === "waiting"
+          ? "Searching for an opponent near your rank..."
+          : "Ready when you are"),
+      start: () => void act("join"),
+      cancel: () => void act("leave"),
+    });
   return (
     <section className="ranked-settings" aria-label="Ranked matchmaking">
       <h4>Ranked matchmaking</h4>

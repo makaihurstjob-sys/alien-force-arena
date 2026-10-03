@@ -20,7 +20,7 @@ export const lobbyModes = {
     description: "Competitive 1v1 \u00b7 Matchmaking",
     min: 2,
     max: 2,
-    playable: false,
+    playable: true,
   },
   arcade: {
     name: "Arcade",
