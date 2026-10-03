@@ -4,6 +4,16 @@ Patch notes for Alien Force Arena, newest first. Grouped by theme/date rather th
 one line per commit — see `git log` for the exact commit history. When shipping a
 notable update, add a new dated section at the top of this file.
 
+## 2026-10-03 - Ranked forfeit and deterministic Arcade tests
+
+- Added a confirmed Forfeit match button. An authenticated database request identifies
+  the signed-in participant; the trusted server credits the opponent and settles the
+  loss with the existing disconnect penalty rules. First request wins; retries are safe.
+- Fixed Arcade test randomness by passing a fixed center-lane RNG to the existing
+  simulation API, preventing unrelated pickups from replacing test buffs.
+- Ranked server can load ignored `.env.ranked-server` credentials on startup.
+- Two-account live testing still requires private server credentials and Discord sessions.
+
 ## 2026-10-03 — Ranked goes live: authoritative game server
 
 - Added the trusted ranked-server process (`scripts/ranked-server.ts`, run via

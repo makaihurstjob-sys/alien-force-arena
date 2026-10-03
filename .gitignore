@@ -41,3 +41,6 @@ scripts/__pycache__/
 
 # npm lockfile — this project's canonical lockfile is bun.lock
 package-lock.json
+
+# Trusted Ranked server credentials, never bundled for the browser
+.env.ranked-server

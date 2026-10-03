@@ -137,7 +137,30 @@ note above.
 No deployment target for this server (it is meant to be run by hand for now), no
 crash-recovery worker for a server that dies mid-match (docs above already called this
 out as a prerequisite for *enabling* Ranked, not just building it), no load/concurrency
-testing of multiple simultaneous ranked matches against hosted Postgres, and no explicit
-in-match forfeit button on the client (closing the tab or losing connection reaches the
-same 30-second timeout path instead). Public standings and the Legend tie rule remain
+testing of multiple simultaneous ranked matches against hosted Postgres, and no completed two-account live test yet. Public standings and the Legend tie rule remain
 separate, as before.
+
+## Explicit forfeit (2026-10-03)
+
+Apply `supabase/migrations/202610030000_ranked_forfeit.sql` before running the updated
+server. The Forfeit match button confirms the loss and calls `ranked_forfeit(match_id)`.
+This authenticated RPC derives the requesting player from `auth.uid()`, verifies the
+live Ranked participant, and records the first request. The server reads it every two
+seconds and settles via the existing disconnect result path, including cooldown rules.
+Clients cannot choose a winner or send a forfeit on behalf of the opponent.
+
+On Windows, create the git-ignored `.env.ranked-server` in the project root:
+
+```
+SUPABASE_URL=https://jtshieblptpxtkociseo.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<private service role key>
+```
+
+Then run `npm run ranked-server`. This dedicated file is loaded only by the server
+command; never use a VITE-prefixed variable for a service key. Test one played match,
+one explicit forfeit, and one tab-close timeout with two Discord accounts. Confirm
+both clients return to matchmaking and the server reports successful settlement.
+
+Known transport limitation: existing public Realtime broadcasts do not authenticate
+the claimed pilot or snapshot sender. The new forfeit RPC authenticates its caller,
+but competitive release still needs authenticated gameplay transport.

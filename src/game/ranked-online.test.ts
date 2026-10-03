@@ -130,6 +130,18 @@ describe("ranked host simulation", () => {
     expect(host.match.draw).toBe(true);
   });
 
+  it("settles a trusted forfeit immediately, even while paused, and preserves the result", () => {
+    const host = new RankedHost("match", players, "1b");
+    host.match.game.score = [2, 3];
+    host.requestForfeit("outsider");
+    expect(host.result).toBeNull();
+    host.requestForfeit("guest");
+    expect(host.result).toEqual({ winner: 0, loserScore: 3, disconnect: true });
+    host.requestForfeit("host");
+    host.advance(100);
+    expect(host.result?.winner).toBe(0);
+  });
+
   it("rejects malformed wire data", () => {
     expect(isRankedPacket({ ...packet("guest"), input: { fire: "yes" } })).toBe(false);
     expect(isRankedPacket({ ...packet("guest"), sequence: NaN })).toBe(false);

@@ -53,6 +53,9 @@ export default function RankedMatchView({
     loadError,
     localPaused,
     requestPause,
+    requestForfeit,
+    forfeitPending,
+    forfeitError,
   } = useRankedMatch(matchId, player);
   const canvas = useRef<HTMLCanvasElement>(null);
   const controllerInput = useRef<ClassicInput>({ direction: null, fire: false });
@@ -62,7 +65,7 @@ export default function RankedMatchView({
   const enabled = useRef(false);
   const result = view?.result ?? null;
   const paused = (view?.paused ?? false) || stalled;
-  enabled.current = !paused && !result;
+  enabled.current = !paused && !result && !forfeitPending;
   const updateInput = useCallback(() => {
     const input = { ...EMPTY_INPUT };
     if (enabled.current) {
@@ -232,8 +235,8 @@ export default function RankedMatchView({
             {result.disconnect && (
               <p>
                 {result.winner === you.team
-                  ? "Your opponent disconnected."
-                  : "You disconnected and forfeited the match."}
+                  ? "Your opponent forfeited or disconnected."
+                  : "You forfeited or disconnected from the match."}
               </p>
             )}
             <button onClick={onExit}>Back to matchmaking</button>
@@ -256,6 +259,22 @@ export default function RankedMatchView({
         )}
         <div className="duel-footer">
           <span>{connectionStatus}</span>
+          {!result && (
+            <button
+              disabled={forfeitPending}
+              onClick={() => {
+                if (
+                  window.confirm(
+                    "Forfeit this Ranked match? You will receive a loss and disconnect penalties may apply.",
+                  )
+                )
+                  void requestForfeit();
+              }}
+            >
+              {forfeitPending ? "Forfeiting..." : "Forfeit match"}
+            </button>
+          )}
+          {forfeitError && <p role="alert">{forfeitError}</p>}
         </div>
       </section>
     </div>

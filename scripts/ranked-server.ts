@@ -100,11 +100,15 @@ async function claim(matchId: string) {
 async function discover() {
   const { data: candidates, error } = await db
     .from("ranked_matches")
-    .select("match_id")
+    .select("match_id, forfeit_player_id")
     .is("result", null);
   if (error) {
     console.error("[ranked-server] discovery query failed", error.message);
     return;
+  }
+  for (const row of candidates ?? []) {
+    if (row.forfeit_player_id)
+      running.get(row.match_id)?.host.requestForfeit(row.forfeit_player_id);
   }
   const ids = (candidates ?? [])
     .map((row) => row.match_id as string)

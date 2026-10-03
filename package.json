@@ -14,7 +14,7 @@
     "build:pages": "vite build --config vite.pages.config.ts && node scripts/pages-fallback.mjs",
     "test:classic-records-db": "node scripts/test-classic-records-db.mjs",
     "test:ranked-db": "node scripts/test-ranked-db.mjs",
-    "ranked-server": "tsx scripts/ranked-server.ts"
+    "ranked-server": "tsx --env-file-if-exists=.env.ranked-server scripts/ranked-server.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"

@@ -16,6 +16,24 @@ const STALL_AFTER_MS = 3000;
  * the unranked Classic duel.
  */
 export function useRankedMatch(matchId: string | null, player: string | undefined) {
+  const [forfeitPending, setForfeitPending] = useState(false);
+  const [forfeitError, setForfeitError] = useState("");
+  const forfeitInFlight = useRef(false);
+  const requestForfeit = async () => {
+    if (!matchId || forfeitInFlight.current) return;
+    forfeitInFlight.current = true;
+    setForfeitPending(true);
+    setForfeitError("");
+    try {
+      const db = await connection();
+      const { error } = await db.rpc("ranked_forfeit", { p_match_id: matchId });
+      if (error) throw error;
+    } catch {
+      setForfeitError("Unable to forfeit. Please try again.");
+      setForfeitPending(false);
+      forfeitInFlight.current = false;
+    }
+  };
   const pauseRequested = useRef(false);
   const [localPaused, setLocalPaused] = useState(false);
   const requestPause = (paused: boolean) => {
@@ -33,6 +51,9 @@ export function useRankedMatch(matchId: string | null, player: string | undefine
   );
 
   useEffect(() => {
+    setForfeitPending(false);
+    setForfeitError("");
+    forfeitInFlight.current = false;
     setView(null);
     setParticipants(null);
     setStalled(false);
@@ -161,5 +182,8 @@ export function useRankedMatch(matchId: string | null, player: string | undefine
     loadError,
     localPaused,
     requestPause,
+    requestForfeit,
+    forfeitPending,
+    forfeitError,
   };
 }

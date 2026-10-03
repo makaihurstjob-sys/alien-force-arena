@@ -148,6 +148,13 @@ export class RankedHost {
   }
 
   /** A specific player's score at forfeit time is always 0-3: reaching 4 already ends the match. */
+  /** Called only with a database-authenticated request by the trusted server. */
+  requestForfeit(playerId: string) {
+    if (this.result || !this.players.some((p) => p.id === playerId)) return;
+    this.forfeit(playerId);
+    this.ended = "This match was forfeited.";
+  }
+
   private forfeit(playerId: string) {
     const team = this.players.find((p) => p.id === playerId)!.team;
     const winner = (team === 0 ? 1 : 0) as 0 | 1;
