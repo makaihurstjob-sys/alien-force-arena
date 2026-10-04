@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import RankedProgress from "./RankedProgress";
 import { Crown } from "lucide-react";
 import { DesktopArena } from "./DesktopArena";
 import { ShipIcon } from "./ShipIcon";
@@ -118,7 +119,9 @@ export default function HangarLobby({
               <div className="hangar-plaque">
                 {member ? (
                   <>
-                    <div className="hangar-pilot-name">
+                    <div
+                      className={`hangar-pilot-name ${mode === "ranked" && member.player_id === player ? "has-ranked-progress" : ""}`}
+                    >
                       {member.player_id === room.host_id && (
                         <Crown
                           className="hangar-host-crown"
@@ -129,6 +132,9 @@ export default function HangarLobby({
                         />
                       )}
                       <strong title={member.display_name}>{member.display_name}</strong>
+                      {mode === "ranked" && member.player_id === player && (
+                        <RankedProgress player={player} compact />
+                      )}
                     </div>
                     <button
                       className={`hangar-readiness ${member.ready ? "is-ready" : ""}`}

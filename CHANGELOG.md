@@ -4,6 +4,14 @@ Patch notes for Alien Force Arena, newest first. Grouped by theme/date rather th
 one line per commit — see `git log` for the exact commit history. When shipping a
 notable update, add a new dated section at the top of this file.
 
+## 2026-10-03 - Ranked points and responsive controls
+
+- Show saved personal rank, rating, record, and peak in the lobby and ratings screen.
+- Results show the server-saved point change, before/after rating, and division changes;
+  pending settlement is shown honestly rather than estimating or awarding browser points.
+- Fixed input handlers resetting whenever a match snapshot arrived. Changed inputs now
+  send on the next animation frame, with idle heartbeats every 250ms.
+
 ## 2026-10-03 - Restore Ranked hangar controls
 
 - Removed the separate Ranked matchmaking panel from the lobby.

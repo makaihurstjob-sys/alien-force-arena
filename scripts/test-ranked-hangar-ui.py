@@ -36,6 +36,7 @@ async def main():
                     if url.endswith('ranked_queue_join'): waiting=True
                     if url.endswith('ranked_queue_leave'): waiting=False
                     data={'status':'waiting','queued_at':'2026-10-03T12:00:00Z'} if waiting else {'status':'idle'}
+                elif '/rest/v1/ranked_players' in url: data={'rating':31,'peak':31,'wins':1,'losses':0,'draws':0}
                 elif '/auth/v1/user' in url: data=user
                 else: data=[]
                 await route.fulfill(status=200,content_type='application/json',body=json.dumps(data))
@@ -44,6 +45,8 @@ async def main():
             start=page.get_by_role('button',name='Start match',exact=True)
             await expect(start).to_be_disabled()
             assert await page.locator('.ranked-settings').count()==0, 'Separate ranked panel returned'
+            await expect(page.get_by_label('Your Ranked progress')).to_contain_text('31 points')
+            await expect(page.get_by_label('Your Ranked progress')).to_contain_text('Cadet I')
             await page.get_by_role('button',name='Ready up',exact=True).click()
             await expect(start).to_be_enabled()
             await start.click()

@@ -1,5 +1,5 @@
 import { randomId } from "@/lib/random-id";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { connection } from "@/lib/multiplayer";
 import { EMPTY_INPUT, type GameState, type PlayerInput } from "./types";
@@ -36,10 +36,10 @@ export function useRankedMatch(matchId: string | null, player: string | undefine
   };
   const pauseRequested = useRef(false);
   const [localPaused, setLocalPaused] = useState(false);
-  const requestPause = (paused: boolean) => {
+  const requestPause = useCallback((paused: boolean) => {
     pauseRequested.current = paused;
     setLocalPaused(paused);
-  };
+  }, []);
   const inputRef = useRef<PlayerInput>({ ...EMPTY_INPUT });
   const [view, setView] = useState<RankedSnapshot | null>(null);
   const [participants, setParticipants] = useState<RankedParticipant[] | null>(null);
@@ -69,6 +69,7 @@ export function useRankedMatch(matchId: string | null, player: string | undefine
     let current: RankedSnapshot | null = null;
     let lastSnapshotAt = 0;
     let lastSend = 0;
+    let lastControls = "";
     let sequence = 0;
     let frame = 0;
     const instance = randomId();
@@ -149,8 +150,10 @@ export function useRankedMatch(matchId: string | null, player: string | undefine
     const loop = (now: number) => {
       if (disposed) return;
       frame = requestAnimationFrame(loop);
-      if (now - lastSend >= 50) {
+      const controls = JSON.stringify([inputRef.current, pauseRequested.current, document.hidden]);
+      if (connected && (controls !== lastControls || now - lastSend >= 250)) {
         lastSend = now;
+        lastControls = controls;
         send(pilotPacket());
       }
       const waitingForFirstSnapshot = connected && !current;

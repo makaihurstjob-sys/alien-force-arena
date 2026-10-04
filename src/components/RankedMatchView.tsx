@@ -1,3 +1,4 @@
+import RankedMatchRating from "./RankedMatchRating";
 import ClassicController from "./ClassicController";
 import type { MenuController } from "./ClassicWindow";
 import type { ClassicInput } from "@/game/classic/engine";
@@ -239,6 +240,7 @@ export default function RankedMatchView({
                   : "You forfeited or disconnected from the match."}
               </p>
             )}
+            <RankedMatchRating matchId={matchId} player={player} />
             <button onClick={onExit}>Back to matchmaking</button>
           </section>
         ) : (

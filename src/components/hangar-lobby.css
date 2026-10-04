@@ -67,3 +67,6 @@
  .is-hangar .hangar-actions { margin-top:0; gap:8px; padding:8px; }
  .is-hangar .hangar-actions > span { font-size:12px; }
 }
+
+.hangar-pilot-name.has-ranked-progress { flex-wrap: wrap; gap: 0 6px; padding: 4px; }
+.hangar-rank-progress { flex-basis: 100%; font-size: 11px; line-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
