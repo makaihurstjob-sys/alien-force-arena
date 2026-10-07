@@ -99,6 +99,14 @@ function StandingsPreview({ ranked = false }: { ranked?: boolean }) {
 
 export function MobileMainMenu() {
   const [selected, setSelected] = useState(0);
+  const modeTrack = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const track = modeTrack.current;
+    const tile = track?.children[selected] as HTMLElement | undefined;
+    if (!track || !tile) return;
+    track.scrollTo({ left: tile.offsetLeft - track.offsetLeft - (track.clientWidth - tile.offsetWidth) / 2,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+  }, [selected]);
   const [panel, setPanel] = useState<"lobby" | "settings" | "leaderboard" | "ratings" | null>(null);
   const [roomBusy, setRoomBusy] = useState(false);
   const [roomPlaying, setRoomPlaying] = useState(false);
@@ -193,6 +201,7 @@ export function MobileMainMenu() {
         <button className="desktop-mode-arrow" aria-label="Previous mode" onClick={() => move(-1)}>
           <ChevronLeft />
         </button>
+        <div className="desktop-mode-track" ref={modeTrack}>
         {modes.map((item, index) => (
           <button
             key={item.name}
@@ -204,9 +213,10 @@ export function MobileMainMenu() {
               {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : (item.name === "Classic" || item.name === "Practice") ? <ArenaPreview active={false} arcade={false} practice={item.name === "Practice"} desktop /> : <DesktopArena mode={item.name === "Arcade" || item.name === "Arcade Practice" ? 1 : 0} thumbnail />}
             </span>
             <strong>{item.name}</strong>
-            {item.name === "Ranked" && <small>Coming soon</small>}
+
           </button>
         ))}
+        </div>
         <button className="desktop-mode-arrow" aria-label="Next mode" onClick={() => move(1)}>
           <ChevronRight />
         </button>

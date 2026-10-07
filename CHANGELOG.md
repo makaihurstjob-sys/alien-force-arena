@@ -2,6 +2,8 @@
 
 ## 2026-10-07
 
+- Make the desktop game picker one scrolling row with fixed previous/next arrows and automatic scrolling to the selected game.
+
 - Keep the lobby invite link visible and stationary when copying; remove the extra copied message.
 - Add a mint-and-dark-green room QR code above the invite link for mobile scanning.
 

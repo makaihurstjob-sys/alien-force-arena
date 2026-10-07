@@ -327,3 +327,11 @@
 @media (min-width: 768px) {
   .desktop-thumbnail canvas[width="424"] { object-fit: contain; background: #000; }
 }
+
+/* One scrollable rail, with both navigation arrows always inside the viewport. */
+@media (min-width: 768px) {
+  .desktop-mode-picker { grid-template-columns:32px minmax(0,1fr) 32px; }
+  .desktop-mode-track { display:flex; gap:clamp(12px,1.25vw,20px); overflow-x:auto; overflow-y:hidden; min-width:0; height:100%; padding:6px 6px 18px; scrollbar-width:thin; scrollbar-color:#3ee08a #102123; scroll-snap-type:x proximity; }
+  .desktop-mode-track .desktop-mode-tile { flex:0 0 clamp(150px,12vw,195px); width:clamp(150px,12vw,195px); scroll-snap-align:center; }
+  .desktop-mode-track .desktop-mode-tile strong { white-space:normal; }
+}
