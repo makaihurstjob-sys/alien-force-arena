@@ -221,7 +221,6 @@ export function MobileMainMenu() {
           <ChevronRight />
         </button>
       </nav>
-      <span className="desktop-preview-label">Development preview</span>
       <header className="mobile-menu-header">
         <div className="mobile-menu-top">
           <ShipIcon size={34} />
