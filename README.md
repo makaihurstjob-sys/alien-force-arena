@@ -1,5 +1,7 @@
 # Alien Force Arena Remastered
 
+**Play live:** [Alien Force Arena](https://makaihurstjob-sys.github.io/alien-force-classic/)
+
 Build a working browser game called Alien Force Arena for a college Database Design and Implementation project.
 
 This should be a playable recreation of the mechanics and visual feel of the 1990 Windows game Alien Force, extended with multiplayer PvP and a relational database. Build the actual game, not just a landing page or dashboard.
