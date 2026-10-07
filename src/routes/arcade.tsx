@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { GameBoyShell } from "@/components/GameBoyShell";
+import ClassicWindow, { type MenuController } from "@/components/ClassicWindow";
+import ClassicController from "@/components/ClassicController";
+import type { ClassicInput } from "@/game/classic/engine";
 import { CLASSIC } from "@/game/classic/engine";
 import type { PlayerSeed } from "@/game/classic/duel";
 import { duelBotInput } from "@/game/classic/duel-bot";
@@ -26,7 +28,10 @@ export const Route = createFileRoute("/arcade")({
           "Classic's real 1v1 duel physics, plus Shield, Freeze Shot, Rapid Fire, Speed Boost and Teleport power-ups that spawn on the grid.",
       },
       { property: "og:title", content: "Arcade — Alien Force Arena" },
-      { property: "og:description", content: "Classic-feel arena duel with power-up pickups, against a training bot." },
+      {
+        property: "og:description",
+        content: "Classic-feel arena duel with power-up pickups, against a training bot.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -49,13 +54,19 @@ const POWERUP_NAMES: Record<PowerUpKind, string> = {
 
 export function Arcade() {
   const [paused, setPaused] = useState(false);
+  const [windowBlocked, setWindowBlocked] = useState(false);
+  const menuController = useRef<MenuController | null>(null);
+  const controllerInput = useRef<ClassicInput>({ direction: null, fire: false });
+  const teleport = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const matchRef = useRef<PowerDuelMatch>(createPowerDuelMatch(PLAYERS));
-  const { inputRef } = useKeyboardInput(!paused);
+  const { inputRef } = useKeyboardInput(!paused && !windowBlocked);
 
   useEffect(() => {
     const pause = () => {
       inputRef.current = { ...EMPTY_INPUT };
+      controllerInput.current = { direction: null, fire: false };
+      teleport.current = false;
       setPaused(true);
     };
     const visibility = () => {
@@ -83,11 +94,27 @@ export function Arcade() {
   const tick = useCallback(() => {
     const match = matchRef.current;
 
-    if (match.game.phase === "round_over" && match.game.phaseTimerMs <= 0 && match.game.matchWinner === null) {
+    if (
+      match.game.phase === "round_over" &&
+      match.game.phaseTimerMs <= 0 &&
+      match.game.matchWinner === null
+    ) {
       startPowerDuelRound(match);
     }
 
-    stepPowerDuel(match, { you: inputRef.current, bot: duelBotInput(match, "bot") });
+    const controls = controllerInput.current;
+    const input = { ...inputRef.current };
+    if (controls.direction) {
+      input.thrust = controls.direction === "up";
+      input.reverse = controls.direction === "down";
+      input.left = controls.direction === "left";
+      input.right = controls.direction === "right";
+    }
+    input.fire ||= controls.fire;
+    input.turnaround ||= !!controls.reverse;
+    controls.reverse = false;
+    input.dash ||= teleport.current;
+    stepPowerDuel(match, { you: input, bot: duelBotInput(match, "bot") });
 
     if (++hudTimer.current % 10 === 0) setHud(readHud(match));
   }, [inputRef]);
@@ -97,9 +124,11 @@ export function Arcade() {
   }, []);
 
   const getState = useCallback(() => matchRef.current, []);
-  useGameLoop(getState, tick, draw, canvasRef, !paused);
+  useGameLoop(getState, tick, draw, canvasRef, !paused && !windowBlocked);
 
   const restart = () => {
+    controllerInput.current = { direction: null, fire: false };
+    teleport.current = false;
     inputRef.current = { ...EMPTY_INPUT };
     setPaused(false);
     matchRef.current = createPowerDuelMatch(PLAYERS);
@@ -109,151 +138,99 @@ export function Arcade() {
   const you = hud.ships.find((s) => s.id === "you");
   const accuracy = you && you.shots > 0 ? Math.round((you.hits / you.shots) * 100) : 0;
   const buff = hud.buffs.you;
-  const buffSecondsLeft = buff ? Math.max(0, Math.ceil(((buff.untilTick - hud.tick) * (1000 / 60)) / 1000)) : 0;
+  const buffSecondsLeft = buff
+    ? Math.max(0, Math.ceil(((buff.untilTick - hud.tick) * (1000 / 60)) / 1000))
+    : 0;
   const youFrozen = hud.frozenUntil.you !== null && hud.tick < hud.frozenUntil.you;
-  const frozenSecondsLeft = youFrozen ? Math.max(0, Math.ceil((hud.frozenUntil.you! - hud.tick) / 60)) : 0;
+  const frozenSecondsLeft = youFrozen
+    ? Math.max(0, Math.ceil((hud.frozenUntil.you! - hud.tick) / 60))
+    : 0;
 
   return (
-    <main className="min-h-screen bg-background px-3 py-4 font-mono text-foreground">
-      <div className="mx-auto max-w-[560px] space-y-4">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-          <Link
-            to="/"
-            className="truncate text-xs uppercase tracking-widest text-primary hover:underline"
-          >
-            &lt; Main menu
-          </Link>
-          <span className="shrink-0 text-[10px] uppercase tracking-widest text-muted-foreground">
-            Arcade · Offline
+    <main className="min-h-screen bg-background p-4 font-mono text-foreground">
+      <div className="classic-shell mx-auto max-w-4xl space-y-4">
+        <ClassicWindow
+          controllerRef={menuController}
+          paused={paused}
+          onPause={() => setPaused((value) => !value)}
+          onRestart={restart}
+          onInteractionChange={setWindowBlocked}
+          menuHref={import.meta.env.BASE_URL}
+          level={hud.round}
+          onLevelChange={restart}
+        >
+          <canvas
+            ref={canvasRef}
+            tabIndex={0}
+            width={CLASSIC.size}
+            height={CLASSIC.size}
+            className="classic-canvas block w-full bg-black [image-rendering:pixelated]"
+            aria-label="Arcade Alien Force playfield"
+          />
+        </ClassicWindow>
+        <div className="classic-mobile-stats" aria-label="Game status">
+          <span>You {hud.score[0]}</span>
+          <span>Round {hud.round}</span>
+          <span>Bot {hud.score[1]}</span>
+          <span className="classic-shot-status">
+            {you?.canFire ? "SHOT READY" : "SHOT IN PLAY"}
           </span>
         </div>
-
-        <GameBoyShell
-          inputRef={inputRef}
-          onStart={restart}
-          onSelect={restart}
-          statusLight={hud.matchWinner === null}
-          statusLabel={youFrozen ? "Frozen" : you?.canFire ? "Ready" : "Reloading"}
-          aAction="dash"
-          screen={
-            <div>
-              <div className="flex items-center justify-between px-2 py-1 text-[10px] uppercase tracking-widest">
-                <span className="text-team-a">You {hud.score[0]}</span>
-                <span className="text-hud">
-                  R{hud.round} · First to {PVP_RULES.roundsToWinMatch}
-                </span>
-                <span className="text-team-b">Bot {hud.score[1]}</span>
-              </div>
-              <canvas
-                ref={canvasRef}
-                width={CLASSIC.size}
-                height={CLASSIC.size}
-                className="block h-auto w-full touch-none"
-                style={{ imageRendering: "pixelated" }}
-              />
-              <div className="flex items-center justify-between px-2 py-1 text-[10px] uppercase tracking-widest">
-                <span className={you?.canFire ? "text-team-a" : "text-muted-foreground"}>
-                  {you?.canFire ? "● Fire ready" : "○ Shot in flight"}
-                </span>
-                <span className="text-[#8d97a6]">
-                  {you?.shots ?? 0}S / {you?.hits ?? 0}H / {accuracy}%
-                </span>
-              </div>
-              <div className="flex items-center justify-between px-2 py-1 text-[10px] uppercase tracking-widest">
-                <span className="text-primary">
-                  {buff ? `${POWERUP_NAMES[buff.kind]} · ${buffSecondsLeft}s` : "No active buff"}
-                </span>
-                <span className={hud.teleportCharges.you > 0 ? "text-primary" : "text-muted-foreground"}>
-                  Teleport {hud.teleportCharges.you > 0 ? "ready" : "empty"}
-                </span>
-              </div>
-              {hud.pickup && (
-                <p className="bg-[#182130] py-1 text-center text-[10px] uppercase tracking-widest text-hud">
-                  On field: {POWERUP_NAMES[hud.pickup]}
-                </p>
-              )}
-              {youFrozen && (
-                <p className="bg-[#182130] py-1 text-center text-[10px] font-bold uppercase tracking-widest text-hud">
-                  Frozen! Controls return in {frozenSecondsLeft}s
-                </p>
-              )}
-              {hud.matchWinner !== null && (
-                <p className="bg-[#182130] py-1 text-center text-[10px] font-bold uppercase tracking-widest text-hud">
-                  {hud.matchWinner === 0 ? "You win — press start" : "Bot wins — press start"}
-                </p>
-              )}
-            </div>
-          }
+        <ClassicController
+          input={controllerInput}
+          menuController={menuController}
+          windowBlocked={windowBlocked}
+          resumeFromAway={() => {}}
+          paused={paused}
+          onStart={() => {
+            menuController.current?.back();
+            setPaused((value) => !value);
+          }}
         />
-
-        <div className="flex items-center justify-between gap-3 text-xs">
-          <span>{Math.ceil(hud.phaseTimerMs / 1000)}s</span>
+        <div className="classic-desktop-stats">
+          You {hud.score[0]} | Bot {hud.score[1]} | Round {hud.round} | First to{" "}
+          {PVP_RULES.roundsToWinMatch}
+        </div>
+        <div aria-label="Arcade power-ups">
+          <span>
+            {buff ? `${POWERUP_NAMES[buff.kind]} - ${buffSecondsLeft}s` : "No active buff"}
+          </span>{" "}
           <button
-            className="border-2 border-panel-shadow bg-panel px-4 py-2 text-card-foreground"
-            onClick={() => {
-              inputRef.current = { ...EMPTY_INPUT };
-              setPaused((value) => !value);
+            data-control
+            disabled={hud.teleportCharges.you <= 0 || paused || windowBlocked}
+            onPointerDown={(event) => {
+              event.preventDefault();
+              event.currentTarget.setPointerCapture(event.pointerId);
+              teleport.current = true;
+            }}
+            onPointerUp={() => {
+              teleport.current = false;
+            }}
+            onPointerCancel={() => {
+              teleport.current = false;
+            }}
+            onLostPointerCapture={() => {
+              teleport.current = false;
             }}
           >
-            {paused ? "Resume" : "Pause"}
+            Teleport {hud.teleportCharges.you > 0 ? "ready" : "empty"}
           </button>
+          {youFrozen && <p role="status">Frozen! Controls return in {frozenSecondsLeft}s</p>}
         </div>
-        {paused && (
-          <p role="status" className="text-center text-sm text-primary">
-            Paused — press Resume or Escape to continue.
-          </p>
-        )}
         {hud.matchWinner !== null && (
-          <section
-            aria-label="Match results"
-            className="border-2 border-panel-shadow bg-panel p-3 text-xs text-card-foreground"
-          >
-            <h2 className="font-bold">
-              {hud.matchWinner === 0 ? "Victory" : "Defeat"} · {hud.score.join(" – ")}
+          <section aria-label="Match results">
+            <h2>
+              {hud.matchWinner === 0 ? "Victory" : "Defeat"} - {hud.score.join(" - ")}
             </h2>
-            <table className="mt-3 w-full text-left">
-              <caption className="sr-only">Arcade match statistics</caption>
-              <thead>
-                <tr>
-                  <th>Player</th>
-                  <th>Shots</th>
-                  <th>Hits</th>
-                  <th>Accuracy</th>
-                </tr>
-              </thead>
-              <tbody>
-                {hud.ships.map((ship) => (
-                  <tr key={ship.id}>
-                    <th>{ship.id === "you" ? "You" : "Bot"}</th>
-                    <td>{ship.shots}</td>
-                    <td>{ship.hits}</td>
-                    <td>{ship.shots ? Math.round((ship.hits / ship.shots) * 100) : 0}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <p className="mt-3">
-              Local practice only. Results are not saved and do not change your rating.
+            <p>
+              {you?.shots ?? 0} shots | {you?.hits ?? 0} hits | {accuracy}% accuracy
             </p>
-            <button onClick={restart} className="mt-3 border-2 border-panel-shadow px-4 py-2">
-              Play again
-            </button>
+            <button onClick={restart}>Play again</button>
           </section>
         )}
-        <div className="border-2 border-panel-shadow bg-panel p-3 text-xs text-card-foreground">
-          <p className="font-bold uppercase tracking-widest">Controls</p>
-          <p className="mt-1">
-            D-pad or WASD / arrows steer through Classic's lanes. <b>B</b> or <b>Space</b> to fire,{" "}
-            <b>A</b>, <b>Shift</b> or <b>Q</b> to teleport in whatever direction you're holding.{" "}
-            <b>Start</b> or <b>Select</b> restarts the match. <b>Escape</b> pauses.
-          </p>
-          <p className="mt-2">
-            The exact same one-shot rule, lane movement and round scoring as Classic — plus a
-            power-up pickup that periodically appears on the grid. Fly into it for Shield, a Freeze
-            Shot, Rapid Fire, Speed Boost or a Teleport charge; you can hold one timed buff plus a
-            separate teleport charge at a time.
-          </p>
-        </div>
+        <p className="classic-keyboard-instructions text-sm">
+          Arrows / WASD: steer. R: reverse. Space: fire. Shift / Q: teleport. Escape: pause.
+        </p>
       </div>
     </main>
   );

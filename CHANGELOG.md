@@ -2,6 +2,8 @@
 
 ## 2026-10-07
 
+- Replace Arcade Practice's separate handheld layout with Classic's shared window, display sizing, touch controller, and menus; preserve power-up gameplay.
+
 - Make the desktop game picker one scrolling row with fixed previous/next arrows and automatic scrolling to the selected game.
 
 - Keep the lobby invite link visible and stationary when copying; remove the extra copied message.
