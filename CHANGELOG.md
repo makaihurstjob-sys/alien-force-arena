@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-07
+
+- Keep the lobby invite link visible and stationary when copying; remove the extra copied message.
+- Add a mint-and-dark-green room QR code above the invite link for mobile scanning.
+
 Patch notes for Alien Force Arena, newest first. Grouped by theme/date rather than
 one line per commit — see `git log` for the exact commit history. When shipping a
 notable update, add a new dated section at the top of this file.

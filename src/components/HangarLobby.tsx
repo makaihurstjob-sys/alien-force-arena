@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import RankedProgress from "./RankedProgress";
 import { Crown } from "lucide-react";
 import { DesktopArena } from "./DesktopArena";
@@ -50,7 +51,7 @@ export default function HangarLobby({
 }) {
   const selector = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
-  const [copied, setCopied] = useState("");
+  const inviteInput = useRef<HTMLInputElement>(null);
   const [selecting, setSelecting] = useState(false);
   useEffect(() => {
     if (selecting) selector.current?.showModal();
@@ -59,9 +60,9 @@ export default function HangarLobby({
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(invite);
-      setCopied("Invite copied");
     } catch {
-      setCopied("Copy the invite link below.");
+      inviteInput.current?.focus();
+      inviteInput.current?.select();
     }
   };
   const game = lobbyModes[mode];
@@ -176,12 +177,28 @@ export default function HangarLobby({
           );
         })}
       </ul>
-      {copied && (
+      {invite && (
         <div className="hangar-invite">
-          <p role="status">{copied}</p>
+          <figure className="hangar-invite-qr">
+            <QRCodeSVG
+              value={invite}
+              size={144}
+              level="M"
+              marginSize={4}
+              bgColor="#d5e9db"
+              fgColor="#102421"
+              title="Scan to join this room"
+            />
+            <figcaption>Scan to join on mobile</figcaption>
+          </figure>
           <label>
             Invite link
-            <input readOnly value={invite} onFocus={(e) => e.currentTarget.select()} />
+            <input
+              ref={inviteInput}
+              readOnly
+              value={invite}
+              onFocus={(e) => e.currentTarget.select()}
+            />
           </label>
         </div>
       )}

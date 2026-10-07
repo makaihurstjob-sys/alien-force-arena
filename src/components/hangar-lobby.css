@@ -70,3 +70,7 @@
 
 .hangar-pilot-name.has-ranked-progress { flex-wrap: wrap; gap: 0 6px; padding: 4px; }
 .hangar-rank-progress { flex-basis: 100%; font-size: 11px; line-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.hangar-invite-qr { margin:0 0 12px; width:fit-content; padding:10px; border:2px solid #3ee08a; background:#102421; box-shadow:4px 4px 0 #070f10; }
+.hangar-invite-qr svg { display:block; width:144px; height:144px; image-rendering:pixelated; }
+.hangar-invite-qr figcaption { margin-top:8px; color:#bde4d2; font-size:12px; text-align:center; }
