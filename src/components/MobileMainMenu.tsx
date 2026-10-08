@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, X, Trophy, Medal } from "lucide-react";
 import { PlayerProfile } from "./PlayerProfile";
 import { DesktopArena } from "./DesktopArena";
 import "@/routes/desktop-main-menu.css";
+import "./leaderboard-shortcut.css";
 import { ShipIcon } from "./ShipIcon";
 import RoomEntry from "./RoomEntry";
 import type { LobbyMode } from "@/lib/lobby-modes";
@@ -24,7 +25,6 @@ const modes = [
   { name: "Arcade Practice", description: "Power-ups · Training bot", color: "#ffe066" },
   { name: "Bullet Run", description: "Free for all · Up to 6 pilots", color: "#ff704d" },
   { name: "Practice", description: "Local 1v1 · Training bot", color: "#3ee08a" },
-  { name: "Global Leaderboard", description: "Classic · Scores & player cards", color: "#69d9ff" },
   { name: "Ranked Ratings", description: "1v1 ? Competitive standings", color: "#d0a0ff" },
 ] as const;
 
@@ -186,8 +186,8 @@ export function MobileMainMenu() {
         <ShipIcon size={80} />
         <h2>{mode.name}</h2>
         <p>{mode.description}</p>
-        {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
-          <button className="desktop-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight /></button>
+        {(mode.name === "Ranked Ratings") ? (
+          <button className="desktop-play" onClick={() => setPanel("ratings")}>View {mode.name}<ChevronRight /></button>
         ) : mode.name === "Arcade Practice" ? (
           <Link className="desktop-play" to="/arcade">Play <ChevronRight /></Link>
         ) : <button className="desktop-play" onClick={enterMode}>Play <ChevronRight /></button>}
@@ -210,7 +210,7 @@ export function MobileMainMenu() {
             onClick={() => setSelected(index)}
           >
             <span className="desktop-thumbnail">
-              {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : (item.name === "Classic" || item.name === "Practice") ? <ArenaPreview active={false} arcade={false} practice={item.name === "Practice"} desktop /> : <DesktopArena mode={item.name === "Arcade" || item.name === "Arcade Practice" ? 1 : 0} thumbnail />}
+              {(item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : (item.name === "Classic" || item.name === "Practice") ? <ArenaPreview active={false} arcade={false} practice={item.name === "Practice"} desktop /> : <DesktopArena mode={item.name === "Arcade" || item.name === "Arcade Practice" ? 1 : 0} thumbnail />}
             </span>
             <strong>{item.name}</strong>
 
@@ -271,7 +271,7 @@ export function MobileMainMenu() {
               aria-pressed={selected === index}
               onClick={() => setSelected(index)}
             >
-              {(item.name === "Global Leaderboard" || item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : <ArenaPreview
+              {(item.name === "Ranked Ratings") ? <StandingsPreview ranked={item.name === "Ranked Ratings"} /> : <ArenaPreview
                 active={selected === index}
                 arcade={item.name === "Arcade" || item.name === "Arcade Practice"}
                 practice={item.name === "Practice"}
@@ -311,13 +311,19 @@ export function MobileMainMenu() {
         ))}
       </div>
       <div className="mobile-mode-actions" aria-live="polite">
-        {(mode.name === "Global Leaderboard" || mode.name === "Ranked Ratings") ? (
-          <button className="mobile-play" onClick={() => setPanel(mode.name === "Global Leaderboard" ? "leaderboard" : "ratings")}>View {mode.name}<ChevronRight size={22} /></button>
+        {(mode.name === "Ranked Ratings") ? (
+          <button className="mobile-play" onClick={() => setPanel("ratings")}>View {mode.name}<ChevronRight size={22} /></button>
         ) : mode.name === "Arcade Practice" ? (
           <Link className="mobile-play" to="/arcade">Play <ChevronRight size={22} /></Link>
         ) : <button className="mobile-play" onClick={enterMode}>Play <ChevronRight size={22} /></button>}
       </div>
       <footer>Fight · Adapt · Survive</footer>
+      {!panel && <button className="leaderboard-shortcut" aria-label="Open Global Leaderboard" title="Global Leaderboard" onClick={() => setPanel("leaderboard")}>
+        <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+          <rect className="leaderboard-icon-frame" x="3" y="3" width="58" height="58" />
+          <path fill="currentColor" d="M14 22h7v30h-7zM24 32h7v20h-7zM34 26h7v26h-7zM44 14h7v38h-7z" />
+        </svg>
+      </button>}
       <dialog
         ref={dialog}
         className={`mobile-menu-dialog ${hangar ? "is-hangar" : ""} ${roomPlaying ? "is-playing" : ""} ${(panel === "leaderboard" || panel === "ratings") ? "classic-tracker-dialog" : ""}`}

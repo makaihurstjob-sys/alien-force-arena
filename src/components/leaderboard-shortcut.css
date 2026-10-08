@@ -1,0 +1,21 @@
+.leaderboard-shortcut {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 30;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  color: #fff;
+  background: #252b35;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 3px 12px #0008;
+}
+.leaderboard-shortcut svg { display: block; width: 100%; height: 100%; }
+.leaderboard-icon-frame { fill: #252b35; stroke: #adb4bf; stroke-width: 3; }
+.leaderboard-shortcut:hover { color: #69d9ff; }
+.leaderboard-shortcut:focus-visible { outline: 3px solid #69d9ff; outline-offset: 4px; }
+@media (max-width: 767px) {
+  .leaderboard-shortcut { width: 52px; height: 52px; right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); }
+}
