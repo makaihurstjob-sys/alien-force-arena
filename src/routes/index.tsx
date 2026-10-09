@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { EnemyShipBackdrop } from "@/components/EnemyShipBackdrop";
+import OpeningIntro from "@/components/OpeningIntro";
 import { MobileMainMenu } from "@/components/MobileMainMenu";
 import "./mobile-main-menu.css";
 import { useEffect, useState } from "react";
@@ -28,6 +29,22 @@ export const Route = createFileRoute("/")({
 
 export function Home() {
   const [loading, setLoading] = useState(true);
+  const [entered, setEntered] = useState(false);
+  useEffect(() => {
+    const bypassIntro = () => {
+      const hash = new URLSearchParams(window.location.hash.slice(1));
+      if (hash.has("room") || hash.has("player")) setEntered(true);
+    };
+    bypassIntro();
+    window.addEventListener("hashchange", bypassIntro);
+    return () => window.removeEventListener("hashchange", bypassIntro);
+  }, []);
+  useEffect(() => {
+    if (entered && !loading) {
+      const selector = window.matchMedia("(min-width: 768px)").matches ? ".desktop-play" : ".mobile-play";
+      document.querySelector<HTMLButtonElement>(selector)?.focus();
+    }
+  }, [entered, loading]);
   useEffect(() => {
     let cancelled = false;
     let revealTimer: ReturnType<typeof setTimeout>;
@@ -48,6 +65,7 @@ export function Home() {
       clearTimeout(revealTimer);
     };
   }, []);
+  if (!entered) return <OpeningIntro onStart={() => setEntered(true)} />;
   return (
     <main
       aria-busy={loading}
