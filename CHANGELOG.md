@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-12
+
+- Publish Framber's opening battle animation with the Alien Force logo, START screen, Skip Intro, reduced-motion support, and direct room/player link bypass.
+
 ## 2026-10-07
 
 - Remove the Development preview label from the main menu.
