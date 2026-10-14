@@ -57,7 +57,9 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
     const sprites = document.createElement("canvas");
     sprites.width = 64; sprites.height = 32;
     let spritesReady = false;
-    sheet.onload = () => {
+    let disposed = false;
+    const prepareSprites = () => {
+      if (disposed || spritesReady || !sheet.naturalWidth) return;
       const pixels = sprites.getContext("2d", { willReadFrequently: true });
       if (!pixels) return;
       pixels.drawImage(sheet, 2, 2, 32, 32, 0, 0, 32, 32);
@@ -69,7 +71,10 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
       pixels.putImageData(data, 0, 0);
       spritesReady = true;
     };
+    sheet.onload = () => { void sheet.decode().then(prepareSprites, prepareSprites); };
+    sheet.onerror = () => { if (!disposed) setReady(true); };
     sheet.src = spriteSheetUrl;
+    void sheet.decode().then(prepareSprites, () => {});
     // Independent seeded coordinates avoid the diagonal pattern of modular rows.
     let seed = 417;
     const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
@@ -90,13 +95,18 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
       }
     }
     let raf = 0;
-    const began = performance.now();
+    let began: number | undefined;
     const onMotionChange = () => { if (reduced.matches) setReady(true); };
     reduced.addEventListener("change", onMotionChange);
     const draw = (now: number) => {
+      // The intro clock starts only after the ships can actually be drawn.
+      if (!spritesReady) { raf = requestAnimationFrame(draw); return; }
+      began ??= now;
       const elapsed = now - began;
       if (elapsed >= DURATION) { setReady(true); return; }
       const t = elapsed / 1000;
+      const bounds = canvas.current!.getBoundingClientRect();
+      const aspect = bounds.width / bounds.height;
       ctx.drawImage(galaxy, 0, 0);
       for (const star of stars) {
         const y = (star.y + t * (8 + star.depth * 28)) % 540;
@@ -110,6 +120,8 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
         if (!spritesReady) return;
         ctx.save();
         ctx.translate(x + size / 2, y + size / 2);
+        // CSS fills the viewport; counter its unequal axes for square ships.
+        ctx.scale(1, aspect / (960 / 540));
         ctx.rotate(bank);
         const thrust = size * (.3 + .15 * Math.sin(t * 35 + x));
         const exhaust = ctx.createLinearGradient(0, size * .3, 0, size * .5 + thrust);
@@ -155,7 +167,7 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
-    return () => { cancelAnimationFrame(raf); sheet.onload = null; reduced.removeEventListener("change", onMotionChange); };
+    return () => { disposed = true; cancelAnimationFrame(raf); sheet.onload = null; sheet.onerror = null; reduced.removeEventListener("change", onMotionChange); };
   }, [ready]);
   return <section className={"opening-intro " + (ready ? "is-ready " : "") + (exiting ? "is-exiting" : "")} aria-label="Alien Force Arena opening">
     <canvas ref={canvas} width={960} height={540} className="opening-battle" aria-hidden="true" />

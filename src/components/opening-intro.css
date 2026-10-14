@@ -1,5 +1,5 @@
 .opening-intro { position: fixed; inset: 0; z-index: 100; background: #050b13; color: #f4f8ff; display: grid; place-items: center; overflow: hidden; font-family: "Windows Bold", monospace; }
-.opening-battle { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+.opening-intro .opening-battle { position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: none; object-fit: fill; image-rendering: pixelated; }
 .opening-intro.is-ready .opening-battle { opacity: .15; }
 .opening-tagline { position: absolute; bottom: 14%; margin: 0; padding: 12px; text-align: center; font-size: clamp(18px, 3vw, 32px); letter-spacing: .12em; text-shadow: 0 2px 8px #000; }
 .opening-skip { position: absolute; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); min-height: 48px; padding: 12px 8px; border: 0; background: transparent; color: #d2e8f5; font: inherit; font-size: clamp(12px, 1.5vw, 16px); text-shadow: 0 2px 8px #000; cursor: pointer; }
