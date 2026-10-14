@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import spriteSheetUrl from "@/assets/classic/original-sprites.bmp?url";
+import spriteSheetUrl from "@/assets/classic/original-sprites.png?url";
 import "./opening-intro.css";
 
 const DURATION = 8500;

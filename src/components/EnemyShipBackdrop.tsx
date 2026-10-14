@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import spriteSheetUrl from "@/assets/classic/original-sprites.bmp?url";
+import spriteSheetUrl from "@/assets/classic/original-sprites.png?url";
 
 // Decorative home-page backdrop: original enemy ships drifting across the screen.
 // Sprite sheet layout (see src/assets/classic/README.md): 32px cells from (2,2),

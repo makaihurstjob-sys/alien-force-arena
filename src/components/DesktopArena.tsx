@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import spriteSheetUrl from "@/assets/classic/original-sprites.bmp?url";
+import spriteSheetUrl from "@/assets/classic/original-sprites.png?url";
 
 // Decorative attract scene, independent of gameplay and room state.
 export function DesktopArena({ mode, thumbnail = false }: { mode: number; thumbnail?: boolean }) {

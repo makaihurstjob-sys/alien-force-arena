@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import spriteSheetUrl from "@/assets/classic/original-sprites.bmp?url";
+import spriteSheetUrl from "@/assets/classic/original-sprites.png?url";
 
 // Crops the player ship, facing up, from the same sheet Classic mode renders from.
 export function ShipIcon({ size = 100, color }: { size?: number; color?: string }) {
@@ -7,8 +7,11 @@ export function ShipIcon({ size = 100, color }: { size?: number; color?: string 
   useEffect(() => {
     const ctx = canvas.current?.getContext("2d");
     if (!ctx) return;
+    let disposed = false;
+    let frame = 0;
     const sheet = new Image();
-    sheet.onload = () => {
+    const paint = () => {
+      if (disposed || !sheet.complete || !sheet.naturalWidth) return;
       ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, size, size);
       ctx.drawImage(sheet, 2, 2, 32, 32, 0, 0, size, size);
@@ -25,7 +28,14 @@ export function ShipIcon({ size = 100, color }: { size?: number; color?: string 
       }
       ctx.putImageData(pixels, 0, 0);
     };
+    sheet.onload = () => {
+      paint();
+      // Repaint after the browser commits layout/compositing on the first visit.
+      frame = requestAnimationFrame(paint);
+    };
     sheet.src = spriteSheetUrl;
+    if (sheet.complete && sheet.naturalWidth) paint();
+    return () => { disposed = true; sheet.onload = null; cancelAnimationFrame(frame); };
   }, [size, color]);
   return (
     <canvas

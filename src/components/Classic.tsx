@@ -1,7 +1,7 @@
 import { inputAction, matches, keyboardHelp } from "@/lib/keybindings";
 import ClassicController from "./ClassicController";
 import ClassicWindow, { type MenuController } from "./ClassicWindow";
-import spriteSheetUrl from "@/assets/classic/original-sprites.bmp?url";
+import spriteSheetUrl from "@/assets/classic/original-sprites.png?url";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   createClassic,

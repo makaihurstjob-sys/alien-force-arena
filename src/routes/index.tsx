@@ -4,7 +4,7 @@ import OpeningIntro from "@/components/OpeningIntro";
 import { MobileMainMenu } from "@/components/MobileMainMenu";
 import "./mobile-main-menu.css";
 import { useEffect, useState } from "react";
-import spriteSheetUrl from "@/assets/classic/original-sprites.bmp?url";
+import spriteSheetUrl from "@/assets/classic/original-sprites.png?url";
 
 export const Route = createFileRoute("/")({
   head: () => ({
