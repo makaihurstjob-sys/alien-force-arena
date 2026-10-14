@@ -94,7 +94,8 @@
  .is-hangar .hangar-invite-qr svg { width:80px; height:80px; }
  .is-hangar .hangar-plaque { height:76px; grid-template-rows:34px 34px; }
  .is-hangar .hangar-plaque > button,.is-hangar .hangar-plaque > strong { padding:4px; }
- .is-hangar .hangar-dock canvas { max-height:70px; width:auto; }
+ .is-hangar .hangar-dock canvas { height:48px; width:48px; }
  .is-hangar .hangar-actions button { padding:8px 12px; }
 }
+
 
