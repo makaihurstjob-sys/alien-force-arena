@@ -6,3 +6,5 @@ Each cell is 32 x 32, starting at (2,2), spaced 34 pixels apart.
 Player row y=2 and enemy row y=70; columns up, left, down, right.
 Canvas displays cells at 16 x 16 with smoothing disabled to fit existing lanes.
 Unused middle-row graphics are retained but have no newly inferred gameplay behavior.
+
+The runtime uses original-sprites.png, a lossless PNG conversion of the retained BMP. RGBA pixels are identical. PNG avoids mobile first-load decoding inconsistencies with the legacy 4-bit palette BMP and can be bundled inline by Vite.

@@ -1,3 +1,5 @@
+import { useMatchHistory } from "@/game/useMatchHistory";
+import { inputAction } from "@/lib/keybindings";
 import type { LobbyMode } from '@/lib/lobby-modes';
 import { gameLobby } from '@/lib/game-lobby';
 import { randomId } from '@/lib/random-id';
@@ -11,10 +13,13 @@ import './bullet-run.css';
 import { ShipIcon } from './ShipIcon';
 import HangarLobby from './HangarLobby';
 
-const keys: Record<string, keyof Pick<Input, 'up' | 'down' | 'left' | 'right' | 'fire'>> = {
-  KeyW: 'up', ArrowUp: 'up', KeyS: 'down', ArrowDown: 'down', KeyA: 'left', ArrowLeft: 'left',
-  KeyD: 'right', ArrowRight: 'right', Space: 'fire',
-};
+function keyFor(code: string): keyof Pick<Input, 'up' | 'down' | 'left' | 'right' | 'fire'> | undefined {
+  const action = inputAction(code);
+  if (action === 'thrust') return 'up';
+  if (action === 'reverse') return 'down';
+  if (action === 'left' || action === 'right' || action === 'fire') return action;
+  return undefined;
+}
 function draw(ctx: CanvasRenderingContext2D, state: State, self: string) {
   ctx.fillStyle = '#101a21'; ctx.fillRect(0, 0, BULLET_RUN.width, BULLET_RUN.height);
   ctx.strokeStyle = '#203340'; ctx.lineWidth = 1;
@@ -69,6 +74,18 @@ export default function BulletRun({ embedded = false, autoEnter = false, initial
       stateRef.current = null; setState(null);
     }
   }, [!!shared, room?.phase, room?.status]);
+  const historySession = useRef({ room: "", tick: -1, id: "" });
+  useMatchHistory(() => {
+    const game = stateRef.current;
+    const you = game?.pilots.find(pilot => pilot.id === player);
+    if (!game || !you || game.tick <= 0) return null;
+    const session = historySession.current;
+    const roomId = roomRef.current?.id ?? "";
+    if (session.room !== roomId || game.tick < session.tick || !session.id) { session.id = randomId(); session.room = roomId; }
+    session.tick = game.tick;
+    return { id: roomRef.current?.match_id ?? session.id, mode: "bullet", outcome: "interrupted", durationMs: Math.round(game.tick * BULLET_RUN.tickMs), kills: you.kills, deaths: you.deaths,
+      details: [{ label: "Pilots", value: game.pilots.length }, { label: "Weapon stage", value: weapon(you.kills).stage }] };
+  }, player || undefined);
   const input = useRef<Input>({ ...idleInput });
   const peers = useRef(new Map<string, { input: Input; at: number }>());
   const channel = useRef<RealtimeChannel | null>(null);
@@ -205,8 +222,8 @@ export default function BulletRun({ embedded = false, autoEnter = false, initial
   };
   useEffect(() => {
     if (!state || roomUnavailable || room?.status !== 'open') return;
-    const onDown = (e: KeyboardEvent) => { const key = keys[e.code]; if (key && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); input.current[key] = true; } };
-    const onUp = (e: KeyboardEvent) => { const key = keys[e.code]; if (key) input.current[key] = false; };
+    const onDown = (e: KeyboardEvent) => { const key = keyFor(e.code); if (key && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); input.current[key] = true; } };
+    const onUp = (e: KeyboardEvent) => { const key = keyFor(e.code); if (key) input.current[key] = false; };
     const clear = () => { input.current = { ...idleInput }; };
     window.addEventListener('keydown', onDown); window.addEventListener('keyup', onUp); window.addEventListener('blur', clear);
     return () => { window.removeEventListener('keydown', onDown); window.removeEventListener('keyup', onUp); window.removeEventListener('blur', clear); clear(); };

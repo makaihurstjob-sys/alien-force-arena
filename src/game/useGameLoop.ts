@@ -1,3 +1,4 @@
+import { inputAction } from "@/lib/keybindings";
 /**
  * Fixed-timestep game loop for local play.
  *
@@ -56,47 +57,24 @@ export function useKeyboardInput(enabled = true) {
 
   useEffect(() => {
     if (!enabled) return;
+    const held = new Set<string>();
     const set = (code: string, down: boolean) => {
+      if (down) held.add(code); else held.delete(code);
       const i = inputRef.current;
-      switch (code) {
-        case "ArrowUp":
-        case "KeyW":
-          i.thrust = down;
-          break;
-        case "ArrowDown":
-        case "KeyS":
-          i.reverse = down;
-          break;
-        case "ArrowLeft":
-        case "KeyA":
-          i.left = down;
-          break;
-        case "ArrowRight":
-        case "KeyD":
-          i.right = down;
-          break;
-        case "Space":
-          i.fire = down;
-          setPressedFire(down);
-          break;
-        // Arcade mode only — plain engines never read PlayerInput.dash.
-        case "ShiftLeft":
-        case "ShiftRight":
-        case "KeyQ":
-          i.dash = down;
-          break;
-        default:
-          return;
+      const action = inputAction(code);
+      if (action) {
+        i[action] = Array.from(held).some(key => inputAction(key) === action);
+        if (action === "fire") setPressedFire(i.fire);
       }
     };
     const down = (e: KeyboardEvent) => {
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
-        e.preventDefault();
-      }
+      if ((e.target as HTMLElement).closest("input,textarea,select,[contenteditable=true]")) return;
+      if (inputAction(e.code)) e.preventDefault();
       set(e.code, true);
     };
     const up = (e: KeyboardEvent) => set(e.code, false);
     const reset = () => {
+      held.clear();
       inputRef.current = {
         thrust: false,
         reverse: false,

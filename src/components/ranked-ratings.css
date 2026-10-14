@@ -48,3 +48,20 @@
   .ranked-tracker table { min-width: 670px; }
   .ranked-empty-cell p { max-width: 290px; margin: auto; }
 }
+
+.ranked-page-heading { justify-content: center; text-align: center; }
+.ranked-showcase { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 28px 12px 34px; text-align: center; background: radial-gradient(ellipse at center, #19425855, transparent 70%); }
+.ranked-showcase-eyebrow { color: #a9c0d4; font-size: 12px; letter-spacing: .15em; }
+.ranked-showcase h4 { font-size: clamp(24px, 4vw, 34px); margin: 0; }
+.ranked-showcase p { color: #a9c0d4; max-width: 480px; margin: 0; }
+.ranked-showcase .ranked-showcase-points { color: #edf5fb; font-size: 20px; }
+.ranked-division-progress { width: min(100%, 300px); height: 7px; overflow: hidden; background: #243845; border-radius: 5px; }
+.ranked-division-progress > span { display: block; height: 100%; }
+.ranked-showcase-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; color: #a9c0d4; font-size: 13px; }
+.ranked-tier-list li { flex-wrap: wrap; }
+.ranked-tracker .ranked-badge-preview { display: flex; align-items: center; flex: 1; gap: 10px; min-width: 0; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.ranked-tracker .ranked-badge-preview:focus-visible { outline: 2px solid #69d9ff; outline-offset: 4px; }
+.ranked-tracker .ranked-badge-preview[aria-pressed=true] .rank-badge { outline: 2px solid #69d9ff; outline-offset: 2px; }
+.hangar-rank-progress .rank-badge { margin-right: 5px; }
+.profile-ranked-progress { margin: 12px 0; }
+@media(max-width:600px) { .ranked-tracker .ranked-badge-preview { flex-direction: column; align-items: flex-start; gap: 8px; } .ranked-tier-list li { align-items: flex-start; } .ranked-tier-number { align-self: flex-end; } }

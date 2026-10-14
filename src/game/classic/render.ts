@@ -1,4 +1,4 @@
-import spriteSheetUrl from "@/assets/classic/original-sprites.bmp?url";
+import spriteSheetUrl from "@/assets/classic/original-sprites.png?url";
 
 // Original 32px cells, separated by 2px white borders. Load only in the browser.
 let spriteSheet: HTMLImageElement | undefined;

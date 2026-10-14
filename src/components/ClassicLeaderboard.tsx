@@ -47,8 +47,8 @@ function RunRow({ run }: { run: ClassicRun }) {
     </dl><p>Crashes count ship collisions that cost a life. Accuracy is enemy hits ÷ shots fired. Active time excludes pauses and countdowns.</p></div>
   </details>;
 }
-export default function ClassicLeaderboard() {
-  const [player, setPlayer] = useState<string | null>(null);
+export default function ClassicLeaderboard({ accountId }: { accountId?: string }) {
+  const [player, setPlayer] = useState<string | null>(accountId ?? null);
   const [page, setPage] = useState(0);
   const [revision, setRevision] = useState(0);
   const [board, setBoard] = useState<LeaderboardEntry[]>([]);
@@ -59,10 +59,11 @@ export default function ClassicLeaderboard() {
   const [copied, setCopied] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
+    if (accountId) { setPlayer(accountId); setPage(0); return; }
     const read = () => { setPlayer(playerFromHash()); setPage(0); };
     read(); window.addEventListener("hashchange", read);
     return () => window.removeEventListener("hashchange", read);
-  }, []);
+  }, [accountId]);
   useEffect(() => {
     let active = true;
     setLoading(true); setError(""); setProfile(null); setHistory([]); setBoard([]); setCopied(false);
@@ -87,16 +88,16 @@ export default function ClassicLeaderboard() {
   const dates = [...new Set(visibleRuns.map(run => new Date(run.recorded_at).toLocaleDateString()))];
   return <section className="classic-tracker" aria-label="Classic score tracker">
     <div className="tracker-toolbar">
-      {player ? <button onClick={() => selectPlayer(null)}><ChevronLeft size={17} />Leaderboard</button> : <span><Trophy size={18} />Classic · All time</span>}
+      {accountId ? <span><Clock3 size={18} />Your Classic career</span> : player ? <button onClick={() => selectPlayer(null)}><ChevronLeft size={17} />Leaderboard</button> : <span><Trophy size={18} />Classic · All time</span>}
       <button aria-label="Refresh records" disabled={loading} onClick={() => setRevision(value => value + 1)}><RefreshCw size={17} />Refresh</button>
     </div>
     <header className="tracker-header">
-      <div><span className="tracker-eyebrow">ALIEN FORCE · COMMUNITY SCORES</span>
+      <div><span className="tracker-eyebrow">{accountId ? "ALIEN FORCE / CAREER" : "ALIEN FORCE / COMMUNITY SCORES"}</span>
         <h3 ref={heading} tabIndex={-1}>{player && <PlayerFlag code={profile?.flag_code} />} {player ? profile?.display_name ?? "Player card" : "Global Leaderboard"}</h3>
-        {player && <p>Public Classic stats and game history</p>}
+        {player && <p>{accountId ? "Your account stats and game history" : "Public Classic stats and game history"}</p>}
       </div>
       {player && <button className="tracker-share" onClick={() => {
-        void navigator.clipboard.writeText(window.location.href).then(() => setCopied(true)).catch(() => setError("Could not copy the link. Copy the address from your browser."));
+        void navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}${window.location.search}#player=${player}`).then(() => setCopied(true)).catch(() => setError("Could not copy the link. Copy the address from your browser."));
       }}>{copied ? "Link copied" : "Copy player link"}</button>}
     </header>
     {loading ? <p role="status" className="tracker-empty">Loading records…</p> : error ? <div role="alert" className="tracker-empty"><p>{error}</p><button onClick={() => setRevision(value => value + 1)}>Try again</button></div> : player && profile ? <>

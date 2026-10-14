@@ -1,3 +1,4 @@
+import { inputAction, matches, keyboardHelp } from "@/lib/keybindings";
 import RankedMatchRating from "./RankedMatchRating";
 import ClassicController from "./ClassicController";
 import type { MenuController } from "./ClassicWindow";
@@ -11,19 +12,7 @@ import { useRankedMatch } from "@/game/useRankedMatch";
 import { RANKED_RULES } from "@/lib/ranked-rules";
 import "./online-duel.css";
 
-const mapping: Record<string, keyof PlayerInput> = {
-  ArrowUp: "thrust",
-  KeyW: "thrust",
-  ArrowDown: "reverse",
-  KeyS: "reverse",
-  ArrowLeft: "left",
-  KeyA: "left",
-  ArrowRight: "right",
-  KeyD: "right",
-  Space: "fire",
-  KeyR: "turnaround",
-  KeyB: "turnaround",
-};
+
 
 /** No format label anywhere: players only ever see score, lives and respawn behavior. */
 export default function RankedMatchView({
@@ -71,7 +60,7 @@ export default function RankedMatchView({
     const input = { ...EMPTY_INPUT };
     if (enabled.current) {
       for (const code of keys.current) {
-        const key = mapping[code];
+        const key = inputAction(code);
         if (key) input[key] = true;
       }
       const direction = controllerInput.current.direction;
@@ -92,12 +81,12 @@ export default function RankedMatchView({
   }, [inputRef]);
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.code === "KeyP" && !(e.target instanceof HTMLInputElement)) {
+      if (matches("pause", e.code) && !e.repeat && !(e.target instanceof HTMLInputElement)) {
         e.preventDefault();
         requestPause(!localPaused);
         return;
       }
-      if (!mapping[e.code] || e.target instanceof HTMLInputElement) return;
+      if (!inputAction(e.code) || e.target instanceof HTMLInputElement) return;
       if (
         e.code === "Space" &&
         e.target instanceof HTMLButtonElement &&
@@ -255,7 +244,7 @@ export default function RankedMatchView({
               onStart={() => requestPause(!localPaused)}
             />
             <p className="classic-keyboard-instructions">
-              WASD / arrows to steer. Space to fire. R to reverse. P to pause.
+              {keyboardHelp()}
             </p>
           </div>
         )}

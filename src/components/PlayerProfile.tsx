@@ -1,3 +1,4 @@
+import RankedProgress from "./RankedProgress";
 import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { connection } from "@/lib/multiplayer";
@@ -138,6 +139,7 @@ export function PlayerProfile() {
       <div className="mobile-panel-heading"><h2 id="profile-title">Player profile</h2>
         <button aria-label="Close profile" onClick={() => void closeProfile()}>×</button>
       </div>
+        {discord && <div className="profile-ranked-progress"><RankedProgress player={user?.id} compact /></div>}
       <button className="profile-option discord-sign-in" disabled={!!discord || busy || !loaded} onClick={() => void signIn()}>
         <span>{discord ? "Signed in with Discord" : "Sign in with Discord"}</span>
         <DiscordLogo />

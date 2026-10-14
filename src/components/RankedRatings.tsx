@@ -1,3 +1,5 @@
+import { useState } from "react";
+import RankBadge from "./RankBadge";
 import { ChevronLeft, ChevronRight, Medal, Search } from "lucide-react";
 import { ranks } from "@/lib/ranks";
 import RankedProgress from "./RankedProgress";
@@ -7,6 +9,7 @@ import "./ranked-ratings.css";
 
 /** Public standings shell. Enable controls when the ranked read API is available. */
 export default function RankedRatings() {
+  const [preview, setPreview] = useState<string>("pilot");
   return (
     <section className="classic-tracker ranked-tracker" aria-label="Ranked ratings">
       <div className="tracker-toolbar">
@@ -16,12 +19,8 @@ export default function RankedRatings() {
         </span>
         <span className="ranked-season-status">Preseason</span>
       </div>
-      <header className="tracker-header">
-        <div>
-          <span className="tracker-eyebrow">ALIEN FORCE · COMPETITIVE STANDINGS</span>
-          <h3>Ranked Ratings</h3>
-        </div>
-      </header>
+      <header className="tracker-header ranked-page-heading"><div><span className="tracker-eyebrow">ALIEN FORCE COMPETITIVE</span><h3>Ranked Ratings</h3></div></header>
+      <RankedProgress showcase preview={preview} />
       <section className="ranked-progression" aria-labelledby="ranked-progression-title">
         <div className="ranked-progression-heading">
           <h4 id="ranked-progression-title">Rank progression</h4>
@@ -30,14 +29,10 @@ export default function RankedRatings() {
         <ol className="ranked-tier-list">
           {ranks.map((rank) => (
             <li key={rank.id}>
-              <span
-                className="ranked-tier-swatch"
-                style={{ backgroundColor: rank.color }}
-                aria-hidden="true"
-              />
-              <span className="ranked-tier-name" style={{ color: rank.color }}>
-                {rank.name}
-              </span>
+              <button className="ranked-badge-preview" aria-label={`Preview ${rank.name} badge`} aria-pressed={preview === rank.id} onClick={() => setPreview(rank.id)}>
+                <RankBadge id={rank.id} name={rank.name} />
+                <span className="ranked-tier-name" style={{ color: rank.color }}>{rank.name}</span>
+              </button>
               <span className="ranked-tier-number">
                 {rank.id === "galactic-legend" ? "#1" : "I / II / III"}
               </span>
@@ -48,9 +43,6 @@ export default function RankedRatings() {
       <p>
         Start at Cadet I. Earn 100 points per division, with one grace loss at zero. Galactic Legend
         requires the #1 spot and 1,800 rating.
-      </p>
-      <p>
-        <RankedProgress />
       </p>
       <p>
         Wins usually earn 21-39 points; losses deduct the same nominal amount, subject to rating

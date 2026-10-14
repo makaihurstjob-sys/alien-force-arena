@@ -109,3 +109,8 @@
 @media(prefers-reduced-motion:reduce) { .is-hangar .hangar-brand { animation:none; } }
 
 
+
+/* Lower the lobby content on taller desktops without moving the absolute header. */
+@media (min-width:768px) {
+ .is-hangar .hangar-lobby { padding-top:clamp(0px,calc((100dvh - 650px) * .3),150px); }
+}

@@ -1,3 +1,4 @@
+import RankBadge from "./RankBadge";
 import { useEffect, useState } from "react";
 import { connection } from "@/lib/multiplayer";
 import { rankAt } from "@/lib/ranked-rules";
@@ -56,6 +57,7 @@ export default function RankedMatchRating({
         </strong>{" "}
         - {rating.rating_before} to {rating.rating_after}
       </p>
+      <RankBadge id={after.id} name={after.name} />
       <p style={{ color: after.color }}>
         <strong>{after.label}</strong>
       </p>

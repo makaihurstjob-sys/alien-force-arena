@@ -1,10 +1,10 @@
-// Ordered from lowest to highest. Temporary colors live here for easy changes.
+// Ordered from lowest to highest. Badge colors do not change rating thresholds.
 export const ranks = [
   { id: "cadet", name: "Cadet", color: "#a8b5c7" },
-  { id: "scout", name: "Scout", color: "#53dfbe" },
-  { id: "pilot", name: "Pilot", color: "#69baff" },
+  { id: "scout", name: "Scout", color: "#efa968" },
+  { id: "pilot", name: "Pilot", color: "#d7e2ed" },
   { id: "ace", name: "Ace", color: "#ffda6b" },
-  { id: "commander", name: "Commander", color: "#ff8899" },
-  { id: "captain", name: "Captain", color: "#53baff" },
-  { id: "galactic-legend", name: "Galactic Legend", color: "#d0a0ff" },
+  { id: "commander", name: "Commander", color: "#53baff" },
+  { id: "captain", name: "Captain", color: "#ba76ff" },
+  { id: "galactic-legend", name: "Galactic Legend", color: "#ff5757" },
 ] as const;

@@ -1,3 +1,6 @@
+import { useMatchHistory } from "@/game/useMatchHistory";
+import { duelHistory } from "@/lib/match-history";
+import { matches, keyboardHelp } from "@/lib/keybindings";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GameBoyShell } from "@/components/GameBoyShell";
@@ -50,7 +53,7 @@ export function Practice({ onReturn }: { onReturn?: () => void } = {}) {
       if (document.hidden) pause();
     };
     const keyboard = (event: KeyboardEvent) => {
-      if (event.code === "Escape" && !event.repeat) {
+      if (matches("pause", event.code) && !event.repeat) {
         inputRef.current = { ...EMPTY_INPUT };
         setPaused((value) => !value);
       }
@@ -88,6 +91,8 @@ export function Practice({ onReturn }: { onReturn?: () => void } = {}) {
 
   const getState = useCallback(() => stateRef.current, []);
   useGameLoop(getState, tick, draw, canvasRef, !paused);
+
+  useMatchHistory(() => duelHistory(stateRef.current, "practice", "you"));
 
   const restart = () => {
     inputRef.current = { ...EMPTY_INPUT };
@@ -222,9 +227,7 @@ export function Practice({ onReturn }: { onReturn?: () => void } = {}) {
         <div className="border-2 border-panel-shadow bg-panel p-3 text-xs text-card-foreground">
           <p className="font-bold uppercase tracking-widest">Controls</p>
           <p className="mt-1">
-            D-pad or WASD / arrows to turn, thrust and reverse. <b>A</b>, <b>B</b> or <b>Space</b>{" "}
-            to fire. <b>Start</b> restarts the match, <b>Select</b> switches arena. <b>Escape</b>{" "}
-            pauses. Switching away automatically pauses practice.
+            {keyboardHelp()} Touch: D-pad to move, A / B to fire. Start restarts the match; Select switches arena. Switching away automatically pauses practice.
           </p>
           <p className="mt-2">
             Only one of your shots can be in the air at a time — the ring around your ship is solid

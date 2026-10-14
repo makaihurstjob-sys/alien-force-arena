@@ -1,0 +1,15 @@
+.career-content { max-width: 1480px; margin: 0 auto; padding: 18px clamp(16px, 4vw, 64px) 40px; }
+.career-content .arena-record-tabs { border-bottom: 1px solid #86ffe52b; }
+.career-content .tracker-header { margin-top: 18px; }
+.career-content .tracker-overview { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.career-content .tracker-overview .tracker-metric { border-radius: 0; background: #163134b3; border-top: 2px solid #3ee08a; }
+.career-content .tracker-run { border-radius: 0; background: #24454b99; }
+.career-content .tracker-run.eligible { background: #23584699; }
+.career-content .tracker-run:not(.eligible) { border-left: 4px solid #cf8876; }
+.career-content .tracker-run-title { min-width: 0; }
+.career-content .tracker-run-details { background: #081a21cc; }
+@media(max-width:800px) {
+  .career-content .tracker-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .career-content .tracker-run-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 12px; }
+  .career-content .tracker-header h3 { font-size: 28px; }
+}

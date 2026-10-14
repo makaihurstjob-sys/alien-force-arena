@@ -1,7 +1,7 @@
 export const lobbyModes = {
   solo: { name: "Classic", description: "Solo survival", min: 1, max: 1, playable: true },
   duel: {
-    name: "Classic 1v1",
+    name: "Versus",
     description: "Private duel \u00b7 Unranked",
     min: 2,
     max: 2,
