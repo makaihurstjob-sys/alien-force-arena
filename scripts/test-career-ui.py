@@ -33,15 +33,19 @@ async def main():
                 page.on('pageerror',lambda e: errors.append(str(e)))
                 await page.goto('http://127.0.0.1:5197/alien-force-classic/')
                 await page.get_by_role('button',name='START',exact=True).click()
-                await page.locator('.arena-menu-header').get_by_role('button',name='Career',exact=True).click()
-                await page.locator('.career-dialog').wait_for()
-                box=await page.locator('.career-dialog').bounding_box()
-                assert box['width']==width and box['height']==height,box
-                assert await page.locator('.career-dialog').evaluate('e => e.scrollWidth <= e.clientWidth')
-                await page.get_by_role('button',name='Close dialog',exact=True).click()
+                header_box=await page.locator('.arena-menu-header').bounding_box()
+                await page.locator('.arena-menu-logo').evaluate("e => { window.careerLogo=e; window.careerAnimation=e.getAnimations()[0]; }")
+                for tab in ['Career','Shop','Loadout','Play','Career']:
+                    await page.locator('.arena-menu-header').get_by_role('button',name=tab,exact=True).click()
+                    assert await page.locator('dialog[open]').count()==0
+                    assert await page.locator('.arena-menu-header').bounding_box()==header_box
+                    assert await page.locator('.arena-menu-logo').evaluate('e => e===window.careerLogo && e.getAnimations()[0]===window.careerAnimation')
+                await page.get_by_role('heading',name='Career',exact=True).wait_for()
+                assert await page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+                await page.locator('.arena-menu-header').get_by_role('button',name='Play',exact=True).click()
                 await page.get_by_role('button',name='Open Career',exact=True).click()
-                await page.keyboard.press('Escape')
-                await page.locator('.career-dialog').wait_for(state='hidden')
+                await page.get_by_role('heading',name='Career',exact=True).wait_for()
+                await page.screenshot(path=f'C:/Users/macor/video-review-alien-force/career-header-{width}.png')
                 await page.route('**/src/lib/multiplayer.ts',lambda r:r.fulfill(content_type='application/javascript',body=AUTH))
                 await page.route('**/src/lib/classic-records.ts',lambda r:r.fulfill(content_type='application/javascript',body=RECORDS))
                 await page.goto('http://127.0.0.1:5197/alien-force-classic/career-test.html')
@@ -64,7 +68,7 @@ async def main():
                 await page.get_by_role('button',name='Board Pilot').wait_for()
                 assert await page.evaluate('document.documentElement.scrollWidth <= innerWidth')
                 assert not errors,errors
-                print(f'PASS {width}x{height}: fullscreen navigation, account history, details, paging, empty/error/retry, scores',flush=True)
+                print(f'PASS {width}x{height}: persistent header and animation, account history, details, paging, empty/error/retry, scores',flush=True)
                 await page.close()
             await browser.close()
     finally:

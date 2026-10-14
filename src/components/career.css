@@ -1,13 +1,5 @@
-.mobile-menu-dialog.career-dialog {
-  position: fixed; inset: 0; width: 100%; max-width: none; height: 100%; max-height: none;
-  margin: 0; padding: 0; border: 0; border-radius: 0; color: #edf5fb;
-  background: radial-gradient(ellipse at 75% 25%, #214c4055, transparent 65%), linear-gradient(125deg, #071013, #10282a);
-  overflow-y: auto; font-family: "Windows Bold", monospace;
-}
-.career-menu-header { padding-right: 100px; }
 .career-panel-heading { max-width: 1480px; margin: 0 auto; padding: 22px clamp(16px, 4vw, 64px) 0; }
 .career-panel-heading h2 { font-size: clamp(28px, 4vw, 48px); text-transform: uppercase; letter-spacing: .08em; }
-.career-panel-heading > button { min-width: 44px; min-height: 44px; }
 .career-content { max-width: 1480px; margin: 0 auto; padding: 18px clamp(16px, 4vw, 64px) 40px; }
 .career-content .arena-record-tabs { border-bottom: 1px solid #86ffe52b; }
 .career-content .tracker-header { margin-top: 18px; }

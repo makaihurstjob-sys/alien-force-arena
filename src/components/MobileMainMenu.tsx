@@ -141,7 +141,7 @@ export function MobileMainMenu() {
     return () => window.removeEventListener("hashchange", readInvite);
   }, []);
   const hangar = panel === 'lobby';
-  const menuPage = panel === 'loadout' || panel === 'shop';
+  const menuPage = panel === 'career' || panel === 'loadout' || panel === 'shop';
   const dialog = useRef<HTMLDialogElement>(null);
   const mode = modes[selected] ?? modes[0];
   useEffect(() => {
@@ -167,7 +167,7 @@ export function MobileMainMenu() {
         </nav>
         <span className="arena-wallet" title="Coin balance is not connected" aria-label="Coins: balance unavailable"><Coins size={20} /><span>—</span></span>
       </header>
-      {menuPage ? panel === "shop" ? <ShopScreen /> : <LoadoutScreen /> : <>
+      {menuPage ? panel === "career" ? <section aria-labelledby="career-heading"><div className="career-panel-heading"><h2 id="career-heading">Career</h2></div><Career /></section> : panel === "shop" ? <ShopScreen /> : <LoadoutScreen /> : <>
       <div className="arena-menu-center"><div aria-hidden="true"><ShipIcon size={120} /></div><MenuPilot /></div>
       <section className="arena-play-dock" aria-label="Selected game">
         <button className="arena-selected-game" aria-label={`Choose game, current game: ${mode.name}`} aria-haspopup="dialog" onClick={() => setPanel("games")}>
@@ -188,7 +188,7 @@ export function MobileMainMenu() {
       </button>}
       {!menuPage && <dialog
         ref={dialog}
-        className={`mobile-menu-dialog ${panel === "career" ? "career-dialog" : ""} ${hangar ? "is-hangar" : ""} ${roomPlaying ? "is-playing" : ""} ${(panel === "leaderboard" || panel === "ratings") ? "classic-tracker-dialog" : ""}`}
+        className={`mobile-menu-dialog ${hangar ? "is-hangar" : ""} ${roomPlaying ? "is-playing" : ""} ${(panel === "leaderboard" || panel === "ratings") ? "classic-tracker-dialog" : ""}`}
         aria-labelledby="mobile-panel-title"
         onCancel={(event) => {
           if (event.target !== event.currentTarget) return;
@@ -201,11 +201,10 @@ export function MobileMainMenu() {
             window.history.replaceState(null, "", window.location.pathname + window.location.search);
         } }}
       >
-        {panel === "career" && <header className="arena-menu-header career-menu-header"><h1 className="arena-menu-logo">Alien Force Arena</h1><nav className="arena-menu-nav" aria-label="Career navigation"><button onClick={() => setPanel(null)}>Play</button><button aria-current="page">Career</button><button onClick={() => setPanel("loadout")}>Loadout</button><button onClick={() => setPanel("shop")}>Shop</button></nav><PlayerProfile /></header>}
         {hangar && <><PlayerProfile /><div className="hangar-backdrop" aria-hidden="true"><DesktopArena mode={0} /></div><div className="hangar-brand" aria-hidden="true">Alien Force Arena</div></>}
-        <div className={`mobile-panel-heading ${panel === "career" ? "career-panel-heading" : ""} ${hangar ? 'hangar-entry-heading' : ''}`}>
+        <div className={`mobile-panel-heading ${hangar ? 'hangar-entry-heading' : ''}`}>
           <h2 id="mobile-panel-title" className={(panel === "leaderboard" || panel === "ratings") ? "sr-only" : undefined}>
-            {panel === "career" ? "Career" : panel === "games" ? "Choose your game" : panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
+            {panel === "games" ? "Choose your game" : panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
               ? "About the game"
               : "Game lobby"}
           </h2>
@@ -214,7 +213,7 @@ export function MobileMainMenu() {
           </button>
         </div>
         {(panel === "leaderboard" || panel === "ratings") && <nav className="arena-record-tabs" aria-label="Leaderboard type"><button aria-pressed={panel === "leaderboard"} onClick={() => setPanel("leaderboard")}>Classic scores</button><button aria-pressed={panel === "ratings"} onClick={() => setPanel("ratings")}>Ranked ratings</button></nav>}
-        {panel === "career" ? <Career /> : panel === "games" ? <div className="arena-game-grid">{modes.map((item, index) => <button key={item.name} aria-pressed={selected === index} onClick={() => { setSelected(index); setPanel(null); }}>
+        {panel === "games" ? <div className="arena-game-grid">{modes.map((item, index) => <button key={item.name} aria-pressed={selected === index} onClick={() => { setSelected(index); setPanel(null); }}>
           <span className="arena-game-preview">{item.name === "Ranked Ratings" ? <StandingsPreview ranked /> : <DesktopArena mode={item.name.startsWith("Arcade") ? 1 : item.name === "Practice" ? 2 : 0} thumbnail />}</span>
           <strong>{item.name}</strong><span>{item.description}</span>
         </button>)}</div>
