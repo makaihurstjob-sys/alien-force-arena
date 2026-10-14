@@ -12,6 +12,8 @@ import RoomEntry from "./RoomEntry";
 import type { LobbyMode } from "@/lib/lobby-modes";
 import { animateLobbyExit } from "@/lib/lobby-exit";
 import ClassicLeaderboard from "./ClassicLeaderboard";
+import Career from "./Career";
+import "./career.css";
 import RankedRatings from "./RankedRatings";
 import { createClassic, tickClassic } from "@/game/classic/engine";
 import { renderClassic } from "@/game/classic/render";
@@ -100,7 +102,7 @@ function StandingsPreview({ ranked = false }: { ranked?: boolean }) {
 
 export function MobileMainMenu() {
   const [selected, setSelected] = useState(0);
-  const [panel, setPanel] = useState<"lobby" | "settings" | "leaderboard" | "ratings" | "games" | "loadout" | "shop" | null>(null);
+  const [panel, setPanel] = useState<"career" | "lobby" | "settings" | "leaderboard" | "ratings" | "games" | "loadout" | "shop" | null>(null);
   const [roomBusy, setRoomBusy] = useState(false);
   const [roomPlaying, setRoomPlaying] = useState(false);
   const [inviteCode, setInviteCode] = useState<string>();
@@ -157,7 +159,7 @@ export function MobileMainMenu() {
         <h1 className="arena-menu-logo">Alien Force Arena</h1>
         <nav className="arena-menu-nav" aria-label="Main navigation">
           <button aria-current={!panel || panel === "games" ? "page" : undefined} onClick={() => setPanel(null)}>Play</button>
-          <button onClick={() => setPanel("leaderboard")}>Leaderboards</button>
+          <button aria-current={panel === "career" ? "page" : undefined} onClick={() => setPanel("career")}>Career</button>
           <button onClick={() => setPanel("loadout")}>Loadout</button>
           <button onClick={() => setPanel("shop")}>Shop</button>
         </nav>
@@ -174,7 +176,7 @@ export function MobileMainMenu() {
           : <button className="arena-play-button" onClick={enterMode}>Play<ChevronRight /></button>}
       </section>
       <footer>Fight · Adapt · Survive</footer>
-      {!panel && <button className="leaderboard-shortcut" aria-label="Open Global Leaderboard" title="Global Leaderboard" onClick={() => setPanel("leaderboard")}>
+      {!panel && <button className="leaderboard-shortcut" aria-label="Open Career" title="Career" onClick={() => setPanel("career")}>
         <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
           <rect className="leaderboard-icon-frame" x="3" y="3" width="58" height="58" />
           <path fill="currentColor" d="M14 22h7v30h-7zM24 32h7v20h-7zM34 26h7v26h-7zM44 14h7v38h-7z" />
@@ -182,7 +184,7 @@ export function MobileMainMenu() {
       </button>}
       <dialog
         ref={dialog}
-        className={`mobile-menu-dialog ${hangar ? "is-hangar" : ""} ${roomPlaying ? "is-playing" : ""} ${(panel === "leaderboard" || panel === "ratings") ? "classic-tracker-dialog" : ""}`}
+        className={`mobile-menu-dialog ${panel === "career" ? "career-dialog" : ""} ${hangar ? "is-hangar" : ""} ${roomPlaying ? "is-playing" : ""} ${(panel === "leaderboard" || panel === "ratings") ? "classic-tracker-dialog" : ""}`}
         aria-labelledby="mobile-panel-title"
         onCancel={(event) => {
           if (event.target !== event.currentTarget) return;
@@ -195,10 +197,11 @@ export function MobileMainMenu() {
             window.history.replaceState(null, "", window.location.pathname + window.location.search);
         } }}
       >
+        {panel === "career" && <header className="arena-menu-header career-menu-header"><h1 className="arena-menu-logo">Alien Force Arena</h1><nav className="arena-menu-nav" aria-label="Career navigation"><button onClick={() => setPanel(null)}>Play</button><button aria-current="page">Career</button><button onClick={() => setPanel("loadout")}>Loadout</button><button onClick={() => setPanel("shop")}>Shop</button></nav><PlayerProfile /></header>}
         {hangar && <><PlayerProfile /><div className="hangar-backdrop" aria-hidden="true"><DesktopArena mode={0} /></div><div className="hangar-brand" aria-hidden="true">Alien Force Arena</div></>}
-        <div className={`mobile-panel-heading ${hangar ? 'hangar-entry-heading' : ''}`}>
+        <div className={`mobile-panel-heading ${panel === "career" ? "career-panel-heading" : ""} ${hangar ? 'hangar-entry-heading' : ''}`}>
           <h2 id="mobile-panel-title" className={(panel === "leaderboard" || panel === "ratings") ? "sr-only" : undefined}>
-            {panel === "games" ? "Choose your game" : panel === "loadout" ? "Loadout" : panel === "shop" ? "Shop" : panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
+            {panel === "career" ? "Career" : panel === "games" ? "Choose your game" : panel === "loadout" ? "Loadout" : panel === "shop" ? "Shop" : panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
               ? "About the game"
               : "Game lobby"}
           </h2>
@@ -207,7 +210,7 @@ export function MobileMainMenu() {
           </button>
         </div>
         {(panel === "leaderboard" || panel === "ratings") && <nav className="arena-record-tabs" aria-label="Leaderboard type"><button aria-pressed={panel === "leaderboard"} onClick={() => setPanel("leaderboard")}>Classic scores</button><button aria-pressed={panel === "ratings"} onClick={() => setPanel("ratings")}>Ranked ratings</button></nav>}
-        {panel === "games" ? <div className="arena-game-grid">{modes.map((item, index) => <button key={item.name} aria-pressed={selected === index} onClick={() => { setSelected(index); setPanel(null); }}>
+        {panel === "career" ? <Career /> : panel === "games" ? <div className="arena-game-grid">{modes.map((item, index) => <button key={item.name} aria-pressed={selected === index} onClick={() => { setSelected(index); setPanel(null); }}>
           <span className="arena-game-preview">{item.name === "Ranked Ratings" ? <StandingsPreview ranked /> : <DesktopArena mode={item.name.startsWith("Arcade") ? 1 : item.name === "Practice" ? 2 : 0} thumbnail />}</span>
           <strong>{item.name}</strong><span>{item.description}</span>
         </button>)}</div> : panel === "loadout" ? <section className="arena-feature-panel"><ShipIcon size={90} /><h3>Classic ship</h3><p>Your current ship. Cosmetic selection is not available yet.</p></section>
