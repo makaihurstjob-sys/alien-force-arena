@@ -1,0 +1,9 @@
+.game-settings { max-width: 620px; margin: auto; color: #dce6ef; }
+.game-settings p { line-height: 1.5; color: #aebdce; }
+.keybinding-list { display: grid; gap: 10px; }
+.keybinding-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #394652; }
+.game-settings button { min-height: 44px; padding: 8px 12px; border: 1px solid #6b8198; background: #202d39; color: #fff; font: inherit; cursor: pointer; }
+.game-settings button[aria-pressed=true] { border-color: #69d9ff; color: #69d9ff; }
+.game-settings button:focus-visible { outline: 2px solid #69d9ff; outline-offset: 3px; }
+@media(max-width: 400px) { .keybinding-row { align-items: stretch; flex-direction: column; } }
+.leaderboard-shortcut.settings-shortcut { border: 3px solid #adb4bf; padding: 10px; }

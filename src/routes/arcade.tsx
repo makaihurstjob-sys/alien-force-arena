@@ -1,3 +1,4 @@
+import { matches, keyboardHelp } from "@/lib/keybindings";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ClassicWindow, { type MenuController } from "@/components/ClassicWindow";
@@ -73,7 +74,7 @@ export function Arcade() {
       if (document.hidden) pause();
     };
     const keyboard = (event: KeyboardEvent) => {
-      if (event.code === "Escape" && !event.repeat) {
+      if (matches("pause", event.code) && !event.repeat) {
         inputRef.current = { ...EMPTY_INPUT };
         setPaused((value) => !value);
       }
@@ -229,7 +230,7 @@ export function Arcade() {
           </section>
         )}
         <p className="classic-keyboard-instructions text-sm">
-          Arrows / WASD: steer. R: reverse. Space: fire. Shift / Q: teleport. Escape: pause.
+          {keyboardHelp(true)}
         </p>
       </div>
     </main>

@@ -1,6 +1,7 @@
+import GameSettings from "./GameSettings";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, X, Trophy, Medal, Coins } from "lucide-react";
+import { ChevronRight, X, Trophy, Medal, Coins, Settings } from "lucide-react";
 import { PlayerProfile } from "./PlayerProfile";
 import { MenuPilot } from "./MenuPilot";
 import { DesktopArena } from "./DesktopArena";
@@ -180,12 +181,7 @@ export function MobileMainMenu() {
       </section>
       <footer>Fight · Adapt · Survive</footer>
       </>}
-      {!panel && <button className="leaderboard-shortcut" aria-label="Open Career" title="Career" onClick={() => setPanel("career")}>
-        <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-          <rect className="leaderboard-icon-frame" x="3" y="3" width="58" height="58" />
-          <path fill="currentColor" d="M14 22h7v30h-7zM24 32h7v20h-7zM34 26h7v26h-7zM44 14h7v38h-7z" />
-        </svg>
-      </button>}
+      {!panel && <button className="leaderboard-shortcut settings-shortcut" aria-label="Open Settings" title="Settings" onClick={() => setPanel("settings")}><Settings aria-hidden="true" /></button>}
       {!menuPage && <dialog
         ref={dialog}
         className={`mobile-menu-dialog ${hangar ? "is-hangar" : ""} ${roomPlaying ? "is-playing" : ""} ${(panel === "leaderboard" || panel === "ratings") ? "classic-tracker-dialog" : ""}`}
@@ -205,7 +201,7 @@ export function MobileMainMenu() {
         <div className={`mobile-panel-heading ${hangar ? 'hangar-entry-heading' : ''}`}>
           <h2 id="mobile-panel-title" className={(panel === "leaderboard" || panel === "ratings") ? "sr-only" : undefined}>
             {panel === "games" ? "Choose your game" : panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
-              ? "About the game"
+              ? "Settings"
               : "Game lobby"}
           </h2>
           <button aria-label="Close dialog" disabled={roomBusy || roomPlaying} onClick={() => setPanel(null)}>
@@ -218,12 +214,7 @@ export function MobileMainMenu() {
           <strong>{item.name}</strong><span>{item.description}</span>
         </button>)}</div>
         : panel === "leaderboard" ? <ClassicLeaderboard /> : panel === "ratings" ? <RankedRatings /> : panel === "settings" ? (
-          <p>
-            Classic is a reconstruction of the original game. Movement, timing and layouts are still
-            being tuned. Private 1v1 rooms are playable. Arcade is Classic's duel physics plus Shield,
-            a Freeze Shot, Rapid Fire, Speed Boost and Teleport pickups, playable online 1v1; more players
-            and wraparound routes are still in development. Select Change Game to choose a mode.
-          </p>
+          <GameSettings />
         ) : (
           panel && (
             <RoomEntry

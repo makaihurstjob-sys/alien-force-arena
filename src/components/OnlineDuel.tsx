@@ -1,3 +1,4 @@
+import { inputAction, matches, keyboardHelp } from "@/lib/keybindings";
 import ClassicController from "./ClassicController";
 import ClassicWindow, { type MenuController } from "./ClassicWindow";
 import type { ClassicInput } from "@/game/classic/engine";
@@ -10,19 +11,7 @@ import { EMPTY_INPUT, type PlayerInput } from "@/game/types";
 import type { useOnlineDuel } from "@/game/useOnlineDuel";
 import "./online-duel.css";
 
-const mapping: Record<string, keyof PlayerInput> = {
-  ArrowUp: "thrust",
-  KeyW: "thrust",
-  ArrowDown: "reverse",
-  KeyS: "reverse",
-  ArrowLeft: "left",
-  KeyA: "left",
-  ArrowRight: "right",
-  KeyD: "right",
-  Space: "fire",
-  KeyR: "turnaround",
-  KeyB: "turnaround",
-};
+
 
 export function OnlineDuel({
   duel,
@@ -65,7 +54,7 @@ export function OnlineDuel({
     const input = { ...EMPTY_INPUT };
     if (enabled.current) {
       for (const code of keys.current) {
-        const key = mapping[code];
+        const key = inputAction(code);
         if (key) input[key] = true;
       }
       const direction = controllerInput.current.direction;
@@ -84,11 +73,11 @@ export function OnlineDuel({
   }, [inputRef]);
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.code === "KeyP" && !(e.target instanceof HTMLInputElement)) {
+      if (matches("pause", e.code) && !e.repeat && !(e.target instanceof HTMLInputElement)) {
         e.preventDefault(); setManualPause(value => !value); return;
       }
       if (windowBlocked) return;
-      if (!mapping[e.code] || e.target instanceof HTMLInputElement) return;
+      if (!inputAction(e.code) || e.target instanceof HTMLInputElement) return;
       // Preserve Space activation when a real action button has keyboard focus.
       if (
         e.code === "Space" &&
@@ -233,7 +222,7 @@ export function OnlineDuel({
               windowBlocked={windowBlocked} resumeFromAway={() => {}}
               paused={duel.localPaused} onInputChange={updateInput}
               onStart={() => { menuController.current?.back(); setManualPause(value => !value); }} />
-            <p className="classic-keyboard-instructions">WASD / arrows to steer. Space to fire. R to reverse.</p>
+            <p className="classic-keyboard-instructions">{keyboardHelp()}</p>
           </div>
         )
       )}

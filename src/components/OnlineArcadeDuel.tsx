@@ -1,3 +1,4 @@
+import { inputAction, matches, keyboardHelp } from "@/lib/keybindings";
 import ClassicController from "./ClassicController";
 import ClassicWindow, { type MenuController } from "./ClassicWindow";
 import type { ClassicInput } from "@/game/classic/engine";
@@ -11,22 +12,7 @@ import { EMPTY_INPUT, type PlayerInput } from "@/game/types";
 import type { useOnlinePowerDuel } from "@/game/classic/useOnlinePowerDuel";
 import "./online-duel.css";
 
-const mapping: Record<string, keyof PlayerInput> = {
-  ArrowUp: "thrust",
-  KeyW: "thrust",
-  ArrowDown: "reverse",
-  KeyS: "reverse",
-  ArrowLeft: "left",
-  KeyA: "left",
-  ArrowRight: "right",
-  KeyD: "right",
-  Space: "fire",
-  KeyR: "turnaround",
-  KeyB: "turnaround",
-  ShiftLeft: "dash",
-  ShiftRight: "dash",
-  KeyQ: "dash",
-};
+
 
 const POWERUP_NAMES: Record<PowerUpKind, string> = {
   shield: "Shield",
@@ -85,7 +71,7 @@ export function OnlineArcadeDuel({
     const input = { ...EMPTY_INPUT };
     if (enabled.current) {
       for (const code of keys.current) {
-        const key = mapping[code];
+        const key = inputAction(code);
         if (key) input[key] = true;
       }
       const direction = controllerInput.current.direction;
@@ -107,13 +93,13 @@ export function OnlineArcadeDuel({
   }, [inputRef]);
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.code === "KeyP" && !(e.target instanceof HTMLInputElement)) {
+      if (matches("pause", e.code) && !e.repeat && !(e.target instanceof HTMLInputElement)) {
         e.preventDefault();
         setManualPause((value) => !value);
         return;
       }
       if (windowBlocked) return;
-      if (!mapping[e.code] || e.target instanceof HTMLInputElement) return;
+      if (!inputAction(e.code) || e.target instanceof HTMLInputElement) return;
       if (
         e.code === "Space" &&
         e.target instanceof HTMLButtonElement &&
@@ -323,8 +309,7 @@ export function OnlineArcadeDuel({
                 }}
               />
               <p className="classic-keyboard-instructions">
-                WASD / arrows to steer. Space to fire. R to reverse. Hold a direction and press
-                Shift or Q to teleport that way.
+                {keyboardHelp(true)} Hold a direction when teleporting.
               </p>
             </div>
           )

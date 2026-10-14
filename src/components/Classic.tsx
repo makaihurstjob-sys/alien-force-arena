@@ -1,3 +1,4 @@
+import { inputAction, matches, keyboardHelp } from "@/lib/keybindings";
 import ClassicController from "./ClassicController";
 import ClassicWindow, { type MenuController } from "./ClassicWindow";
 import spriteSheetUrl from "@/assets/classic/original-sprites.bmp?url";
@@ -47,16 +48,6 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
     shotInPlay: false,
   });
   useEffect(() => {
-    const keys: Record<string, Direction> = {
-      ArrowUp: "up",
-      KeyW: "up",
-      ArrowDown: "down",
-      KeyS: "down",
-      ArrowLeft: "left",
-      KeyA: "left",
-      ArrowRight: "right",
-      KeyD: "right",
-    };
     const held = new Map<string, Direction>();
     const clear = () => {
       held.clear();
@@ -67,18 +58,19 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
       if ((e.target as HTMLElement).closest("input,textarea,select,[contenteditable=true]")) return;
       if ((e.target as HTMLElement).closest("button,a") && ["Space", "Enter"].includes(e.code))
         return;
-      const d = keys[e.code];
-      if (d || e.code === "Space") e.preventDefault();
-      if (d || e.code === "Space" || e.code === "KeyR") resumeFromAway();
+      const action = inputAction(e.code);
+      const d: Direction | undefined = action === "thrust" ? "up" : action === "reverse" ? "down" : action === "left" ? "left" : action === "right" ? "right" : undefined;
+      if (d || matches("fire", e.code)) e.preventDefault();
+      if (d || matches("fire", e.code) || matches("turnaround", e.code)) resumeFromAway();
       if (d) {
         if (e.repeat && held.has(e.code)) return;
         held.delete(e.code);
         held.set(e.code, d);
         input.current.direction = d;
       }
-      if (e.code === "Space") input.current.fire = true;
-      if (e.code === "KeyR" && !e.repeat) input.current.reverse = true;
-      if ((e.code === "Escape" || e.code === "KeyP") && !e.repeat) {
+      if (matches("fire", e.code)) input.current.fire = true;
+      if (matches("turnaround", e.code) && !e.repeat) input.current.reverse = true;
+      if (matches("pause", e.code) && !e.repeat) {
         if (away.current) resumeFromAway();
         else setPaused((p) => !p);
       }
@@ -86,7 +78,7 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
     const up = (e: KeyboardEvent) => {
       held.delete(e.code);
       input.current.direction = Array.from(held.values()).at(-1) ?? null;
-      if (e.code === "Space") input.current.fire = false;
+      if (matches("fire", e.code)) input.current.fire = false;
     };
     const blur = () => {
       clear();
@@ -214,7 +206,7 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
           {stats.over ? " | Game over - select New game to retry." : ""}
         </p>
         <p className="classic-keyboard-instructions text-sm">
-          Arrows / WASD: steer through lanes. R: reverse. Space: fire. P / Escape: pause.
+          {keyboardHelp()}
         </p>
         <div className="classic-record-status text-sm" aria-live="polite">
           <p>{records.message}</p>
