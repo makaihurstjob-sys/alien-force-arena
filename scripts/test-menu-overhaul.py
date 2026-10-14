@@ -13,7 +13,11 @@ async def main():
             await page.goto(os.environ.get('PAGES_URL', 'http://127.0.0.1:4178/alien-force-classic/'))
             await page.get_by_role('button', name='START', exact=True).click()
             await page.locator('.arena-play-button').wait_for(state='visible')
-            await page.wait_for_function("document.activeElement?.matches('.arena-play-button')")
+            assert await page.locator('.arena-play-button').evaluate("e => getComputedStyle(e).outlineStyle") == 'none'
+            await page.keyboard.press('Tab')
+            await page.locator('.arena-play-button').focus()
+            assert await page.locator('.arena-play-button').evaluate("e => getComputedStyle(e).outlineStyle") == 'solid'
+            await page.locator('.arena-play-button').evaluate('e => e.blur()')
             assert await page.locator('.arena-menu-nav button').all_text_contents() == ['Play', 'Leaderboards', 'Loadout', 'Shop']
             assert await page.locator('.desktop-mode-picker, .mode-carousel').count() == 0
             assert await page.locator('.arena-menu-logo').evaluate("e => getComputedStyle(e).userSelect") == 'none'

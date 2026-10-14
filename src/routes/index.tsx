@@ -40,12 +40,6 @@ export function Home() {
     return () => window.removeEventListener("hashchange", bypassIntro);
   }, []);
   useEffect(() => {
-    if (entered && !loading) {
-      const selector = ".arena-play-button";
-      document.querySelector<HTMLButtonElement>(selector)?.focus();
-    }
-  }, [entered, loading]);
-  useEffect(() => {
     let cancelled = false;
     let revealTimer: ReturnType<typeof setTimeout>;
     const reveal = () => {
