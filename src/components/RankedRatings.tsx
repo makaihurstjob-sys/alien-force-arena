@@ -19,7 +19,7 @@ export default function RankedRatings() {
         </span>
         <span className="ranked-season-status">Preseason</span>
       </div>
-      <header className="tracker-header ranked-page-heading"><div><span className="tracker-eyebrow">ALIEN FORCE &middot; COMPETITIVE</span><h3>Ranked Ratings</h3></div></header>
+      <header className="tracker-header ranked-page-heading"><div><span className="tracker-eyebrow">ALIEN FORCE COMPETITIVE</span><h3>Ranked Ratings</h3></div></header>
       <RankedProgress showcase preview={preview} />
       <section className="ranked-progression" aria-labelledby="ranked-progression-title">
         <div className="ranked-progression-heading">

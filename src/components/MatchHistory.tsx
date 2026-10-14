@@ -44,7 +44,6 @@ export default function MatchHistory({ account }: { account: string | null }) {
   const visible = filtered.slice(page*20,page*20+20);
   return <section className="classic-tracker match-history" aria-label="All game match history">
     <div className="tracker-toolbar"><h3>Match history</h3><button disabled={loading} onClick={() => setRevision(value=>value+1)}><RefreshCw size={16} />Refresh history</button></div>
-    <p className="tracker-note">All modes, newest first. Classic and Ranked account records sync across devices. Other modes are saved on this browser.</p>
     <label className="history-filter">Game mode<select aria-label="Game mode" value={mode} onChange={event=>{setMode(event.target.value as HistoryMode | "all");setPage(0);}}><option value="all">All modes</option>{Object.entries(historyModes).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
     {loading ? <p role="status" className="tracker-empty">Loading match history...</p> : <>
       {!!warnings.length && <div className="tracker-empty" role="alert">{warnings.map(warning=><p key={warning}>{warning}</p>)}<button onClick={()=>setRevision(value=>value+1)}>Retry account history</button></div>}
