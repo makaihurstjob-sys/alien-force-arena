@@ -1,3 +1,5 @@
+import { useMatchHistory } from "@/game/useMatchHistory";
+import { duelHistory } from "@/lib/match-history";
 import { matches, keyboardHelp } from "@/lib/keybindings";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -126,6 +128,8 @@ export function Arcade() {
 
   const getState = useCallback(() => matchRef.current, []);
   useGameLoop(getState, tick, draw, canvasRef, !paused && !windowBlocked);
+
+  useMatchHistory(() => duelHistory(matchRef.current.game, "arcade-practice", "you"));
 
   const restart = () => {
     controllerInput.current = { direction: null, fire: false };

@@ -1,3 +1,4 @@
+import MatchHistory from "./MatchHistory";
 import { useEffect, useState } from "react";
 import { connection } from "@/lib/multiplayer";
 import ClassicLeaderboard from "./ClassicLeaderboard";
@@ -35,7 +36,6 @@ export default function Career() {
     {tab === "scores" ? <ClassicLeaderboard /> : tab === "ranked" ? <RankedRatings />
       : loading ? <p className="tracker-empty" role="status">Loading your career…</p>
       : error ? <div className="tracker-empty" role="alert"><p>{error}</p><button onClick={() => setRetry(value => value + 1)}>Try again</button></div>
-      : account ? <ClassicLeaderboard key={account} accountId={account} />
-      : <div className="tracker-empty"><h3>Your career starts here</h3><p>Play a Classic game to start saving history, or open your profile to sign in to your account.</p></div>}
+      : <MatchHistory key={account ?? "guest"} account={account} />}
   </div>;
 }

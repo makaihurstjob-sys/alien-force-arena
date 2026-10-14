@@ -1,3 +1,4 @@
+import { useMatchHistory } from "@/game/useMatchHistory";
 import { inputAction } from "@/lib/keybindings";
 import type { LobbyMode } from '@/lib/lobby-modes';
 import { gameLobby } from '@/lib/game-lobby';
@@ -73,6 +74,18 @@ export default function BulletRun({ embedded = false, autoEnter = false, initial
       stateRef.current = null; setState(null);
     }
   }, [!!shared, room?.phase, room?.status]);
+  const historySession = useRef({ room: "", tick: -1, id: "" });
+  useMatchHistory(() => {
+    const game = stateRef.current;
+    const you = game?.pilots.find(pilot => pilot.id === player);
+    if (!game || !you || game.tick <= 0) return null;
+    const session = historySession.current;
+    const roomId = roomRef.current?.id ?? "";
+    if (session.room !== roomId || game.tick < session.tick || !session.id) { session.id = randomId(); session.room = roomId; }
+    session.tick = game.tick;
+    return { id: roomRef.current?.match_id ?? session.id, mode: "bullet", outcome: "interrupted", durationMs: Math.round(game.tick * BULLET_RUN.tickMs), kills: you.kills, deaths: you.deaths,
+      details: [{ label: "Pilots", value: game.pilots.length }, { label: "Weapon stage", value: weapon(you.kills).stage }] };
+  }, player || undefined);
   const input = useRef<Input>({ ...idleInput });
   const peers = useRef(new Map<string, { input: Input; at: number }>());
   const channel = useRef<RealtimeChannel | null>(null);

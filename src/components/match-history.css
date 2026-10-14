@@ -1,0 +1,7 @@
+.history-filter { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.history-filter select { min-height: 44px; max-width: 100%; padding: 8px 12px; color: #edf5fb; background: #142630; border: 1px solid #37505f; font: inherit; }
+.history-row-metrics { display: flex; flex-wrap: wrap; gap: 10px 24px; color: #bed0df; flex: 1; }
+.career-content .match-history .tracker-run.history-win { border-left: 4px solid #4ee6a0; }.career-content .match-history .tracker-run.history-loss { border-left: 4px solid #ff8899; }
+.match-history .tracker-run-details dd { color: #edf5fb; font-size: 18px; }
+.match-history .tracker-run-details dt { color: #a2b6c6; font-size: 13px; }
+@media(max-width:600px) { .history-filter { align-items: flex-start; flex-direction: column; } .history-filter select { width: 100%; }.history-row-metrics { flex-basis: 100%; order: 2; }.match-history .tracker-toolbar { flex-wrap: wrap; gap: 12px; }.match-history .tracker-run-title { min-width: 0; } }

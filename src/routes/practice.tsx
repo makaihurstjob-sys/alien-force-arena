@@ -1,3 +1,5 @@
+import { useMatchHistory } from "@/game/useMatchHistory";
+import { duelHistory } from "@/lib/match-history";
 import { matches, keyboardHelp } from "@/lib/keybindings";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -89,6 +91,8 @@ export function Practice({ onReturn }: { onReturn?: () => void } = {}) {
 
   const getState = useCallback(() => stateRef.current, []);
   useGameLoop(getState, tick, draw, canvasRef, !paused);
+
+  useMatchHistory(() => duelHistory(stateRef.current, "practice", "you"));
 
   const restart = () => {
     inputRef.current = { ...EMPTY_INPUT };

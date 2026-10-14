@@ -1,3 +1,5 @@
+import { useMatchHistory } from "@/game/useMatchHistory";
+import { duelHistory } from "@/lib/match-history";
 import { inputAction, matches, keyboardHelp } from "@/lib/keybindings";
 import ClassicController from "./ClassicController";
 import ClassicWindow, { type MenuController } from "./ClassicWindow";
@@ -135,6 +137,7 @@ export function OnlineDuel({
 
   const state = snapshot.state;
   const you = state.ships.find((s) => s.id === player)!;
+  useMatchHistory(() => duelHistory(snapshot.state, "versus", player, snapshot.matchId, !!snapshot.ended), player);
   const winner = state.matchWinner;
   const paused = snapshot.paused || duel.stalled;
   return (
