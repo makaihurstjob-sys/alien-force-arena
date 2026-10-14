@@ -31,6 +31,8 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
   const startButton = useRef<HTMLButtonElement>(null);
   const [ready, setReady] = useState(false);
   const [exiting, setExiting] = useState(false);
+  const [motionOptIn, setMotionOptIn] = useState(false);
+  const [motionSkipped, setMotionSkipped] = useState(false);
   useEffect(() => {
     if (!exiting) return;
     const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 420;
@@ -50,7 +52,7 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
   useEffect(() => {
     if (ready) { startButton.current?.focus(); return; }
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (reduced.matches) { setReady(true); return; }
+    if (reduced.matches && !motionOptIn) { setMotionSkipped(true); setReady(true); return; }
     const ctx = canvas.current?.getContext("2d");
     if (!ctx) { setReady(true); return; }
     const sheet = new Image();
@@ -69,6 +71,7 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
       pixels.putImageData(data, 0, 0);
       spritesReady = true;
     };
+    sheet.onerror = () => setReady(true);
     sheet.src = spriteSheetUrl;
     // Independent seeded coordinates avoid the diagonal pattern of modular rows.
     let seed = 417;
@@ -90,11 +93,20 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
       }
     }
     let raf = 0;
-    const began = performance.now();
-    const onMotionChange = () => { if (reduced.matches) setReady(true); };
+    let elapsed = 0;
+    let previousFrame: number | null = null;
+    const loadTimeout = window.setTimeout(() => { if (!spritesReady) setReady(true); }, 10000);
+    const onMotionChange = () => { if (reduced.matches && !motionOptIn) { setMotionSkipped(true); setReady(true); } };
     reduced.addEventListener("change", onMotionChange);
     const draw = (now: number) => {
-      const elapsed = now - began;
+      // Loading or a backgrounded mobile tab must not consume the animation.
+      if (!spritesReady || document.hidden) {
+        previousFrame = null;
+        raf = requestAnimationFrame(draw);
+        return;
+      }
+      if (previousFrame !== null) elapsed += Math.min(now - previousFrame, 100);
+      previousFrame = now;
       if (elapsed >= DURATION) { setReady(true); return; }
       const t = elapsed / 1000;
       ctx.drawImage(galaxy, 0, 0);
@@ -155,8 +167,8 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
-    return () => { cancelAnimationFrame(raf); sheet.onload = null; reduced.removeEventListener("change", onMotionChange); };
-  }, [ready]);
+    return () => { cancelAnimationFrame(raf); window.clearTimeout(loadTimeout); sheet.onload = null; sheet.onerror = null; reduced.removeEventListener("change", onMotionChange); };
+  }, [ready, motionOptIn]);
   return <section className={"opening-intro " + (ready ? "is-ready " : "") + (exiting ? "is-exiting" : "")} aria-label="Alien Force Arena opening">
     <canvas ref={canvas} width={960} height={540} className="opening-battle" aria-hidden="true" />
     {!ready && <>
@@ -170,6 +182,7 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
       <TitleShip />
       <h1>ALIEN FORCE <span>ARENA</span></h1>
       <p>Fight · Adapt · Survive</p>
+      {motionSkipped && <button className="opening-replay" onClick={() => { setMotionOptIn(true); setMotionSkipped(false); setReady(false); }}>Play intro</button>}
       <button ref={startButton} className="opening-start" disabled={exiting} onClick={() => setExiting(true)}>START</button>
     </div>}
     <span className="sr-only" role="status">{ready ? "Intro complete. Select START to enter the main menu." : "Opening battle animation. You can skip the intro."}</span>
