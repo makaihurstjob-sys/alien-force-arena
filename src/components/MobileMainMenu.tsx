@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, X, Trophy, Medal, Coins } from "lucide-react";
 import { PlayerProfile } from "./PlayerProfile";
+import { MenuPilot } from "./MenuPilot";
 import { DesktopArena } from "./DesktopArena";
 import "@/routes/desktop-main-menu.css";
 import "./leaderboard-shortcut.css";
@@ -162,7 +163,7 @@ export function MobileMainMenu() {
         </nav>
         <span className="arena-wallet" title="Coin balance is not connected" aria-label="Coins: balance unavailable"><Coins size={20} /><span>—</span></span>
       </header>
-      <div className="arena-menu-center" aria-hidden="true"><ShipIcon size={120} /><span>PILOT READY</span></div>
+      <div className="arena-menu-center"><div aria-hidden="true"><ShipIcon size={120} /></div><MenuPilot /></div>
       <section className="arena-play-dock" aria-label="Selected game">
         <button className="arena-selected-game" aria-label={`Choose game, current game: ${mode.name}`} aria-haspopup="dialog" onClick={() => setPanel("games")}>
           <span className="arena-selected-copy"><strong>{mode.name}</strong><span>{mode.description}</span></span>

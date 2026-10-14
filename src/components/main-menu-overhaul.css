@@ -10,6 +10,12 @@
 .arena-menu-center { position:absolute; top:36%; left:58%; display:grid; place-items:center; gap:24px; transform:translateX(-50%); pointer-events:none; }
 .arena-menu-center canvas { filter:drop-shadow(0 15px 22px #3ee08a55); }
 .arena-menu-center span { letter-spacing:.28em; color:#c4ead6; font-size:12px; }
+.arena-pilot { display:flex; align-items:center; gap:10px; max-width:min(400px,90vw); pointer-events:auto; }
+.arena-pilot > span { overflow-wrap:anywhere; text-align:center; }
+.arena-ping { position:relative; display:grid; place-items:center; padding:6px; color:#6ef0aa; cursor:help; }
+.arena-ping > span { display:none; position:absolute; bottom:100%; left:50%; transform:translateX(-50%); width:200px; padding:8px; border:1px solid #6ef0aa; background:#071013; letter-spacing:normal; text-align:center; }
+.arena-ping:hover > span,.arena-ping:focus > span { display:block; }
+.arena-ping:focus-visible { outline:2px solid #fff; outline-offset:2px; }
 .arena-play-dock { position:absolute; bottom:76px; left:3vw; width:clamp(300px,30vw,430px); display:grid; gap:8px; }
 .arena-selected-game { display:flex; align-items:center; gap:14px; padding:12px; text-align:left; background:#091518ed; border:1px solid #8ab2ae88; border-left:4px solid #3ee08a; min-height:108px; color:#fff; }
 .arena-selected-preview { flex:0 0 82px; width:82px; height:82px; overflow:hidden; background:#071013; }

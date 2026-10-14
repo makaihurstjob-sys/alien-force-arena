@@ -100,6 +100,7 @@ export function PlayerProfile() {
       if (error) throw new Error(error.code === "23505" ? "That display name is taken. Try another." : error.message);
       savedName.current = displayName; savedFlag.current = flag;
       setName(displayName); setUser(current); setMessage("Profile saved.");
+      window.dispatchEvent(new Event("alien-force-profile-updated"));
       return true;
     } catch (error) { setMessage(error instanceof Error ? error.message : "Unable to save your name."); return false; }
     finally { setBusy(false); }
