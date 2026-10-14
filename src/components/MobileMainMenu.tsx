@@ -164,9 +164,8 @@ export function MobileMainMenu() {
       </header>
       <div className="arena-menu-center" aria-hidden="true"><ShipIcon size={120} /><span>PILOT READY</span></div>
       <section className="arena-play-dock" aria-label="Selected game">
-        <button className="arena-selected-game" aria-haspopup="dialog" onClick={() => setPanel("games")}>
-          <span className="arena-selected-preview">{mode.name === "Ranked Ratings" ? <StandingsPreview ranked /> : <ArenaPreview active={false} arcade={mode.name.startsWith("Arcade")} practice={mode.name === "Practice"} desktop />}</span>
-          <span className="arena-selected-copy"><small>CHANGE GAME</small><strong>{mode.name}</strong><span>{mode.description}</span></span>
+        <button className="arena-selected-game" aria-label={`Choose game, current game: ${mode.name}`} aria-haspopup="dialog" onClick={() => setPanel("games")}>
+          <span className="arena-selected-copy"><strong>{mode.name}</strong><span>{mode.description}</span></span>
           <ChevronRight />
         </button>
         {mode.name === "Ranked Ratings" ? <button className="arena-play-button" onClick={() => setPanel("ratings")}>View ratings<ChevronRight /></button>
