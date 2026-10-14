@@ -1,4 +1,4 @@
-﻿# Ranked preseason — first implementation
+# Ranked preseason — first implementation
 
 ## Approved rules
 
@@ -7,9 +7,9 @@ Server follow-up: queue/settlement SQL and PostgreSQL tests now exist locally. S
 gates. Earlier implementation notes below describe the local gameplay slice; live Ranked
 and authoritative simulation remain disconnected.
 
-Ranked is Discord-only 1v1, starting at Cadet I with no placements. Cadet, Scout, Pilot, Ace and Commander each have I–III, with 100 points per division. Promotion carries excess points forward. A loss reaching/crossing a division floor stops at zero; the next loss demotes by that loss amount. Winning rearms grace. Cadet I is the floor.
+Ranked is Discord-only 1v1, starting at Cadet I with no placements. Cadet, Scout, Pilot, Ace, Commander and Captain each have I–III, with 100 points per division. Promotion carries excess points forward. A loss reaching/crossing a division floor stops at zero; the next loss demotes by that loss amount. Winning rearms grace. Cadet I is the floor.
 
-Galactic Legend is exclusive to #1 after completing Commander III (1500 rating). Rating remains uncapped. Normal rating changes have baseline 30 and combined opponent/margin cap of 21–39. Exact rating, progress and actual gains/losses are visible when connected.
+Galactic Legend is exclusive to #1 after completing Captain III (1800 rating). Rating remains uncapped. Normal rating changes have baseline 30 and combined opponent/margin cap of 21–39. Exact rating, progress and actual gains/losses are visible when connected.
 
 Experiment 1A uses four continuous stocks; 1B is first to four rounds with both pilots reset. Plane icons show lives. Preseason continues until seasons begin in 2027; no reset date is scheduled yet.
 
@@ -29,7 +29,7 @@ Local test results never persist or award rating. Live standings/search remain d
 - Disconnect streak: at most 15 minutes between consecutive events; completed match resets it. Third event: five-minute cooldown; fourth: 15 minutes; fifth onward: 30 minutes. Needs trusted timestamps and server enforcement.
 - 1A: immediate respawn, one second protection during which the pilot cannot fire or be hit. Survivor position/projectiles persist. Simultaneous final stocks draw without rating change. No round timeout.
 - 1B: existing 60-second round timeout, two-second break, tied rounds replay without consuming lives.
-- Above 1500, Commander III progress displays full while rating continues. Legend follows standings, without grace protection for its title.
+- Above 1800, Captain III progress displays full while rating continues. Legend follows standings, without grace protection for its title.
 
 ## Remaining online work
 
@@ -46,3 +46,5 @@ One queue, Rounds off by default. Two players with Rounds off get an 80% stocks 
 Implemented `src/lib/ranked-matchmaking.ts` as a pure, tested server policy, with skill gap supplied by the eventual queue service. It prioritizes nearest rating then oldest entry, and never widens the skill limit just to satisfy format preference. The queue service must provide trusted times, eligibility and ratings, sample randomness once per match, and atomically claim both entries. This helper is not a deployed matchmaking service.
 
 The Ranked settings checkbox persists per browser/device, defaults off, and applies to the next local test restart. The local two-player test assumes both players share that setting; it does not simulate online waiting. Its old 1A/1B selectors and format descriptions are removed. The initial paused arena remains stocks. Online matchmaking, authoritative simulation and rating settlement remain pending as listed above.
+
+Captain spans 1500-1799 rating. The existing server division-grace cutoff remains 1500; Captain divisions do not receive loss grace.
