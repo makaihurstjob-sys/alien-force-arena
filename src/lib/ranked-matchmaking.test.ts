@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { randomRankedFormat, selectRankedOpponent, type RankedQueueEntry } from './ranked-matchmaking';
 
-const entry = (playerId: string, preferRounds = false, rating = 500, queuedAt = 0): RankedQueueEntry => ({ playerId, preferRounds, rating, queuedAt });
+const entry = (playerId: string, preferRounds = false, rating = 500, queuedAt = 0): RankedQueueEntry => ({ playerId, preferRounds, rating, queuedAt, region: "us-east" });
 describe('Ranked queue policy', () => {
+  it('never pairs different regions, even after the fallback wait', () => {
+    expect(selectRankedOpponent(entry('a'), [{ ...entry('b'), region: 'us-west' }], 20000, 300)).toBeNull();
+  });
   it('uses exactly 80 stocks and 20 rounds per 100 evenly spaced samples', () => {
     const formats = Array.from({ length: 100 }, (_, i) => randomRankedFormat(() => i / 100));
     expect(formats.filter(f => f === '1a')).toHaveLength(80);

@@ -1,9 +1,11 @@
+import { type RankedRegion, isRankedRegion } from "./ranked-regions";
 import type { RankedFormat } from './ranked-rules';
 
 export const ROUNDS_FALLBACK_MS = 10_000;
 export const ROUNDS_PREFERENCE_KEY = 'alien-force-ranked-rounds';
 export type RankedQueueEntry = {
   playerId: string;
+  region: RankedRegion;
   rating: number;
   queuedAt: number;
   preferRounds: boolean;
@@ -24,9 +26,9 @@ export function selectRankedOpponent(
 ): { opponentId: string; format: RankedFormat } | null {
   if (!Number.isSafeInteger(now) || now < 0 || !Number.isFinite(maxRatingGap) || maxRatingGap < 0) throw new Error('Invalid queue policy');
   for (const entry of [player, ...queue]) {
-    if (!entry.playerId || !Number.isSafeInteger(entry.rating) || entry.rating < 0 || !Number.isSafeInteger(entry.queuedAt) || entry.queuedAt < 0 || entry.queuedAt > now) throw new Error('Invalid queue entry');
+    if (!isRankedRegion(entry.region) || !entry.playerId || !Number.isSafeInteger(entry.rating) || entry.rating < 0 || !Number.isSafeInteger(entry.queuedAt) || entry.queuedAt < 0 || entry.queuedAt > now) throw new Error('Invalid queue entry');
   }
-  const eligible = queue.filter(candidate => candidate.playerId !== player.playerId && Math.abs(candidate.rating - player.rating) <= maxRatingGap)
+  const eligible = queue.filter(candidate => candidate.region === player.region && candidate.playerId !== player.playerId && Math.abs(candidate.rating - player.rating) <= maxRatingGap)
     .sort((a, b) => Math.abs(a.rating - player.rating) - Math.abs(b.rating - player.rating) || a.queuedAt - b.queuedAt || a.playerId.localeCompare(b.playerId));
   // Opted-in opponents remain the first choice even after fallback opens.
   const rounds = player.preferRounds && eligible.find(candidate => candidate.preferRounds);

@@ -1,4 +1,4 @@
-﻿import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 vi.mock('./multiplayer', () => ({ connection: vi.fn() }));
 import { connection } from './multiplayer';
 import { parseQueueState, rankedQueueAction, RankedQueueSession } from './ranked-queue';
@@ -6,15 +6,16 @@ const match = { status: 'matched' as const, match_id: '12345678-1234-1234-1234-1
 describe('Ranked client queue', () => {
   it('accepts only usable responses and discards hidden fields', () => {
     expect(parseQueueState({ ...match, format: '1b' })).toEqual(match);
+    expect(parseQueueState({ status: 'waiting', queued_at: '2026-10-14T00:00:00Z', region: 'us-west' })).toEqual({ status: 'waiting', queued_at: '2026-10-14T00:00:00Z', region: 'us-west' });
     expect(() => parseQueueState({ status: 'waiting', queued_at: 'bad' })).toThrow();
     expect(() => parseQueueState({ status: 'matched' })).toThrow();
     expect(() => parseQueueState(null)).toThrow();
   });
-  it('sends only the preference on join and preserves matched cancellation', async () => {
+  it('sends region and preference on join and preserves matched cancellation', async () => {
     const rpc = vi.fn().mockResolvedValue({ data: match, error: null });
     vi.mocked(connection).mockResolvedValue({ auth: { getSession: async () => ({ data: { session: { user: { identities: [{ provider: 'discord' }] } } } }) }, rpc } as never);
-    expect(await rankedQueueAction('join', true)).toEqual(match);
-    expect(rpc).toHaveBeenCalledWith('ranked_queue_join', { p_rounds: true });
+    expect(await rankedQueueAction('join', true, 'us-west')).toEqual(match);
+    expect(rpc).toHaveBeenCalledWith('ranked_queue_join_region', { p_rounds: true, p_region: 'us-west' });
     expect(await rankedQueueAction('leave')).toEqual(match);
     expect(rpc).toHaveBeenLastCalledWith('ranked_queue_leave', {});
   });
