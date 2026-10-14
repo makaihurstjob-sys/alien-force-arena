@@ -95,7 +95,7 @@ export default function HangarLobby({
           </button>
         )}
       </div>
-      <p className="hangar-connection" role="status">
+      <p className="hangar-connection sr-only" role="status">
         {open ? (unavailable ? "Reconnecting to room…" : status) : "The host closed this room."}
       </p>
       <ul

@@ -74,8 +74,12 @@
 .hangar-invite-qr { margin:0 0 12px; width:fit-content; padding:10px; border:2px solid #3ee08a; background:#102421; box-shadow:4px 4px 0 #070f10; }
 .hangar-invite-qr svg { display:block; width:144px; height:144px; image-rendering:pixelated; }
 .hangar-invite-qr figcaption { margin-top:8px; color:#bde4d2; font-size:12px; text-align:center; }
+.hangar-connection.sr-only { margin:0; min-height:0; }
 
 @media (min-width:768px) {
+ .is-hangar .hangar-tabs { position:absolute; top:14px; left:clamp(280px,28vw,440px); right:90px; min-height:44px; }
+ .is-hangar .hangar-tabs > * { font-size:clamp(11px,1vw,15px); }
+ .is-hangar .hangar-brand { font-size:clamp(18px,1.7vw,28px); transform:none; animation:title-gradient-flow 8s linear infinite; top:24px; max-width:25vw; white-space:normal; }
  .mobile-menu-dialog.is-hangar { height:100dvh; max-height:100dvh; box-sizing:border-box; padding:64px 3.3vw 16px; }
  .is-hangar .hangar-lobby { min-height:0; }
  .is-hangar .hangar-slots { margin:12px 0; }
@@ -97,5 +101,11 @@
  .is-hangar .hangar-dock canvas { height:48px; width:48px; }
  .is-hangar .hangar-actions button { padding:8px 12px; }
 }
+@media (min-width:768px) and (max-width:1200px) {
+ .mobile-menu-dialog.is-hangar { padding-top:110px; }
+ .is-hangar .hangar-tabs > * { padding:8px; }
+ .is-hangar .hangar-brand { max-width:230px; }
+}
+@media(prefers-reduced-motion:reduce) { .is-hangar .hangar-brand { animation:none; } }
 
 
