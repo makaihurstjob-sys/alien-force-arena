@@ -41,7 +41,7 @@ export function Home() {
   }, []);
   useEffect(() => {
     if (entered && !loading) {
-      const selector = window.matchMedia("(min-width: 768px)").matches ? ".desktop-play" : ".mobile-play";
+      const selector = ".arena-play-button";
       document.querySelector<HTMLButtonElement>(selector)?.focus();
     }
   }, [entered, loading]);

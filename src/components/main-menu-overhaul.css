@@ -1,0 +1,60 @@
+.home-menu { padding:0; }
+.home-menu .mobile-main-menu { min-height:100svh; padding:0; overflow:clip; font-family:"Windows Bold",monospace; }
+.arena-menu-nav button:focus-visible,.arena-selected-game:focus-visible,.arena-play-button:focus-visible,.arena-game-grid button:focus-visible,.arena-record-tabs button:focus-visible { outline:3px solid #fff; outline-offset:3px; }
+.arena-menu-header { position:relative; z-index:2; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:28px; padding:24px 100px 20px 3vw; border-bottom:1px solid #86ffe52b; background:#071013c9; }
+.arena-menu-logo { margin:0; font-size:clamp(20px,2.3vw,36px); line-height:1.1; text-transform:uppercase; user-select:none; -webkit-user-select:none; cursor:default; background:linear-gradient(90deg,#00ffff 0%,#00ff00 12.5%,#ffff00 25%,#ff0000 37.5%,#00ffff 50%,#00ff00 62.5%,#ffff00 75%,#ff0000 87.5%,#00ffff 100%); background-size:200% 100%; background-clip:text; -webkit-background-clip:text; color:transparent; animation:title-gradient-flow 8s linear infinite; }
+.arena-menu-nav { display:flex; justify-content:center; gap:4px; }
+.arena-menu-nav button { padding:16px 18px; text-transform:uppercase; color:#b9c8cd; border-bottom:3px solid transparent; background:#1422289c; }
+.arena-menu-nav button:hover,.arena-menu-nav button[aria-current="page"] { color:#eafff1; border-color:#3ee08a; background:#20513d8c; }
+.arena-wallet { display:flex; gap:8px; align-items:center; color:#ffe066; }
+.arena-menu-center { position:absolute; top:36%; left:58%; display:grid; place-items:center; gap:24px; transform:translateX(-50%); pointer-events:none; }
+.arena-menu-center canvas { filter:drop-shadow(0 15px 22px #3ee08a55); }
+.arena-menu-center span { letter-spacing:.28em; color:#c4ead6; font-size:12px; }
+.arena-play-dock { position:absolute; bottom:76px; left:3vw; width:clamp(300px,30vw,430px); display:grid; gap:8px; }
+.arena-selected-game { display:flex; align-items:center; gap:14px; padding:12px; text-align:left; background:#091518ed; border:1px solid #8ab2ae88; border-left:4px solid #3ee08a; min-height:108px; color:#fff; }
+.arena-selected-preview { flex:0 0 82px; width:82px; height:82px; overflow:hidden; background:#071013; }
+.arena-selected-preview canvas { width:100%; height:100%; object-fit:contain; image-rendering:pixelated; }
+.arena-selected-copy { display:grid; gap:5px; flex:1; min-width:0; }
+.arena-selected-copy small { font-size:10px; color:#6ef0aa; letter-spacing:.1em; }
+.arena-selected-copy strong { font-size:24px; line-height:1; }
+.arena-selected-copy>span { font-size:12px; color:#a9bac2; }
+.arena-play-button { display:flex; align-items:center; justify-content:center; gap:16px; min-height:64px; background:#3ee08a; border:1px solid #9bffca; color:#06160f; font-size:28px; text-transform:uppercase; }
+.arena-play-button:hover { background:#7cf3ae; }
+.arena-game-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.arena-game-grid>button { display:grid; gap:8px; padding:12px; text-align:left; background:#101d22; border:2px solid #425a61; color:#fff; }
+.arena-game-grid>button[aria-pressed="true"],.arena-game-grid>button:hover { border-color:#3ee08a; }
+.arena-game-grid>button>span:last-child { color:#abbfc7; font-size:12px; }
+.arena-game-preview { display:block; height:100px; overflow:hidden; }
+.arena-game-preview canvas { width:100%; height:100%; object-fit:cover; image-rendering:pixelated; }
+.arena-feature-panel { display:grid; justify-items:center; gap:18px; padding:32px 12px; text-align:center; color:#c4d4da; }
+.arena-feature-panel h3 { font-size:24px; color:#6ef0aa; }
+.arena-record-tabs { display:flex; flex-wrap:wrap; gap:8px; padding-bottom:16px; }
+.arena-record-tabs button { padding:10px 16px; border:1px solid #566c76; color:#c4d4da; }
+.arena-record-tabs button[aria-pressed="true"] { border-color:#3ee08a; color:#6ef0aa; }
+.mobile-main-menu .arena-menu-header ~ footer { bottom:22px; right:90px; }
+@media(max-width:1100px) {
+ .arena-menu-header { grid-template-columns:1fr auto; gap:14px; padding-right:86px; }
+ .arena-menu-nav { grid-row:2; grid-column:1 / -1; justify-content:flex-start; }
+ .arena-menu-center { left:65%; }
+}
+@media(max-width:767px) {
+ .home-menu .desktop-arena { display:block; position:absolute; inset:0; z-index:-1; opacity:.55; }
+ .home-menu .desktop-arena>canvas { width:100%; height:100%; object-fit:cover; }
+ .arena-menu-header { padding:22px 70px 14px 16px; gap:18px; }
+ .arena-menu-logo { font-size:20px; }
+ .arena-menu-nav { gap:2px; margin-right:-54px; }
+ .arena-menu-nav button { flex:1; padding:12px 5px; font-size:11px; }
+ .arena-wallet { font-size:14px; }
+ .arena-menu-center { top:30%; left:50%; }
+ .arena-play-dock { left:16px; bottom:86px; width:calc(100% - 32px); }
+ .arena-selected-game { min-height:96px; }
+ .arena-selected-preview { width:66px; height:66px; flex-basis:66px; }
+ .arena-selected-copy strong { font-size:22px; }
+ .arena-game-grid { gap:8px; }
+ .arena-game-preview { height:78px; }
+ .mobile-main-menu footer { position:absolute; bottom:22px; left:16px; font-size:10px; letter-spacing:.15em; }
+}
+@media(max-height:600px) {
+ .home-menu .mobile-main-menu { min-height:600px; }
+}
+@media(prefers-reduced-motion:reduce) { .arena-menu-logo { animation:none; } }
