@@ -5,3 +5,5 @@ The owner supplied a 1290 ? 1165 screenshot. Complete Scout, Pilot, Ace, and Com
 Career > Ranked Ratings shows the authenticated player rank and division progress. Signed-out/loading/error states display a labeled badge preview, never an invented rating. Selecting a rank previews its artwork for users without a verified record; it never changes an authenticated player rank. Public standings remain unavailable rather than inserting mock players.
 
 Cadet and Captain now use standalone generated transparent PNG badges, styled from the Framber reference. Galactic Legend remains a neutral fallback because its reference is clipped.
+
+Scout now uses a remade transparent badge with corrected SCOUT lettering. Galactic Legend uses the owner-supplied complete PNG unchanged. All seven ranks have artwork.
