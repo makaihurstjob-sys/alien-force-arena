@@ -30,6 +30,7 @@ export default function JoinRoomDialog({ open, code, onCode, busy, error, onJoin
       <label htmlFor="hangar-join-code">Room code</label>
       <input autoFocus id="hangar-join-code" value={code} maxLength={6} minLength={6} required pattern="[A-Z0-9]{6}" autoComplete="off" autoCapitalize="characters" spellCheck={false} inputMode="none" disabled={busy} placeholder="______" onChange={event => onCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6))} />
       <p className="join-keypad-help">Tap a number. Hold 2–9 to choose a letter.<br />You can also type or paste your code.</p>
+      <div className="join-keypad-area">
       <div className="join-keypad">
         {"123456789".split("").map(key => <button key={key} type="button" disabled={busy || code.length === 6} aria-label={letters[key] ? `${key}, hold for ${letters[key]}` : key} onPointerDown={event => {
           if (event.button !== 0) return;
@@ -46,8 +47,8 @@ export default function JoinRoomDialog({ open, code, onCode, busy, error, onJoin
         <button className="join-submit" type="submit" disabled={busy || code.length !== 6}>{busy ? "Joining…" : "Join"}</button>
       </div>
       {letterKey && <div className="join-letter-picker" ref={letterPanel} role="group" aria-label={`Letters on ${letterKey}`}><span>Choose a letter</span>{letters[letterKey]!.split("").map(letter => <button type="button" key={letter} disabled={busy} onClick={() => append(letter)}>{letter}</button>)}<button type="button" aria-label="Cancel letter selection" onClick={() => setLetterKey(null)}>×</button></div>}
+      </div>
       {error && <p role="alert">{error}</p>}
-      <p className="join-room-note">Joining another room leaves this one. If you host it, your current room will close.</p>
     </form>
   </dialog>;
 }

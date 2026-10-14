@@ -13,9 +13,9 @@
 .join-keypad .join-submit { background:#3ee08a; text-transform:uppercase; font-size:20px; }
 .join-room-dialog button:disabled { opacity:.45; cursor:not-allowed; }
 .join-room-dialog button:focus-visible,.join-room-dialog input:focus-visible { outline:2px solid #65f4ba; outline-offset:3px; }
-.join-letter-picker { display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; padding:12px 0; }
+.join-keypad-area { position:relative; }
+.join-letter-picker { position:absolute; inset:0; display:flex; align-content:center; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; padding:12px; background:#0b2028f5; border:1px solid #3ee08a; z-index:1; }
 .join-letter-picker span { flex-basis:100%; text-align:center; }
 .join-letter-picker button { padding:10px 14px; background:#3ee08a; color:#09222b; }
-.join-room-dialog .join-room-note { margin:14px 0 0; font-size:12px; color:#a6bec6; }
 .join-room-dialog [role=alert] { margin:12px 0; color:#ff98a5; }
 @media(max-height:650px) { .join-room-dialog { padding:16px; } .join-keypad button { min-height:48px; } .join-room-dialog header { margin-bottom:10px; } }
