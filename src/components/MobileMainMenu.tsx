@@ -23,7 +23,7 @@ import { ARENA } from "@/game/config";
 
 const modes = [
   { name: "Classic", description: "Original arena combat", color: "#3ee08a" },
-  { name: "Classic 1v1", description: "Private duel \u00b7 2 pilots", color: "#69d9ff" },
+  { name: "Versus", description: "Private duel \u00b7 2 pilots", color: "#69d9ff" },
   { name: "Ranked", description: "Competitive 1v1 matches", color: "#d0a0ff" },
   { name: "Arcade", description: "Power-ups · Online 1v1", color: "#ffe066" },
   { name: "Arcade Practice", description: "Power-ups · Training bot", color: "#ffe066" },
@@ -108,7 +108,7 @@ export function MobileMainMenu() {
   const [inviteCode, setInviteCode] = useState<string>();
   const [lobbyMode, setLobbyMode] = useState<LobbyMode>('solo');
   const enterMode = () => {
-    const modeMap: Record<string, LobbyMode> = { Classic: 'solo', 'Classic 1v1': 'duel', Practice: 'practice', 'Bullet Run': 'bullet', Ranked: 'ranked', Arcade: 'arcade' };
+    const modeMap: Record<string, LobbyMode> = { Classic: 'solo', 'Versus': 'duel', Practice: 'practice', 'Bullet Run': 'bullet', Ranked: 'ranked', Arcade: 'arcade' };
     setInviteCode(undefined); setLobbyMode(modeMap[modes[selected]!.name] ?? 'solo'); setPanel('lobby');
   };
   const leaveLobby = () => {
