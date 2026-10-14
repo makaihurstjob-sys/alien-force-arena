@@ -40,11 +40,11 @@ async def main():
                     assert await page.locator('dialog[open]').count()==0
                     assert await page.locator('.arena-menu-header').bounding_box()==header_box
                     assert await page.locator('.arena-menu-logo').evaluate('e => e===window.careerLogo && e.getAnimations()[0]===window.careerAnimation')
-                await page.get_by_role('heading',name='Career',exact=True).wait_for()
+                await page.get_by_role('region',name='Career',exact=True).wait_for()
                 assert await page.evaluate('document.documentElement.scrollWidth <= innerWidth')
                 await page.locator('.arena-menu-header').get_by_role('button',name='Play',exact=True).click()
                 await page.get_by_role('button',name='Open Career',exact=True).click()
-                await page.get_by_role('heading',name='Career',exact=True).wait_for()
+                await page.get_by_role('region',name='Career',exact=True).wait_for()
                 await page.screenshot(path=f'C:/Users/macor/video-review-alien-force/career-header-{width}.png')
                 await page.route('**/src/lib/multiplayer.ts',lambda r:r.fulfill(content_type='application/javascript',body=AUTH))
                 await page.route('**/src/lib/classic-records.ts',lambda r:r.fulfill(content_type='application/javascript',body=RECORDS))

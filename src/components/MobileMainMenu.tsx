@@ -167,7 +167,7 @@ export function MobileMainMenu() {
         </nav>
         <span className="arena-wallet" title="Coin balance is not connected" aria-label="Coins: balance unavailable"><Coins size={20} /><span>—</span></span>
       </header>
-      {menuPage ? panel === "career" ? <section aria-labelledby="career-heading"><div className="career-panel-heading"><h2 id="career-heading">Career</h2></div><Career /></section> : panel === "shop" ? <ShopScreen /> : <LoadoutScreen /> : <>
+      {menuPage ? panel === "career" ? <section aria-label="Career"><Career /></section> : panel === "shop" ? <ShopScreen /> : <LoadoutScreen /> : <>
       <div className="arena-menu-center"><div aria-hidden="true"><ShipIcon size={120} /></div><MenuPilot /></div>
       <section className="arena-play-dock" aria-label="Selected game">
         <button className="arena-selected-game" aria-label={`Choose game, current game: ${mode.name}`} aria-haspopup="dialog" onClick={() => setPanel("games")}>
