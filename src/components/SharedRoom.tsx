@@ -17,12 +17,14 @@ import { OnlineArcadeDuel } from "./OnlineArcadeDuel";
 export default function SharedRoom({
   initialCode,
   initialMode,
+  onJoinRoom,
   onLeave,
   onBusyChange,
   onMatchChange,
 }: {
   initialCode?: string | undefined;
   initialMode: LobbyMode;
+  onJoinRoom?: (() => void) | undefined;
   onLeave: () => void;
   onBusyChange: (busy: boolean) => void;
   onMatchChange: (playing: boolean) => void;
@@ -276,6 +278,7 @@ export default function SharedRoom({
     <>
       {error && <p role="alert">{error}</p>}
       <HangarLobby
+        onJoinRoom={onJoinRoom}
         room={room}
         mode={room.mode}
         player={player}

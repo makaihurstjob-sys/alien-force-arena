@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import SharedRoom from "./SharedRoom";
+import JoinRoomDialog from "./JoinRoomDialog";
 import { connection } from "@/lib/multiplayer";
 import { sharedRoomsAvailable } from "@/lib/game-lobby";
 import BulletRun from "./BulletRun";
@@ -36,7 +37,7 @@ export default function RoomEntry({
     [onMatchChange],
   );
   async function joinRoom() {
-    if (joining) return;
+    if (joining || !/^[A-Z0-9]{6}$/.test(joinCode)) return;
     setJoining(true);
     setJoinError("");
     try {
@@ -79,39 +80,12 @@ export default function RoomEntry({
   if (shared)
     return (
       <section className="shared-room-entry">
-        {!playing && (
-          <div className="room-join-controls">
-            <button disabled={joining} onClick={() => setShowJoin((value) => !value)}>
-              Join Room
-            </button>
-            {showJoin && (
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void joinRoom();
-                }}
-              >
-                <label htmlFor="hangar-join-code">Room code</label>
-                <input
-                  id="hangar-join-code"
-                  value={joinCode}
-                  maxLength={6}
-                  minLength={6}
-                  required
-                  pattern="[A-Za-z0-9]{6}"
-                  onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
-                />
-                <button disabled={joining}>{joining ? "Joining..." : "Join room"}</button>
-                <p>Joining another room leaves this one. If you host it, this room will close.</p>
-              </form>
-            )}
-            {joinError && <p role="alert">{joinError}</p>}
-          </div>
-        )}
+        <JoinRoomDialog open={showJoin && !playing} code={joinCode} onCode={setJoinCode} busy={joining} error={joinError} onJoin={() => void joinRoom()} onClose={() => setShowJoin(false)} />
         <SharedRoom
           key={revision}
           initialCode={entryCode}
           initialMode={initialMode}
+          onJoinRoom={() => { setJoinCode(""); setJoinError(""); setShowJoin(true); }}
           onLeave={onLeave}
           onBusyChange={onBusyChange}
           onMatchChange={matchChanged}

@@ -13,6 +13,7 @@ export function visibleHangarSlots(players: number) {
 }
 
 export default function HangarLobby({
+  onJoinRoom,
   room,
   player,
   busy,
@@ -31,6 +32,7 @@ export default function HangarLobby({
   startLabel = "Start match",
   allowMemberStart = false,
 }: {
+  onJoinRoom?: (() => void) | undefined;
   startLabel?: string;
   allowMemberStart?: boolean;
   room: BulletLobby;
@@ -86,6 +88,7 @@ export default function HangarLobby({
           {room.members.length}/{game.max} pilots
         </span>
         <strong>{room.code ? `Room ${room.code}` : "Local lobby"}</strong>
+        {onJoinRoom && <button type="button" aria-haspopup="dialog" onClick={onJoinRoom} disabled={busy || !open}>Join Room</button>}
         {invite && (
           <button onClick={() => void copy()} disabled={!open || unavailable}>
             Copy invite
