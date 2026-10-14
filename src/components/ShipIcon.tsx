@@ -1,50 +1,21 @@
-import { useEffect, useRef } from "react";
+import { useId } from "react";
 import spriteSheetUrl from "@/assets/classic/original-sprites.png?url";
 
-// Crops the player ship, facing up, from the same sheet Classic mode renders from.
+// A native SVG image paints when its asset decodes, including first mobile visits.
+// Keep the original 32px ship cell and remove only its black background.
 export function ShipIcon({ size = 100, color }: { size?: number; color?: string }) {
-  const canvas = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const ctx = canvas.current?.getContext("2d");
-    if (!ctx) return;
-    let disposed = false;
-    let frame = 0;
-    const sheet = new Image();
-    const paint = () => {
-      if (disposed || !sheet.complete || !sheet.naturalWidth) return;
-      ctx.imageSmoothingEnabled = false;
-      ctx.clearRect(0, 0, size, size);
-      ctx.drawImage(sheet, 2, 2, 32, 32, 0, 0, size, size);
-      const pixels = ctx.getImageData(0, 0, size, size);
-      const tint = color && /^#[0-9a-f]{6}$/i.test(color)
-        ? [1, 3, 5].map(offset => parseInt(color.slice(offset, offset + 2), 16)) : null;
-      for (let i = 0; i < pixels.data.length; i += 4) {
-        if (pixels.data[i] === 0 && pixels.data[i + 1] === 0 && pixels.data[i + 2] === 0)
-          pixels.data[i + 3] = 0;
-        else if (tint) {
-          const light = Math.max(pixels.data[i]!, pixels.data[i + 1]!, pixels.data[i + 2]!) / 255;
-          for (let channel = 0; channel < 3; channel++) pixels.data[i + channel] = Math.round(tint[channel]! * light);
-        }
-      }
-      ctx.putImageData(pixels, 0, 0);
-    };
-    sheet.onload = () => {
-      paint();
-      // Repaint after the browser commits layout/compositing on the first visit.
-      frame = requestAnimationFrame(paint);
-    };
-    sheet.src = spriteSheetUrl;
-    if (sheet.complete && sheet.naturalWidth) paint();
-    return () => { disposed = true; sheet.onload = null; cancelAnimationFrame(frame); };
-  }, [size, color]);
-  return (
-    <canvas
-      ref={canvas}
-      width={size}
-      height={size}
-      role="img"
-      aria-label="Alien Force ship"
-      className="mx-auto mb-4 [image-rendering:pixelated]"
-    />
-  );
+  const filterId = `ship-${useId().replace(/:/g, "")}`;
+  const tint = color && /^#[0-9a-f]{6}$/i.test(color)
+    ? [1, 3, 5].map(offset => parseInt(color.slice(offset, offset + 2), 16) / 255) : null;
+  return <svg width={size} height={size} viewBox="3 3 30 30" role="img"
+    aria-label="Alien Force ship" className="ship-icon mx-auto mb-4"
+    style={{ aspectRatio: "1", flexShrink: 0, imageRendering: "pixelated" }}>
+    <defs><filter id={filterId} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 1 1 0 0" result="blackMask" />
+      <feComponentTransfer in="blackMask" result="opaqueMask"><feFuncA type="linear" slope={255} /></feComponentTransfer>
+      {tint && <feColorMatrix in="SourceGraphic" type="matrix" values={`${tint[0]} 0 0 0 0  ${tint[1]} 0 0 0 0  ${tint[2]} 0 0 0 0  0 0 0 1 0`} result="tinted" />}
+      <feComposite in={tint ? "tinted" : "SourceGraphic"} in2="opaqueMask" operator="in" />
+    </filter></defs>
+    <image href={spriteSheetUrl} x="0" y="0" width="138" height="104" filter={`url(#${filterId})`} />
+  </svg>;
 }

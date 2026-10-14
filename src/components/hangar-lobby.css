@@ -14,8 +14,8 @@
 .hangar-dock { position:relative; height:clamp(150px,28vh,290px); display:grid; place-items:center; border:4px ridge #555f5b; background:linear-gradient(#333a3abb,#242c2ddd); box-shadow:8px 8px #0008; margin:0 8px 16px; }
 .hangar-dock::before,.hangar-dock::after { content:''; position:absolute; left:8px; right:8px; height:16px; background:repeating-linear-gradient(130deg,#3b4039 0 12px,#bbaa57 12px 24px); border:2px solid #777b6b; }
 .hangar-dock::before { top:0; } .hangar-dock::after { bottom:0; }
-.hangar-dock canvas { margin:0; max-width:100%; }
-.is-empty .hangar-dock canvas { opacity:.16; filter:grayscale(1); }
+.hangar-dock :is(canvas,.ship-icon) { margin:0; max-width:100%; }
+.is-empty .hangar-dock :is(canvas,.ship-icon) { opacity:.16; filter:grayscale(1); }
 .hangar-plus { position:absolute; font-size:48px; color:#bdcdd0; }
 .hangar-plaque { height:96px; box-sizing:border-box; display:grid; grid-template-rows:44px 44px; gap:8px; text-align:center; }
 .hangar-plaque > strong,.hangar-pilot-name { border:1px solid #6a8188; border-radius:4px; background:#071015ed; padding:8px; }
@@ -98,7 +98,7 @@
  .is-hangar .hangar-invite-qr svg { width:80px; height:80px; }
  .is-hangar .hangar-plaque { height:76px; grid-template-rows:34px 34px; }
  .is-hangar .hangar-plaque > button,.is-hangar .hangar-plaque > strong { padding:4px; }
- .is-hangar .hangar-dock canvas { height:48px; width:48px; }
+ .is-hangar .hangar-dock :is(canvas,.ship-icon) { height:48px; width:48px; }
  .is-hangar .hangar-actions button { padding:8px 12px; }
 }
 @media (min-width:768px) and (max-width:1200px) {

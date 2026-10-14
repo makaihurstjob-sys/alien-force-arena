@@ -8,7 +8,7 @@
 .arena-menu-nav button:hover,.arena-menu-nav button[aria-current="page"] { color:#eafff1; border-color:#3ee08a; background:#20513d8c; }
 .arena-wallet { display:flex; gap:8px; align-items:center; color:#ffe066; }
 .arena-menu-center { position:absolute; top:36%; left:58%; display:grid; place-items:center; gap:24px; transform:translateX(-50%); pointer-events:none; }
-.arena-menu-center canvas { filter:drop-shadow(0 15px 22px #3ee08a55); }
+.arena-menu-center canvas,.arena-menu-center .ship-icon { filter:drop-shadow(0 15px 22px #3ee08a55); }
 .arena-menu-center span { letter-spacing:.28em; color:#c4ead6; font-size:12px; }
 .arena-pilot { display:flex; align-items:center; gap:10px; max-width:min(400px,90vw); pointer-events:auto; }
 .arena-pilot > span { overflow-wrap:anywhere; text-align:center; }
@@ -64,3 +64,6 @@
  .home-menu .mobile-main-menu { min-height:600px; }
 }
 @media(prefers-reduced-motion:reduce) { .arena-menu-logo { animation:none; } }
+
+/* Ship artwork keeps its native proportions in narrow previews. */
+.arena-selected-preview canvas,.arena-game-preview canvas { object-fit:contain; }

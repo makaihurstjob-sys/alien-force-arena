@@ -20,7 +20,7 @@ export function DesktopArena({ mode, thumbnail = false }: { mode: number; thumbn
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const draw = (now: number) => {
       if (disposed) return;
-      if (media.matches && !document.hidden) {
+      if (!document.hidden) {
         const w = 1440,
           h = 900;
         const t = thumbnail || reduced.matches ? 12 : now / 1000;

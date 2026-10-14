@@ -10,11 +10,11 @@
 .cosmetics-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }
 .cosmetic-card { min-width: 0; padding: 18px; background: #09191eed; border: 1px solid #4b7275; border-top: 3px solid var(--cosmetic-color); }
 .cosmetic-preview { display: grid; place-items: center; min-height: 106px; margin-bottom: 12px; background: radial-gradient(ellipse, color-mix(in srgb,var(--cosmetic-color) 18%,transparent),transparent 70%); }
-.cosmetic-preview canvas { margin: 0; }
+.cosmetic-preview :is(canvas,.ship-icon) { margin: 0; }
 .cosmetic-card h4 { font-size: 18px; }
 .cosmetic-card > span { display: block; margin-top: 5px; font-size: 12px; color: #9bb6c0; }
 .cosmetic-trail { position: relative; display: flex; align-items: center; width: 170px; max-width: 100%; height: 76px; }
-.cosmetic-trail canvas { position: absolute; right: 0; top: 12px; transform: rotate(90deg); }
+.cosmetic-trail :is(canvas,.ship-icon) { position: absolute; right: 0; top: 12px; transform: rotate(90deg); }
 .cosmetic-trail > span { position: absolute; left: 0; right: 48px; top: 34px; height: 8px; background: linear-gradient(90deg,transparent,var(--trail-color)); box-shadow: 0 0 12px var(--trail-color); }
 .cosmetic-trail > span:nth-child(2) { top: 22px; left: 20px; opacity: .6; height: 4px; }
 .cosmetic-trail > span:nth-child(3) { top: 48px; left: 30px; opacity: .6; height: 4px; }
@@ -25,11 +25,11 @@
 .loadout-layout { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px,5vw,72px); min-height: 480px; }
 .loadout-showcase { display: grid; justify-items: center; align-content: center; gap: 18px; background: radial-gradient(ellipse,#27644a70,transparent 68%); }
 .loadout-showcase > span:first-child { text-transform: uppercase; letter-spacing: .12em; color: #abc4cb; }
-.loadout-showcase canvas { max-width: 60vw; height: auto; margin: 0; filter: drop-shadow(0 12px 22px #3ee08a44); }
+.loadout-showcase :is(canvas,.ship-icon) { max-width: 60vw; height: auto; margin: 0; filter: drop-shadow(0 12px 22px #3ee08a44); }
 .loadout-showcase h3 { font-size: 28px; }
 .cosmetic-equipped { color: #6ef0aa; border: 1px solid #3ee08a66; padding: 6px 10px; background: #173f2c; font-size: 12px; }
 .loadout-item { display: flex; align-items: center; gap: 16px; background: #09191ee8; border: 1px solid #4b7275; padding: 20px; }
-.loadout-item canvas { margin: 0; width: 64px; height: 64px; flex-shrink: 0; }
+.loadout-item :is(canvas,.ship-icon) { margin: 0; width: 64px; height: 64px; flex-shrink: 0; }
 .loadout-item > div { flex: 1; min-width: 0; }
 .loadout-item h4 { font-size: 20px; }
 .loadout-item p,.loadout-coming-soon { color: #abc4cb; font-size: 14px; margin-top: 6px; }
@@ -40,7 +40,7 @@
  .cosmetics-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
  .loadout-layout { grid-template-columns: 1fr; gap: 24px; }
  .loadout-showcase { min-height: 300px; }
- .loadout-showcase canvas { width: 160px; }
+ .loadout-showcase :is(canvas,.ship-icon) { width: 160px; }
  .loadout-item { flex-wrap: wrap; padding: 14px; gap: 12px; }
  .loadout-item .cosmetic-equipped { margin-left: auto; }
  .construction-notice { justify-content: flex-start; padding-top: 220px; }
