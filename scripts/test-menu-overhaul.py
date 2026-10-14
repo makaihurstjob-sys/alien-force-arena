@@ -37,6 +37,12 @@ async def main():
             await page.get_by_role('button', name='Ranked ratings', exact=True).click()
             assert await page.locator('#mobile-panel-title').inner_text() == 'Ranked Ratings'
             await page.get_by_role('button', name='Close dialog', exact=True).click()
+            await page.locator('.arena-selected-game').click()
+            await page.locator('.arena-game-grid > button').filter(has=page.get_by_text('Classic', exact=True)).click()
+            await page.locator('.arena-play-button').click()
+            await page.get_by_role('region', name='Classic lobby', exact=True).wait_for(timeout=45000)
+            await page.get_by_role('button', name='Leave room', exact=True).click()
+            await page.locator('dialog[aria-labelledby=mobile-panel-title]').wait_for(state='hidden')
             assert not errors, errors
             print(f'PASS {width}x{height}: navigation, selection, focus, dialogs, no overflow or runtime errors', flush=True)
             await context.close()
