@@ -2,7 +2,13 @@
 .opening-battle { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
 .opening-intro.is-ready .opening-battle { opacity: .15; }
 .opening-tagline { position: absolute; bottom: 14%; margin: 0; padding: 12px; text-align: center; font-size: clamp(18px, 3vw, 32px); letter-spacing: .12em; text-shadow: 0 2px 8px #000; }
-.opening-skip { position: absolute; top: max(24px, env(safe-area-inset-top)); right: max(24px, env(safe-area-inset-right)); padding: 12px 18px; border: 1px solid #7896ad; background: #050b13cc; color: white; cursor: pointer; }
+.opening-skip { position: absolute; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); min-height: 48px; padding: 12px 8px; border: 0; background: transparent; color: #d2e8f5; font: inherit; font-size: clamp(12px, 1.5vw, 16px); text-shadow: 0 2px 8px #000; cursor: pointer; }
+.opening-skip:hover { color: #fff; }
+.opening-skip-touch { display: none; }
+@media (hover: none), (pointer: coarse) {
+  .opening-skip-keyboard { display: none; }
+  .opening-skip-touch { display: inline; }
+}
 .opening-title { position: absolute; text-align: center; padding: 24px; max-width: 100%; }
 .opening-title img { margin: 0 auto 24px; image-rendering: pixelated; }
 .opening-title h1 { margin: 0; font-size: clamp(28px, 6vw, 72px); line-height: 1.1; letter-spacing: .06em; color: #69d9ff; text-shadow: 0 0 28px #13748f80; }
