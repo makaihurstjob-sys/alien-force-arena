@@ -4,10 +4,39 @@ import "./opening-intro.css";
 
 const DURATION = 8500;
 
+function TitleShip() {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const ctx = canvas.current?.getContext("2d");
+    if (!ctx) return;
+    const logo = new Image();
+    logo.onload = () => {
+      ctx.drawImage(logo, 0, 0, 100, 100);
+      const pixels = ctx.getImageData(0, 0, 100, 100);
+      // Key out the white JPEG backdrop, retaining the selected ship artwork.
+      for (let i = 0; i < pixels.data.length; i += 4) {
+        if (pixels.data[i]! > 220 && pixels.data[i + 1]! > 220 && pixels.data[i + 2]! > 220)
+          pixels.data[i + 3] = 0;
+      }
+      ctx.putImageData(pixels, 0, 0);
+    };
+    logo.src = import.meta.env.BASE_URL + "branding/alien-force-logo.jpg";
+    return () => { logo.onload = null; };
+  }, []);
+  return <canvas ref={canvas} width={100} height={100} role="img" aria-label="Alien Force logo" className="opening-logo" />;
+}
+
 export default function OpeningIntro({ onStart }: { onStart: () => void }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const startButton = useRef<HTMLButtonElement>(null);
   const [ready, setReady] = useState(false);
+  const [exiting, setExiting] = useState(false);
+  useEffect(() => {
+    if (!exiting) return;
+    const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 420;
+    const timer = window.setTimeout(onStart, delay);
+    return () => window.clearTimeout(timer);
+  }, [exiting, onStart]);
   useEffect(() => {
     if (ready) return;
     const skip = (event: KeyboardEvent) => {
@@ -128,7 +157,7 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
     raf = requestAnimationFrame(draw);
     return () => { cancelAnimationFrame(raf); sheet.onload = null; reduced.removeEventListener("change", onMotionChange); };
   }, [ready]);
-  return <section className={"opening-intro " + (ready ? "is-ready" : "")} aria-label="Alien Force Arena opening">
+  return <section className={"opening-intro " + (ready ? "is-ready " : "") + (exiting ? "is-exiting" : "")} aria-label="Alien Force Arena opening">
     <canvas ref={canvas} width={960} height={540} className="opening-battle" aria-hidden="true" />
     {!ready && <>
       <p className="opening-tagline">FIGHT. ADAPT. SURVIVE.</p>
@@ -138,10 +167,10 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
       </button>
     </>}
     {ready && <div className="opening-title">
-      <img src={import.meta.env.BASE_URL + "branding/alien-force-logo.jpg"} width={100} height={100} alt="Alien Force logo" />
+      <TitleShip />
       <h1>ALIEN FORCE <span>ARENA</span></h1>
-      <p>Small arenas. Big battles.</p>
-      <button ref={startButton} className="opening-start" onClick={onStart}>START</button>
+      <p>Fight · Adapt · Survive</p>
+      <button ref={startButton} className="opening-start" disabled={exiting} onClick={() => setExiting(true)}>START</button>
     </div>}
     <span className="sr-only" role="status">{ready ? "Intro complete. Select START to enter the main menu." : "Opening battle animation. You can skip the intro."}</span>
   </section>;
