@@ -164,3 +164,18 @@ both clients return to matchmaking and the server reports successful settlement.
 Known transport limitation: existing public Realtime broadcasts do not authenticate
 the claimed pilot or snapshot sender. The new forfeit RPC authenticates its caller,
 but competitive release still needs authenticated gameplay transport.
+
+## Same-region matchmaking
+
+Migration `20261014024744_ranked_region_queues.sql` adds US East and US West queue pools.
+The client calls `ranked_queue_join_region(p_region,p_rounds)`; poll/leave preserve the
+existing waiting region. A player must leave before switching region. Pairing requires
+identical regions in addition to the existing 300-point gap and format rules.
+
+Workers run with `RANKED_REGION=us-east` (default) or `RANKED_REGION=us-west`, discover
+only their region, and claim through `ranked_match_start_region`. The database rejects
+claims by the wrong region. Legacy clients/workers default to East.
+
+These names identify queue pools, not provisioned New York/Oregon machines. No hosting
+or latency routing was added. The existing authenticated-transport, crash recovery,
+and two-account release gates still apply before production Ranked play.

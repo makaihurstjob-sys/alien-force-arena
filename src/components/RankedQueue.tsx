@@ -1,3 +1,5 @@
+import "./ranked-region-selector.css";
+import { RANKED_REGIONS, DEFAULT_RANKED_REGION, REGION_PREFERENCE_KEY, isRankedRegion, type RankedRegion } from "@/lib/ranked-regions";
 import { createPortal } from "react-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import { connection } from "@/lib/multiplayer";
@@ -89,12 +91,18 @@ function QueueControls({
 }: { player: string } & QueueProps) {
   const [state, setState] = useState<RankedQueueState>({ status: "idle" });
   const [rounds, setRounds] = useState(false);
+  const [region, setRegion] = useState<RankedRegion>(DEFAULT_RANKED_REGION);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (state.status === "waiting" && state.region) setRegion(state.region);
+  }, [state]);
   const [session, setSession] = useState<RankedQueueSession | null>(null);
   useEffect(() => {
     try {
       setRounds(localStorage.getItem(ROUNDS_PREFERENCE_KEY) === "true");
+      const savedRegion = localStorage.getItem(REGION_PREFERENCE_KEY);
+      if (isRankedRegion(savedRegion)) setRegion(savedRegion);
     } catch {
       /* Storage optional. */
     }
@@ -140,7 +148,7 @@ function QueueControls({
     setBusy(true);
     setError("");
     try {
-      await session.action(action, rounds);
+      await session.action(action, rounds, region);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Unable to reach matchmaking. Please retry.",
@@ -163,22 +171,33 @@ function QueueControls({
       document.body,
     );
   }
+  const regionSelector = <label className="ranked-region-selector">Matchmaking region
+    <select value={region} disabled={busy || state.status !== "idle"} onChange={event => {
+      if (!isRankedRegion(event.target.value)) return;
+      setRegion(event.target.value);
+      try { localStorage.setItem(REGION_PREFERENCE_KEY, event.target.value); } catch { /* Storage optional. */ }
+    }}>
+      {Object.entries(RANKED_REGIONS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+    </select>
+    <small>Search stays within your region. Regional server hosting is pending.</small>
+  </label>;
   if (renderLobby)
-    return renderLobby({
+    return <>{regionSelector}{renderLobby({
       busy,
       waiting: state.status === "waiting",
       eligible: true,
       status:
         error ||
         (state.status === "waiting"
-          ? "Searching for an opponent near your rank..."
+          ? `Searching in ${RANKED_REGIONS[region]} near your rank...`
           : "Ready when you are"),
       start: () => void act("join"),
       cancel: () => void act("leave"),
-    });
+    })}</>;
   return (
     <section className="ranked-settings" aria-label="Ranked matchmaking">
       <h4>Ranked matchmaking</h4>
+      {regionSelector}
       <label>
         <input
           type="checkbox"
@@ -201,7 +220,7 @@ function QueueControls({
       </p>
       <p role="status">
         {state.status === "waiting"
-          ? "Searching for an opponent near your rank…"
+          ? `Searching in ${RANKED_REGIONS[region]} near your rank…`
           : "Ready to search."}
       </p>
       {error && <p role="alert">{error}</p>}

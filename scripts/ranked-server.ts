@@ -11,6 +11,7 @@
  * Requires Node 22+ (native WebSocket/fetch) and is run through tsx so it can
  * import the same pure game modules the client and tests use, unmodified.
  */
+import { DEFAULT_RANKED_REGION, isRankedRegion } from "../src/lib/ranked-regions";
 import { randomUUID } from "node:crypto";
 import { createClient, type RealtimeChannel } from "@supabase/supabase-js";
 import type { PlayerSeed } from "../src/game/classic/duel";
@@ -31,6 +32,8 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   process.exit(1);
 }
 
+const SERVER_REGION = process.env.RANKED_REGION ?? DEFAULT_RANKED_REGION;
+if (!isRankedRegion(SERVER_REGION)) throw new Error("RANKED_REGION must be us-east or us-west");
 const SERVER_ID = process.env.RANKED_SERVER_ID ?? `local-${randomUUID().slice(0, 8)}`;
 const db = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -60,7 +63,8 @@ async function claim(matchId: string) {
   if (running.has(matchId) || claiming.has(matchId)) return;
   claiming.add(matchId);
   try {
-    const { data, error } = await db.rpc("ranked_match_start", {
+    const { data, error } = await db.rpc("ranked_match_start_region", {
+      p_region: SERVER_REGION,
       p_match_id: matchId,
       p_server_id: SERVER_ID,
     });
@@ -101,6 +105,7 @@ async function discover() {
   const { data: candidates, error } = await db
     .from("ranked_matches")
     .select("match_id, forfeit_player_id")
+    .eq("region", SERVER_REGION)
     .is("result", null);
   if (error) {
     console.error("[ranked-server] discovery query failed", error.message);

@@ -17,6 +17,7 @@ for (const file of [
   "drizzle/migrations/0001_ratings_functions_and_demo_seed.sql",
   "supabase/migrations/202610010000_ranked_service.sql",
   "supabase/migrations/202610030000_ranked_forfeit.sql",
+  "supabase/migrations/20261014024744_ranked_region_queues.sql",
 ])
   await db.exec(fs.readFileSync(file, "utf8"));
 async function call(uid, sql, params = [], role = "authenticated") {
@@ -58,6 +59,19 @@ async function pair(a, b, rounds = true) {
   return (await join(b, rounds)).match_id;
 }
 try {
+  const eastA = await player(), west = await player(), eastB = await player();
+  const regionalJoin = (uid, region) => call(uid, "select ranked_queue_join_region($1,true) result", [region]);
+  check((await regionalJoin(eastA, 'us-east')).status, 'waiting');
+  check((await regionalJoin(west, 'us-west')).status, 'waiting');
+  check((await poll(eastA)).status, 'waiting');
+  await assert.rejects(regionalJoin(eastA, 'us-west'), /Leave the current queue/);
+  const regionalPair = await regionalJoin(eastB, 'us-east');
+  check(regionalPair.status, 'matched');
+  await assert.rejects(call(null, "select ranked_match_start_region($1,'west-server','us-west') result", [regionalPair.match_id], 'service_role'), /region does not match/);
+  check((await start(regionalPair.match_id)).match_id, regionalPair.match_id);
+  check((await poll(west)).status, 'waiting');
+  await assert.rejects(regionalJoin(west, 'invalid'), /Invalid ranked region/);
+  await clear();
   await assert.rejects(join(null), /Sign in/);
   await assert.rejects(join(crypto.randomUUID()), /Discord/);
   const a = await player(),
