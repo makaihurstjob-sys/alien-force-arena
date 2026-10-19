@@ -36,6 +36,5 @@ export function FlagPicker({ value, onChange, disabled }: {
         {!visible.length && <p>No matching flags. Try a country name or two-letter code.</p>}
       </div>
     </div>}
-    <small>Shown on your public player card and leaderboard entry.</small>
   </div>;
 }
