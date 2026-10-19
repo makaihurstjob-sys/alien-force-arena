@@ -199,3 +199,8 @@ See [CHANGELOG.md](./CHANGELOG.md) for patch notes on what's shipped so far.
 
 - Grouped mobile-join QR, invite link, and match controls in a semantic footer below the pilot Ready / Invite buttons.
 - Added a responsive gap and bottom alignment on tall screens; short and narrow screens scroll the complete lobby without clipping pilot cards or footer controls.
+
+### Lobby invite and rank alignment
+
+- Kept the centered QR image and caption inside a card to the left of the invite link, including narrow screens.
+- Placed the account rank badge and numeric rating to the right of the lobby name, without a visible rank title.

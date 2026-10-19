@@ -33,6 +33,8 @@ async def main():
     await page.route('https://*.supabase.co/**',api)
     await page.goto(f'http://127.0.0.1:{server.server_port}/alien-force-classic/#room=ABC123&mode=shared')
     await page.locator('.hangar-footer').wait_for()
+    await page.get_by_label('35 rating points',exact=True).wait_for()
+    assert (await page.locator('.hangar-lobby').get_by_label('Your Ranked progress',exact=True).inner_text()).strip()=='35'
     for count in [1,6]:
      if count==6:
       room['members'].extend([{'player_id':f'guest{i}','display_name':f'Pilot {i}','ready':False} for i in range(5)])
@@ -42,9 +44,13 @@ async def main():
       const qr=document.querySelector('.hangar-invite-qr'),svg=qr.querySelector('svg'),cap=qr.querySelector('figcaption');
       const boxes=[...document.querySelectorAll('.hangar-plaque > button')].map(e=>e.getBoundingClientRect());
       const f=footer.getBoundingClientRect(),r=svg.getBoundingClientRect(),c=cap.getBoundingClientRect();
-      return {gap:f.top+parseFloat(getComputedStyle(footer).paddingTop)-Math.max(...boxes.map(b=>b.bottom)),overflow:dialog.scrollWidth-dialog.clientWidth,
+      const card=qr.getBoundingClientRect(),link=document.querySelector('.hangar-invite > label').getBoundingClientRect();
+      const rank=document.querySelector('.has-ranked-progress .hangar-rank-progress').getBoundingClientRect(),name=document.querySelector('.has-ranked-progress > strong').getBoundingClientRect();
+      return {qrLeft:card.right<=link.left,qrCentered:Math.abs((r.left+r.right)/2-(card.left+card.right)/2),rankRight:rank.left>=name.right-1,rankAligned:Math.abs((rank.top+rank.bottom)/2-(name.top+name.bottom)/2),gap:f.top+parseFloat(getComputedStyle(footer).paddingTop)-Math.max(...boxes.map(b=>b.bottom)),overflow:dialog.scrollWidth-dialog.clientWidth,
        center:Math.abs((r.left+r.right)/2-(c.left+c.right)/2),cardsClipped:slots.scrollHeight-slots.clientHeight};
      }''')
+     assert metrics['qrLeft'] and metrics['qrCentered']<=1,(engine,w,h,count,metrics)
+     assert metrics['rankRight'] and metrics['rankAligned']<=1,(engine,w,h,count,metrics)
      assert metrics['gap']>=27,(engine,w,h,count,metrics)
      assert metrics['overflow']<=1,(engine,w,h,count,metrics)
      assert metrics['center']<=1,(engine,w,h,count,metrics)
@@ -54,9 +60,9 @@ async def main():
      assert box['y']>=0 and box['y']+box['height']<=h+1,(engine,w,h,box)
      if count==1:
       await page.locator('.is-hangar').evaluate('(e)=>e.scrollTop=0')
-      await page.screenshot(path=str(OUT/f'lobby-footer-{engine}-{w}x{h}.png'))
+      await page.screenshot(path=str(OUT/f'lobby-alignment-{engine}-{w}x{h}.png'))
 
-    print(f'PASS {engine} {w}x{h}: 1/6 pilots, footer gap, no overflow/clipping, centered QR, reachable controls',flush=True)
+    print(f'PASS {engine} {w}x{h}: 1/6 pilots, QR left/centered, badge/rating beside name, footer gap, no overflow/clipping, reachable controls',flush=True)
     await page.close()
    await browser.close()
 asyncio.run(main())

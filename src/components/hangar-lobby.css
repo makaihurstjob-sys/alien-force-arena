@@ -69,8 +69,10 @@
  .is-hangar .hangar-actions > span { font-size:12px; }
 }
 
-.hangar-pilot-name.has-ranked-progress { flex-wrap: wrap; gap: 0 6px; padding: 4px; }
-.hangar-rank-progress { flex-basis: 100%; font-size: 11px; line-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hangar-pilot-name.has-ranked-progress { flex-wrap:nowrap; gap:6px; padding:4px 8px; }
+.hangar-pilot-name.has-ranked-progress > strong { flex:1; min-width:0; text-align:left; }
+.has-ranked-progress .hangar-rank-progress { display:inline-flex; flex:none; align-items:center; gap:4px; font-size:12px; line-height:1; white-space:nowrap; }
+.has-ranked-progress .hangar-rank-progress .rank-badge { width:28px; flex:none; margin:0; }
 
 .hangar-invite-qr { margin:0 auto 12px; text-align:center; width:fit-content; padding:10px; border:2px solid #3ee08a; background:#102421; box-shadow:4px 4px 0 #070f10; }
 .hangar-invite-qr svg { display:block; margin-inline:auto; width:144px; height:144px; image-rendering:pixelated; }
@@ -134,11 +136,15 @@
 }
 .hangar-footer .hangar-invite {
  display:grid;
+ grid-template-columns:max-content minmax(0,1fr);
+ align-items:center;
  justify-items:stretch;
  gap:12px;
  margin:0 0 16px;
 }
-.hangar-footer .hangar-invite-qr { justify-self:center; margin:0; }
+.hangar-footer .hangar-invite-qr { justify-self:start; margin:0; padding:6px; }
+.hangar-footer .hangar-invite-qr svg { width:96px; height:96px; }
+.hangar-footer .hangar-invite-qr figcaption { font-size:10px; margin-top:4px; }
 .hangar-footer .hangar-invite > label { display:grid; gap:6px; min-width:0; }
 .hangar-footer .hangar-invite input { min-width:0; box-sizing:border-box; }
 .hangar-footer .hangar-actions { margin-top:0; }
@@ -148,4 +154,10 @@
 @media (max-width:767px) {
  .mobile-main-menu .hangar-footer { padding-top:28px; }
  .hangar-footer .hangar-actions > span { flex-basis:100%; text-align:center; }
+}
+
+@media(max-width:767px) {
+ .hangar-pilot-name.has-ranked-progress { gap:4px; padding:4px; }
+ .has-ranked-progress .hangar-rank-progress .rank-badge { width:24px; }
+ .has-ranked-progress .hangar-host-crown { width:14px; }
 }
