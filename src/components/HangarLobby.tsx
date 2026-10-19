@@ -196,68 +196,70 @@ export default function HangarLobby({
           );
         })}
       </ul>
-      {invite && (
-        <div className="hangar-invite">
-          <figure className="hangar-invite-qr">
-            <QRCodeSVG
-              value={invite}
-              size={144}
-              level="M"
-              marginSize={4}
-              bgColor="#d5e9db"
-              fgColor="#102421"
-              title="Scan to join this room"
-            />
-            <figcaption>Scan to join on mobile</figcaption>
-          </figure>
-          <label>
-            Invite link
-            <input
-              ref={inviteInput}
-              readOnly
-              value={invite}
-              onFocus={(e) => e.currentTarget.select()}
-            />
-          </label>
-        </div>
-      )}
-      <div className="hangar-actions">
-        <button aria-label="Leave room" disabled={busy} onClick={onLeave}>
-          ← Leave room
-        </button>
-        {mode !== "ranked" && <strong>
-          {ready}/{room.members.length} pilots ready
-        </strong>}
-        {room.host_id === player || allowMemberStart ? (
-          <button
-            aria-label={game.playable ? startLabel : "Coming soon"}
-            className="hangar-start"
-            disabled={busy || !open || unavailable || !allReady || !connected || !game.playable}
-            onClick={onStart}
-          >
-            {game.playable ? startLabel : "Coming soon"}
-          </button>
-        ) : (
-          <span>Waiting for the host to start…</span>
+      <footer className="hangar-footer" aria-label="Room sharing and match controls">
+        {invite && (
+          <div className="hangar-invite">
+            <figure className="hangar-invite-qr">
+              <QRCodeSVG
+                value={invite}
+                size={144}
+                level="M"
+                marginSize={4}
+                bgColor="#d5e9db"
+                fgColor="#102421"
+                title="Scan to join this room"
+              />
+              <figcaption>Scan to join on mobile</figcaption>
+            </figure>
+            <label>
+              Invite link
+              <input
+                ref={inviteInput}
+                readOnly
+                value={invite}
+                onFocus={(e) => e.currentTarget.select()}
+              />
+            </label>
+          </div>
         )}
-        <span>
-          {mode === "ranked"
-            ? allReady
-              ? "Ready to start"
-              : "Ready up to start"
-            : !game.playable
-              ? "This game is coming soon."
-              : !readinessAvailable && open
-                ? "Room readiness setup is pending."
-                : !open
-                  ? "Room closed"
-                  : room.members.length < game.min
-                    ? "Invite another pilot to start."
-                    : allReady
-                      ? "All pilots ready"
-                      : "Waiting for all pilots"}
-        </span>
-      </div>
+        <div className="hangar-actions">
+          <button aria-label="Leave room" disabled={busy} onClick={onLeave}>
+            ← Leave room
+          </button>
+          {mode !== "ranked" && <strong>
+            {ready}/{room.members.length} pilots ready
+          </strong>}
+          {room.host_id === player || allowMemberStart ? (
+            <button
+              aria-label={game.playable ? startLabel : "Coming soon"}
+              className="hangar-start"
+              disabled={busy || !open || unavailable || !allReady || !connected || !game.playable}
+              onClick={onStart}
+            >
+              {game.playable ? startLabel : "Coming soon"}
+            </button>
+          ) : (
+            <span>Waiting for the host to start…</span>
+          )}
+          <span>
+            {mode === "ranked"
+              ? allReady
+                ? "Ready to start"
+                : "Ready up to start"
+              : !game.playable
+                ? "This game is coming soon."
+                : !readinessAvailable && open
+                  ? "Room readiness setup is pending."
+                  : !open
+                    ? "Room closed"
+                    : room.members.length < game.min
+                      ? "Invite another pilot to start."
+                      : allReady
+                        ? "All pilots ready"
+                        : "Waiting for all pilots"}
+          </span>
+        </div>
+      </footer>
       <dialog
         ref={selector}
         className="hangar-selector"

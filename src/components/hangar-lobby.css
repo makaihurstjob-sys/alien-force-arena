@@ -9,7 +9,7 @@
 .mobile-main-menu .hangar-tabs .hangar-game-selector { outline:none; }
 .mobile-main-menu .hangar-tabs .hangar-game-selector:focus-visible { background:#21443f; border-bottom-color:#fff; }
 .hangar-connection { color:#a1b6ba; font-size:14px; margin:8px 0; min-height:20px; }
-.hangar-slots { display:grid; grid-template-columns:repeat(var(--slot-count),minmax(0,1fr)); gap:clamp(12px,2vw,32px); list-style:none; padding:0; margin:auto 0; align-items:center; }
+.hangar-slots { display:grid; grid-template-columns:repeat(var(--slot-count),minmax(0,1fr)); gap:clamp(12px,2vw,32px); list-style:none; padding:0; margin:12px 0 0; align-items:center; }
 .hangar-slot { min-width:0; }
 .hangar-dock { position:relative; height:clamp(150px,28vh,290px); display:grid; place-items:center; border:4px ridge #555f5b; background:linear-gradient(#333a3abb,#242c2ddd); box-shadow:8px 8px #0008; margin:0 8px 16px; }
 .hangar-dock::before,.hangar-dock::after { content:''; position:absolute; left:8px; right:8px; height:16px; background:repeating-linear-gradient(130deg,#3b4039 0 12px,#bbaa57 12px 24px); border:2px solid #777b6b; }
@@ -62,9 +62,9 @@
 @media(max-width:767px) { .mobile-menu-dialog.is-hangar { padding:60px 14px 16px; } .hangar-brand { left:14px; top:14px; } }
 @media(max-width:767px) {
  .mobile-menu-dialog.is-hangar { height:100dvh; max-height:100dvh; padding-bottom:max(16px,env(safe-area-inset-bottom)); }
- .is-hangar .hangar-lobby { height:calc(100dvh - 76px - env(safe-area-inset-bottom)); min-height:0; }
+ .is-hangar .hangar-lobby { height:auto; min-height:calc(100dvh - 76px - env(safe-area-inset-bottom)); }
  .is-hangar .hangar-tabs,.is-hangar .hangar-connection,.is-hangar .hangar-actions { flex-shrink:0; }
- .is-hangar .hangar-slots { flex:1; min-height:0; overflow-y:auto; align-items:start; align-content:start; margin:12px 0; padding:4px; }
+ .is-hangar .hangar-slots { flex:none; align-items:start; align-content:start; margin:12px 0 0; padding:4px; }
  .is-hangar .hangar-actions { margin-top:0; gap:8px; padding:8px; }
  .is-hangar .hangar-actions > span { font-size:12px; }
 }
@@ -82,9 +82,9 @@
  .is-hangar .hangar-tabs > * { font-size:clamp(11px,1vw,15px); }
  .is-hangar .hangar-brand { font-size:clamp(18px,1.7vw,28px); transform:none; animation:title-gradient-flow 8s linear infinite; top:24px; max-width:25vw; white-space:normal; }
  .mobile-menu-dialog.is-hangar { height:100dvh; max-height:100dvh; box-sizing:border-box; padding:64px 3.3vw 16px; }
- .is-hangar .hangar-lobby { min-height:0; }
- .is-hangar .hangar-slots { margin:12px 0; }
- .is-hangar .hangar-dock { height:clamp(60px,calc(100dvh - 600px),260px); margin-bottom:10px; }
+ .is-hangar .hangar-lobby { min-height:calc(100dvh - 80px); }
+ .is-hangar .hangar-slots { margin:12px 0 0; }
+ .is-hangar .hangar-dock { height:clamp(60px,calc(100dvh - 720px),260px); margin-bottom:10px; }
  .is-hangar .hangar-invite { display:grid; justify-items:stretch; gap:12px; margin:8px 0; }
  .is-hangar .hangar-invite-qr { justify-self:center; margin:0; padding:6px; }
  .is-hangar .hangar-invite-qr svg { width:96px; height:96px; }
@@ -111,10 +111,41 @@
 
 
 
-/* Lower the lobby content on taller desktops without moving the absolute header. */
+/* Keep the footer at the bottom when there is room; short screens scroll naturally. */
 @media (min-width:768px) {
- .is-hangar .hangar-lobby { padding-top:clamp(0px,calc((100dvh - 650px) * .3),150px); }
+ .is-hangar .hangar-lobby { padding-top:clamp(0px,calc((100dvh - 650px) * .1),40px); }
 }
 
 .hangar-connection:not(.sr-only) { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 .hangar-search-time { flex-shrink:0; color:#3ee08a; font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+.mobile-main-menu .hangar-footer {
+ position:static;
+ inset:auto;
+ color:inherit;
+ font-size:inherit;
+ letter-spacing:normal;
+ text-transform:none;
+ text-align:initial;
+ flex:none;
+ min-width:0;
+ margin-top:auto;
+ padding-top:clamp(28px,5dvh,64px);
+}
+.hangar-footer .hangar-invite {
+ display:grid;
+ justify-items:stretch;
+ gap:12px;
+ margin:0 0 16px;
+}
+.hangar-footer .hangar-invite-qr { justify-self:center; margin:0; }
+.hangar-footer .hangar-invite > label { display:grid; gap:6px; min-width:0; }
+.hangar-footer .hangar-invite input { min-width:0; box-sizing:border-box; }
+.hangar-footer .hangar-actions { margin-top:0; }
+@media (min-width:768px) and (max-width:1200px) {
+ .is-hangar .hangar-lobby { min-height:calc(100dvh - 126px); }
+}
+@media (max-width:767px) {
+ .mobile-main-menu .hangar-footer { padding-top:28px; }
+ .hangar-footer .hangar-actions > span { flex-basis:100%; text-align:center; }
+}
