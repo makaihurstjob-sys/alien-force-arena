@@ -194,3 +194,8 @@ npm run dev
 ```
 
 See [CHANGELOG.md](./CHANGELOG.md) for patch notes on what's shipped so far.
+
+### Lobby footer spacing
+
+- Grouped mobile-join QR, invite link, and match controls in a semantic footer below the pilot Ready / Invite buttons.
+- Added a responsive gap and bottom alignment on tall screens; short and narrow screens scroll the complete lobby without clipping pilot cards or footer controls.
