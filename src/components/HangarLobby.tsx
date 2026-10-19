@@ -29,10 +29,12 @@ export default function HangarLobby({
   invite,
   mode = "bullet",
   onModeChange,
+  searchStartedAt,
   startLabel = "Start match",
   allowMemberStart = false,
 }: {
   onJoinRoom?: (() => void) | undefined;
+  searchStartedAt?: string | undefined;
   startLabel?: string;
   allowMemberStart?: boolean;
   room: BulletLobby;
@@ -51,6 +53,15 @@ export default function HangarLobby({
   mode?: LobbyMode;
   onModeChange?: ((mode: LobbyMode) => void) | undefined;
 }) {
+  const [searchNow, setSearchNow] = useState(Date.now);
+  const searchStart = searchStartedAt ? Date.parse(searchStartedAt) : NaN;
+  useEffect(() => {
+    if (!Number.isFinite(searchStart)) return;
+    setSearchNow(Date.now());
+    const timer = setInterval(() => setSearchNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [searchStart]);
+  const elapsedSeconds = Math.max(0, Math.floor((searchNow - searchStart) / 1000));
   const selector = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const inviteInput = useRef<HTMLInputElement>(null);
@@ -96,7 +107,12 @@ export default function HangarLobby({
         )}
       </div>
       <p className={mode === "ranked" ? "hangar-connection" : "hangar-connection sr-only"} role="status">
-        {open ? (unavailable ? "Reconnecting to room…" : status) : "The host closed this room."}
+        <span>{open ? (unavailable ? "Reconnecting to room…" : status) : "The host closed this room."}</span>
+        {mode === "ranked" && open && Number.isFinite(searchStart) && (
+          <span className="hangar-search-time" aria-label="Elapsed search time" aria-live="off">
+            {Math.floor(elapsedSeconds / 60)}:{String(elapsedSeconds % 60).padStart(2, "0")}
+          </span>
+        )}
       </p>
       <ul
         className="hangar-slots"

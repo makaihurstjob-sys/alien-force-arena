@@ -11,6 +11,7 @@ import {
 import RankedMatchView from "./RankedMatchView";
 
 export type RankedLobbyControls = {
+  searchStartedAt?: string | undefined;
   busy: boolean;
   waiting: boolean;
   eligible: boolean;
@@ -167,6 +168,7 @@ function QueueControls({
     return renderLobby({
       busy,
       waiting: state.status === "waiting",
+      searchStartedAt: state.status === "waiting" ? state.queued_at : undefined,
       eligible: true,
       status:
         error ||
