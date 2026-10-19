@@ -10,7 +10,7 @@ const storageKey = "alien-force-keybindings-v1";
 export function loadBindings(): Bindings {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
-    if (saved && Object.keys(defaults).every(key => Array.isArray(saved[key]) && saved[key].length && saved[key].every((code: unknown) => typeof code === "string"))) return saved;
+    if (saved && Object.keys(defaults).every(key => Array.isArray(saved[key]) && saved[key].every((code: unknown) => typeof code === "string"))) return saved;
   } catch { /* Storage may be unavailable. */ }
   return structuredClone(defaults);
 }
@@ -33,6 +33,6 @@ export function keyLabel(code: string) {
 
 export function keyboardHelp(arcade = false) {
   const value = loadBindings();
-  const show = (action: Action) => value[action].map(keyLabel).join(" / ");
+  const show = (action: Action) => value[action].map(keyLabel).join(" / ") || "Unbound";
   return `Move: ${['thrust', 'reverse', 'left', 'right'].map(action => show(action as Action)).join(', ')}. Fire: ${show('fire')}. Turn around: ${show('turnaround')}.${arcade ? ` Dash / teleport: ${show('dash')}.` : ''} Pause: ${show('pause')}.`;
 }

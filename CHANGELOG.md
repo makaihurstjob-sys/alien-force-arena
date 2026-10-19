@@ -2,6 +2,7 @@
 
 ## 2026-10-19
 
+- Reformat keyboard settings as a binding table with separate key slots, clear controls, selected-action descriptions, and Apply / Restore defaults / Back actions. Preserve alternate bindings and allow saved unbound controls.
 - Remove the helper sentence beneath the lobby game chooser.
 - Prevent selecting or dragging the hangar logo and suppress its touch callout.
 - Restore current rank artwork and Captain progression in the published build; refuse publishing checkouts missing the approved standalone badge files.
