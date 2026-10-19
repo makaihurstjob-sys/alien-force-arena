@@ -204,3 +204,9 @@ See [CHANGELOG.md](./CHANGELOG.md) for patch notes on what's shipped so far.
 
 - Kept the centered QR image and caption inside a card to the left of the invite link, including narrow screens.
 - Placed the account rank badge and numeric rating to the right of the lobby name, without a visible rank title.
+
+### Shared game chooser
+
+- The first Play click and the lobby game selector now share the same game cards, layout, and mode definitions.
+- Removed Ranked Ratings from the initial game choices; standings remain available in Career.
+- Choosing a game from Play opens its lobby; lobby selections keep host and room-capacity restrictions.

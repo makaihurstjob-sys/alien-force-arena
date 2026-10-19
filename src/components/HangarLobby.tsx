@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import RankedProgress from "./RankedProgress";
 import { Crown } from "lucide-react";
-import { DesktopArena } from "./DesktopArena";
+import GameChooser from "./GameChooser";
 import { ShipIcon } from "./ShipIcon";
 import type { BulletLobby } from "@/lib/bullet-lobby";
 import "./hangar-lobby.css";
@@ -62,14 +62,9 @@ export default function HangarLobby({
     return () => clearInterval(timer);
   }, [searchStart]);
   const elapsedSeconds = Math.max(0, Math.floor((searchNow - searchStart) / 1000));
-  const selector = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const inviteInput = useRef<HTMLInputElement>(null);
   const [selecting, setSelecting] = useState(false);
-  useEffect(() => {
-    if (selecting) selector.current?.showModal();
-    else selector.current?.close();
-  }, [selecting]);
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(invite);
@@ -260,68 +255,23 @@ export default function HangarLobby({
           </span>
         </div>
       </footer>
-      <dialog
-        ref={selector}
-        className="hangar-selector"
-        aria-labelledby="hangar-selector-title"
-        onCancel={() => setSelecting(false)}
-        onClose={() => {
+      <GameChooser
+        returnFocus={trigger}
+        open={selecting}
+        mode={mode}
+        onClose={() => setSelecting(false)}
+        onChoose={(key) => {
           setSelecting(false);
-          trigger.current?.focus();
+          if (key !== mode) onModeChange?.(key);
         }}
-      >
-        <header>
-          <h2 id="hangar-selector-title">Choose game</h2>
-          <button aria-label="Close game selector" onClick={() => setSelecting(false)}>
-            ×
-          </button>
-        </header>
-        <div className="hangar-game-cards">
-          {(Object.entries(lobbyModes) as [LobbyMode, (typeof lobbyModes)[LobbyMode]][]).map(
-            ([key, item]) => (
-              <button
-                key={key}
-                disabled={
-                  busy ||
-                  !open ||
-                  unavailable ||
-                  (key !== mode &&
-                    (!onModeChange || room.host_id !== player || room.members.length > item.max))
-                }
-                aria-pressed={key === mode}
-                onClick={() => {
-                  setSelecting(false);
-                  if (key !== mode) onModeChange?.(key);
-                }}
-              >
-                <div className="hangar-thumbnail">
-                  <DesktopArena
-                    mode={key === "arcade" ? 1 : key === "practice" ? 2 : 0}
-                    thumbnail
-                  />
-                </div>
-                <strong>{item.name}</strong>
-                <span>
-                  {item.description}{key !== "ranked" && ` \u00b7 ${item.max} ${item.max === 1 ? "pilot" : "pilots"}`}
-                </span>
-                <small>
-                  {key === mode
-                    ? "Current game"
-                    : room.members.length > item.max
-                      ? "Too many pilots"
-                      : !onModeChange
-                        ? "Leave this room to change games"
-                        : room.host_id !== player
-                          ? "Host chooses the game"
-                          : !item.playable
-                            ? "Coming soon"
-                            : "Select game"}
-                </small>
-              </button>
-            ),
-          )}
-        </div>
-      </dialog>
+        disabled={(key) => busy || !open || unavailable ||
+          (key !== mode && (!onModeChange || room.host_id !== player || room.members.length > lobbyModes[key].max))}
+        hint={(key) => key === mode ? "Current game"
+          : room.members.length > lobbyModes[key].max ? "Too many pilots"
+          : !onModeChange ? "Leave this room to change games"
+          : room.host_id !== player ? "Host chooses the game"
+          : !lobbyModes[key].playable ? "Coming soon" : "Select game"}
+      />
     </section>
   );
 }

@@ -1,6 +1,5 @@
 import GameSettings from "./GameSettings";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { ChevronRight, X, Trophy, Medal, Coins, Settings } from "lucide-react";
 import { PlayerProfile } from "./PlayerProfile";
 import { MenuPilot } from "./MenuPilot";
@@ -10,7 +9,8 @@ import "./leaderboard-shortcut.css";
 import "./main-menu-overhaul.css";
 import { ShipIcon } from "./ShipIcon";
 import RoomEntry from "./RoomEntry";
-import type { LobbyMode } from "@/lib/lobby-modes";
+import { lobbyModes, type LobbyMode } from "@/lib/lobby-modes";
+import GameChooser from "./GameChooser";
 import { animateLobbyExit } from "@/lib/lobby-exit";
 import ClassicLeaderboard from "./ClassicLeaderboard";
 import Career from "./Career";
@@ -22,17 +22,6 @@ import { renderClassic } from "@/game/classic/render";
 import { createMatch } from "@/game/engine";
 import { render } from "@/game/render";
 import { ARENA } from "@/game/config";
-
-const modes = [
-  { name: "Classic", description: "Original arena combat", color: "#3ee08a" },
-  { name: "Versus", description: "Private duel \u00b7 2 pilots", color: "#69d9ff" },
-  { name: "Ranked", description: "Competitive 1v1 matches", color: "#d0a0ff" },
-  { name: "Arcade", description: "Power-ups · Online 1v1", color: "#ffe066" },
-  { name: "Arcade Practice", description: "Power-ups · Training bot", color: "#ffe066" },
-  { name: "Bullet Run", description: "Free for all · Up to 6 pilots", color: "#ff704d" },
-  { name: "Practice", description: "Local 1v1 · Training bot", color: "#3ee08a" },
-  { name: "Ranked Ratings", description: "1v1 ? Competitive standings", color: "#d0a0ff" },
-] as const;
 
 // An isolated attract-mode simulation: never changes the player's actual game.
 function ArenaPreview({
@@ -103,15 +92,15 @@ function StandingsPreview({ ranked = false }: { ranked?: boolean }) {
 }
 
 export function MobileMainMenu() {
-  const [selected, setSelected] = useState(0);
+  const chooserTrigger = useRef<HTMLButtonElement>(null);
+  const [selected, setSelected] = useState<LobbyMode>("solo");
   const [panel, setPanel] = useState<"career" | "lobby" | "settings" | "leaderboard" | "ratings" | "games" | "loadout" | "shop" | null>(null);
   const [roomBusy, setRoomBusy] = useState(false);
   const [roomPlaying, setRoomPlaying] = useState(false);
   const [inviteCode, setInviteCode] = useState<string>();
   const [lobbyMode, setLobbyMode] = useState<LobbyMode>('solo');
-  const enterMode = () => {
-    const modeMap: Record<string, LobbyMode> = { Classic: 'solo', 'Versus': 'duel', Practice: 'practice', 'Bullet Run': 'bullet', Ranked: 'ranked', Arcade: 'arcade' };
-    setInviteCode(undefined); setLobbyMode(modeMap[modes[selected]!.name] ?? 'solo'); setPanel('lobby');
+  const enterMode = (mode: LobbyMode) => {
+    setSelected(mode); setInviteCode(undefined); setLobbyMode(mode); setPanel('lobby');
   };
   const leaveLobby = () => {
     animateLobbyExit(dialog.current);
@@ -144,9 +133,9 @@ export function MobileMainMenu() {
   const hangar = panel === 'lobby';
   const menuPage = panel === 'career' || panel === 'loadout' || panel === 'shop';
   const dialog = useRef<HTMLDialogElement>(null);
-  const mode = modes[selected] ?? modes[0];
+  const mode = lobbyModes[selected];
   useEffect(() => {
-    if (panel && !menuPage && !roomPlaying) dialog.current?.showModal();
+    if (panel && panel !== "games" && !menuPage && !roomPlaying) dialog.current?.showModal();
     else dialog.current?.close();
     if (roomPlaying) document.querySelector<HTMLCanvasElement>(".online-match-screen canvas")?.focus();
   }, [panel, menuPage, roomPlaying]);
@@ -155,7 +144,7 @@ export function MobileMainMenu() {
     <section className={`mobile-main-menu ${menuPage ? "is-menu-page" : ""}`} aria-label="Main menu">
       {!hangar && <PlayerProfile />}
       <div className="desktop-arena" aria-hidden="true">
-        <DesktopArena mode={mode.name === "Arcade" || mode.name === "Arcade Practice" ? 1 : mode.name === "Practice" ? 2 : 0} />
+        <DesktopArena mode={mode.name === "Arcade" ? 1 : mode.name === "Practice" ? 2 : 0} />
       </div>
 
       <header className="arena-menu-header">
@@ -171,18 +160,17 @@ export function MobileMainMenu() {
       {menuPage ? panel === "career" ? <section aria-label="Career"><Career /></section> : panel === "shop" ? <ShopScreen /> : <LoadoutScreen /> : <>
       <div className="arena-menu-center"><div aria-hidden="true"><ShipIcon size={120} /></div><MenuPilot /></div>
       <section className="arena-play-dock" aria-label="Selected game">
-        <button className="arena-selected-game" aria-label={`Choose game, current game: ${mode.name}`} aria-haspopup="dialog" onClick={() => setPanel("games")}>
+        <button className="arena-selected-game" aria-label={`Choose game, current game: ${mode.name}`} aria-haspopup="dialog" onClick={(event) => { chooserTrigger.current = event.currentTarget; setPanel("games"); }}>
           <span className="arena-selected-copy"><strong>{mode.name}</strong><span>{mode.description}</span></span>
           <ChevronRight />
         </button>
-        {mode.name === "Ranked Ratings" ? <button className="arena-play-button" onClick={() => setPanel("ratings")}>View ratings<ChevronRight /></button>
-          : mode.name === "Arcade Practice" ? <Link className="arena-play-button" to="/arcade">Play<ChevronRight /></Link>
-          : <button className="arena-play-button" onClick={enterMode}>Play<ChevronRight /></button>}
+        <button className="arena-play-button" aria-haspopup="dialog" onClick={(event) => { chooserTrigger.current = event.currentTarget; setPanel("games"); }}>Play<ChevronRight /></button>
       </section>
       <footer>Fight · Adapt · Survive</footer>
       </>}
       {!panel && <button className="leaderboard-shortcut settings-shortcut" aria-label="Open Settings" title="Settings" onClick={() => setPanel("settings")}><Settings aria-hidden="true" /></button>}
-      {!menuPage && <dialog
+      <GameChooser returnFocus={chooserTrigger} open={panel === "games"} mode={selected} onClose={() => setPanel(current => current === "games" ? null : current)} onChoose={enterMode} />
+      {!menuPage && panel !== "games" && <dialog
         ref={dialog}
         className={`mobile-menu-dialog ${hangar ? "is-hangar" : ""} ${roomPlaying ? "is-playing" : ""} ${(panel === "leaderboard" || panel === "ratings") ? "classic-tracker-dialog" : ""}`}
         aria-labelledby="mobile-panel-title"
@@ -200,7 +188,7 @@ export function MobileMainMenu() {
         {hangar && <><PlayerProfile /><div className="hangar-backdrop" aria-hidden="true"><DesktopArena mode={0} /></div><div className="hangar-brand" aria-hidden="true">Alien Force Arena</div></>}
         <div className={`mobile-panel-heading ${hangar ? 'hangar-entry-heading' : ''}`}>
           <h2 id="mobile-panel-title" className={(panel === "leaderboard" || panel === "ratings") ? "sr-only" : undefined}>
-            {panel === "games" ? "Choose your game" : panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
+            {panel === "leaderboard" ? "Global Leaderboard" : panel === "ratings" ? "Ranked Ratings" : roomPlaying ? "Online 1v1" : panel === "settings"
               ? "Settings"
               : "Game lobby"}
           </h2>
@@ -209,11 +197,7 @@ export function MobileMainMenu() {
           </button>
         </div>
         {(panel === "leaderboard" || panel === "ratings") && <nav className="arena-record-tabs" aria-label="Leaderboard type"><button aria-pressed={panel === "leaderboard"} onClick={() => setPanel("leaderboard")}>Classic scores</button><button aria-pressed={panel === "ratings"} onClick={() => setPanel("ratings")}>Ranked ratings</button></nav>}
-        {panel === "games" ? <div className="arena-game-grid">{modes.map((item, index) => <button key={item.name} aria-pressed={selected === index} onClick={() => { setSelected(index); setPanel(null); }}>
-          <span className="arena-game-preview">{item.name === "Ranked Ratings" ? <StandingsPreview ranked /> : <DesktopArena mode={item.name.startsWith("Arcade") ? 1 : item.name === "Practice" ? 2 : 0} thumbnail />}</span>
-          <strong>{item.name}</strong><span>{item.description}</span>
-        </button>)}</div>
-        : panel === "leaderboard" ? <ClassicLeaderboard /> : panel === "ratings" ? <RankedRatings /> : panel === "settings" ? (
+        {panel === "leaderboard" ? <ClassicLeaderboard /> : panel === "ratings" ? <RankedRatings /> : panel === "settings" ? (
           <GameSettings onBack={() => setPanel(null)} />
         ) : (
           panel && (
