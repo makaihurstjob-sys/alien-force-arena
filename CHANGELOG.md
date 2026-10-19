@@ -2,6 +2,7 @@
 
 ## 2026-10-19
 
+- Remove the helper sentence beneath the lobby game chooser.
 - Prevent selecting or dragging the hangar logo and suppress its touch callout.
 - Restore the current Cadet, corrected Scout, Captain, and Galactic Legend artwork and Captain progression in the published build. Refuse publishing checkouts missing these badge files.
 - Make the touch D-pad follow thumb slides across the full pad, including its corners; release held movement on cancellation, focus loss, and menu changes. Disable text selection and long-press callouts across the controller.

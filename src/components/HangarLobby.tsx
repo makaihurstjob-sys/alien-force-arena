@@ -303,7 +303,6 @@ export default function HangarLobby({
             ),
           )}
         </div>
-        <p>Choose a game or close to return to your lobby.</p>
       </dialog>
     </section>
   );
