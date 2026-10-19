@@ -153,7 +153,7 @@ export default function HangarLobby({
                       )}
                       <strong title={member.display_name}>{member.display_name}</strong>
                       {mode === "ranked" && member.player_id === player && (
-                        <RankedProgress player={player} compact />
+                        <RankedProgress player={player} compact ratingOnly />
                       )}
                     </div>
                     <button

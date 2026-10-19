@@ -9,11 +9,13 @@ type Record = { rating: number; peak: number; wins: number; losses: number; draw
 export default function RankedProgress({
   player,
   compact = false,
+  ratingOnly = false,
   showcase = false,
   preview = "pilot",
 }: {
   player?: string | undefined;
   compact?: boolean;
+  ratingOnly?: boolean;
   showcase?: boolean;
   preview?: string;
 }) {
@@ -74,7 +76,7 @@ export default function RankedProgress({
   if (!record)
     return (
       <span className={compact ? "hangar-rank-progress" : undefined} role="status">
-        {status}
+        {ratingOnly ? <span aria-label={status} title={status}>?</span> : status}
       </span>
     );
   const rank = rankAt(record.rating);
@@ -84,7 +86,10 @@ export default function RankedProgress({
       aria-label="Your Ranked progress"
       style={{ color: rank.color }}
     >
-      <RankBadge id={rank.id} name={rank.name} className="rank-badge-small" /> {" "}<strong>{rank.label}</strong> - {record.rating} points
+      <RankBadge id={rank.id} name={rank.name} className="rank-badge-small" />
+      {ratingOnly ? (
+        <span aria-label={`${record.rating} rating points`}>{record.rating}</span>
+      ) : (<> <strong>{rank.label}</strong> - {record.rating} points</>)}
       {!compact && (
         <>
           {" "}
