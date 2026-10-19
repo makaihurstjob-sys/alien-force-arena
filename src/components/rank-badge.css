@@ -5,3 +5,5 @@
 .rank-badge.is-placeholder svg { width: 65%; height: 65%; }
 .rank-badge.rank-badge-large { width: clamp(180px, 25vw, 270px); box-shadow: 0 12px 65px #0005; border-radius: 20px; }
 .rank-badge.rank-badge-small { width: 38px; border-radius: 6px; }
+
+.rank-badge.has-standalone-artwork img { display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; }

@@ -8,8 +8,9 @@ const artwork: Record<string, { x: number; y: number }> = {
 };
 export default function RankBadge({ id, name, className = "" }: { id: string; name: string; className?: string }) {
   const badge = artwork[id];
-  return <span className={`rank-badge ${badge ? "has-artwork" : "is-placeholder"} ${className}`} role="img" aria-label={`${name} rank badge${badge ? "" : " (artwork pending)"}`}>
-    {badge ? <img src={`${import.meta.env.BASE_URL}ranks/framber-reference.png`} alt="" aria-hidden="true" draggable={false}
+  const standalone = ["cadet", "captain", "scout", "galactic-legend"].includes(id) ? `${import.meta.env.BASE_URL}ranks/${id}-badge.png` : null;
+  return <span className={`rank-badge ${standalone ? "has-standalone-artwork" : badge ? "has-artwork" : "is-placeholder"} ${className}`} role="img" aria-label={`${name} rank badge${badge || standalone ? "" : " (artwork pending)"}`}>
+    {standalone ? <img src={standalone} alt="" aria-hidden="true" draggable={false} /> : badge ? <img src={`${import.meta.env.BASE_URL}ranks/framber-reference.png`} alt="" aria-hidden="true" draggable={false}
       style={{ "--badge-x": `${-badge.x / 510 * 100}%`, "--badge-y": `${-badge.y / 510 * 100}%` } as CSSProperties} /> : <Medal aria-hidden="true" />}
   </span>;
 }

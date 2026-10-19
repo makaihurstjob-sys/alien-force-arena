@@ -15,8 +15,12 @@ describe('preseason ladder', () => {
   });
   it('reserves Legend for an eligible #1, without capping rating', () => {
     expect(rankAt(1499, 1).label).toBe('Commander III');
-    expect(rankAt(1500, 1).label).toBe('Galactic Legend');
-    expect(rankAt(1900, 2).label).toBe('Commander III');
+    expect(rankAt(1500, 1).label).toBe('Captain I');
+    expect(rankAt(1600).label).toBe('Captain II');
+    expect(rankAt(1799, 1).label).toBe('Captain III');
+    expect(rankAt(1800, 1).label).toBe('Galactic Legend');
+    expect(rankAt(1800).label).toBe('Captain III');
+    expect(rankAt(1900, 2).label).toBe('Captain III');
     expect(applyRatingChange(1900, 30).rating).toBe(1930);
   });
   it('bounds all combined changes and softens close losses', () => {

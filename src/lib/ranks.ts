@@ -5,5 +5,6 @@ export const ranks = [
   { id: "pilot", name: "Pilot", color: "#d7e2ed" },
   { id: "ace", name: "Ace", color: "#ffda6b" },
   { id: "commander", name: "Commander", color: "#53baff" },
+  { id: "captain", name: "Captain", color: "#ba76ff" },
   { id: "galactic-legend", name: "Galactic Legend", color: "#ff5757" },
 ] as const;

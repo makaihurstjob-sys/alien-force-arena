@@ -2,7 +2,7 @@ import { ranks } from './ranks';
 
 export const RANKED_RULES = {
   season: 'preseason', pointsPerDivision: 100, divisionsPerTier: 3,
-  startingRating: 0, legendMinimum: 1500, baseline: 30, minimumDelta: 21,
+  startingRating: 0, legendMinimum: 1800, baseline: 30, minimumDelta: 21,
   maximumDelta: 39, stocks: 4, disconnectWindowMs: 15 * 60_000,
   cooldownsMs: [5 * 60_000, 15 * 60_000, 30 * 60_000],
 } as const;
@@ -19,9 +19,9 @@ function ratingValue(value: number) {
 /** #1 is supplied by trusted standings, never inferred from a local match. */
 export function rankAt(rating: number, standing?: number) {
   ratingValue(rating);
-  const divisionIndex = Math.min(14, Math.floor(rating / 100));
+  const divisionIndex = Math.min((ranks.length - 1) * RANKED_RULES.divisionsPerTier - 1, Math.floor(rating / 100));
   const legend = rating >= RANKED_RULES.legendMinimum && standing === 1;
-  const rank = ranks[legend ? 5 : Math.floor(divisionIndex / 3)]!;
+  const rank = ranks[legend ? ranks.length - 1 : Math.floor(divisionIndex / 3)]!;
   const division = ['I', 'II', 'III'][divisionIndex % 3]!;
   return { ...rank, division: legend ? null : division,
     label: legend ? rank.name : `${rank.name} ${division}`,

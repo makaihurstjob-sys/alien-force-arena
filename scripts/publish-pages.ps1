@@ -1,5 +1,11 @@
 param([Parameter(Mandatory=$true)][string]$PublishCheckout)
 $ErrorActionPreference = 'Stop'
+# Refuse a stale checkout that predates the approved standalone rank badges.
+foreach ($badge in @('cadet', 'captain', 'scout', 'galactic-legend')) {
+  if (-not (Test-Path -LiteralPath "public/ranks/$badge-badge.png")) {
+    throw "Missing current rank artwork: $badge. Update this source checkout before publishing."
+  }
+}
 # Use the separate public assets repository, never the source checkout.
 $target = (Resolve-Path -LiteralPath $PublishCheckout).Path
 $remote = git -C $target remote get-url origin

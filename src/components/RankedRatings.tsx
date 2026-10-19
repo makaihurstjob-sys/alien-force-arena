@@ -42,7 +42,7 @@ export default function RankedRatings() {
       </section>
       <p>
         Start at Cadet I. Earn 100 points per division, with one grace loss at zero. Galactic Legend
-        requires the #1 spot and 1,500 rating.
+        requires the #1 spot and 1,800 rating.
       </p>
       <p>
         Wins usually earn 21-39 points; losses deduct the same nominal amount, subject to rating
