@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-19
+
+- Add Discord sign-out to Player profile, save pending profile edits before signing out, and clear the displayed account when its session ends. Show save/sign-out errors and distinguish local sign-out from confirmed server revocation.
+- Remove the flag helper text about public player cards and leaderboard entries.
+
 ## 2026-10-12
 
 - Publish Framber's opening battle animation with the Alien Force logo, START screen, Skip Intro, reduced-motion support, and direct room/player link bypass.

@@ -39,7 +39,6 @@
 .player-profile-dialog p { margin-top: 16px; }
 .profile-flag-picker { margin-top: 20px; }
 .profile-flag-picker label { display: block; color: #d9e9ee; }
-.profile-flag-picker small { display: block; color: #a2b6c6; margin-top: 8px; }
 .player-profile-dialog .profile-flag-current { display: flex; align-items: center; gap: 12px; }
 .profile-flag-current > span:first-of-type { flex: 1; }
 .profile-flag-current > span:last-child { color: #8acfb0; font-size: 13px; }

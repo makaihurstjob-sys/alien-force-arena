@@ -30,7 +30,13 @@ export function PlayerProfile() {
     void connection().then(async db => {
       if (!active) return;
       const subscription = db.auth.onAuthStateChange((_event, session) => {
-        if (active) { setUser(session?.user ?? null); setImageFailed(false); }
+        if (active) {
+          setUser(session?.user ?? null); setImageFailed(false);
+          if (_event === "SIGNED_OUT") {
+            savedName.current = ""; savedFlag.current = null;
+            setName(""); setFlag(null);
+          }
+        }
       });
       unsubscribe = () => subscription.data.subscription.unsubscribe();
       const { data, error } = await db.auth.getSession();
@@ -107,6 +113,27 @@ export function PlayerProfile() {
     finally { setBusy(false); }
   }
 
+  async function signOut() {
+    if (busy || !discord || !await saveName()) return;
+    setBusy(true); setMessage("");
+    try {
+      const db = await connection();
+      const { error } = await db.auth.signOut({ scope: "local" });
+      if (error) {
+        // Auth can remove the local session even if server revocation fails.
+        const { data, error: sessionError } = await db.auth.getSession();
+        if (sessionError || data.session) throw error;
+      }
+      setUser(null); setImageFailed(false);
+      savedName.current = ""; savedFlag.current = null;
+      setName(""); setFlag(null);
+      setMessage(error ? "Signed out on this device. Unable to confirm server sign-out." : "Signed out.");
+      window.dispatchEvent(new Event("alien-force-profile-updated"));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to sign out. Please try again.");
+    } finally { setBusy(false); }
+  }
+
   async function signIn() {
     if (!await saveName()) return;
     setBusy(true); setMessage("");
@@ -140,8 +167,8 @@ export function PlayerProfile() {
         <button aria-label="Close profile" onClick={() => void closeProfile()}>×</button>
       </div>
         {discord && <div className="profile-ranked-progress"><RankedProgress player={user?.id} compact /></div>}
-      <button className="profile-option discord-sign-in" disabled={!!discord || busy || !loaded} onClick={() => void signIn()}>
-        <span>{discord ? "Signed in with Discord" : "Sign in with Discord"}</span>
+      <button className="profile-option discord-sign-in" disabled={busy || !loaded} onClick={() => void (discord ? signOut() : signIn())}>
+        <span>{discord ? "Sign out of Discord" : "Sign in with Discord"}</span>
         <DiscordLogo />
       </button>
       <form onSubmit={event => { event.preventDefault(); void saveName(); }}>
