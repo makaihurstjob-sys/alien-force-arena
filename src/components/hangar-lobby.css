@@ -115,3 +115,6 @@
 @media (min-width:768px) {
  .is-hangar .hangar-lobby { padding-top:clamp(0px,calc((100dvh - 650px) * .3),150px); }
 }
+
+.hangar-connection:not(.sr-only) { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.hangar-search-time { flex-shrink:0; color:#3ee08a; font-variant-numeric:tabular-nums; white-space:nowrap; }

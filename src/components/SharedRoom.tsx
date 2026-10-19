@@ -302,7 +302,7 @@ export default function SharedRoom({
         onStart={
           ranked ? (ranked.waiting ? ranked.cancel : ranked.start) : () => void mutate("launch")
         }
-        startLabel={ranked?.waiting ? "Cancel search" : "Start match"}
+        searchStartedAt={ranked?.searchStartedAt} startLabel={ranked?.waiting ? "Cancel search" : "Start match"}
         allowMemberStart={!!ranked}
       />
     </>

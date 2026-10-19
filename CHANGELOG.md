@@ -2,6 +2,8 @@
 
 ## 2026-10-19
 
+- Show elapsed Ranked search time beside the lobby status, anchored to the queue timestamp and cleared when searching ends.
+
 - Center the mobile-join QR code and caption together above the lobby invite link on desktop and mobile.
 
 - Make Ranked search status and Cancel search visible, connect fallback lobbies to matchmaking, and hide Ranked lobby pilot counts.
