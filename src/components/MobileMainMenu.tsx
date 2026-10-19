@@ -214,7 +214,7 @@ export function MobileMainMenu() {
           <strong>{item.name}</strong><span>{item.description}</span>
         </button>)}</div>
         : panel === "leaderboard" ? <ClassicLeaderboard /> : panel === "ratings" ? <RankedRatings /> : panel === "settings" ? (
-          <GameSettings />
+          <GameSettings onBack={() => setPanel(null)} />
         ) : (
           panel && (
             <RoomEntry

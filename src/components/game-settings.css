@@ -1,9 +1,55 @@
-.game-settings { max-width: 620px; margin: auto; color: #dce6ef; }
-.game-settings p { line-height: 1.5; color: #aebdce; }
-.keybinding-list { display: grid; gap: 10px; }
-.keybinding-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #394652; }
-.game-settings button { min-height: 44px; padding: 8px 12px; border: 1px solid #6b8198; background: #202d39; color: #fff; font: inherit; cursor: pointer; }
-.game-settings button[aria-pressed=true] { border-color: #69d9ff; color: #69d9ff; }
-.game-settings button:focus-visible { outline: 2px solid #69d9ff; outline-offset: 3px; }
-@media(max-width: 400px) { .keybinding-row { align-items: stretch; flex-direction: column; } }
-.leaderboard-shortcut.settings-shortcut { border: 3px solid #adb4bf; padding: 10px; }
+.mobile-menu-dialog:has(.game-settings) { width:min(94vw,1000px); height:min(90svh,860px); max-height:90svh; padding:24px; border-radius:10px; background:#11191c; }
+.mobile-menu-dialog[open]:has(.game-settings) { display:flex; flex-direction:column; overflow:hidden; }
+.game-settings { display:flex; flex-direction:column; flex:1; min-height:0; color:#dce6ef; }
+.controls-heading { display:flex; align-items:center; gap:14px; padding:8px 0 24px; border-bottom:1px solid #324349; }
+.controls-heading > svg { color:#62e7ac; flex-shrink:0; }
+.controls-heading h3 { margin:0 0 5px; font-size:20px; }
+.game-settings p { margin:0; font-size:14px; line-height:1.5; color:#aebec3; }
+.controls-layout { display:grid; flex:1; min-height:0; grid-template-columns:minmax(0,1fr) 240px; grid-template-rows:minmax(0,1fr); gap:28px; padding-top:20px; }
+.keybinding-list { min-width:0; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding-right:4px; scrollbar-width:thin; scrollbar-color:#78a996 #1b2a2e; scrollbar-gutter:stable; }
+.keybinding-list::-webkit-scrollbar { width:6px; }
+.keybinding-list::-webkit-scrollbar-thumb { background:#78a996; border-radius:4px; }
+.keybinding-list::-webkit-scrollbar-track { background:#1b2a2e; }
+.keybinding-columns,.keybinding-row { display:grid; grid-template-columns:minmax(105px,1fr) minmax(190px,1.45fr) 36px; align-items:center; gap:12px; }
+.keybinding-columns { padding:0 10px 12px; color:#8fa7ad; font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+.keybinding-row { min-height:68px; padding:10px; border-bottom:1px solid #29393e; transition:background .12s; }
+.keybinding-row.is-selected { background:#18342c; box-shadow:inset 3px 0 #62e7ac; }
+.keybinding-label { font-size:14px; line-height:1.4; }
+.binding-slots { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; min-width:0; }
+.game-settings button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px; padding:8px 12px; border:1px solid #52676e; border-radius:4px; background:#26383f; color:#f1f7f8; font:inherit; font-size:13px; cursor:pointer; }
+.game-settings button:hover:not(:disabled) { background:#354b52; border-color:#8db9aa; }
+.game-settings button:disabled { cursor:default; opacity:.45; }
+.game-settings .binding-key { min-height:42px; padding:6px 4px; background:#cbd8d8; color:#16262b; border-color:#dce7e7; min-width:0; }
+.game-settings .binding-key[aria-pressed=true] { background:#b9f6d6; border-color:#62e7ac; outline:2px solid #62e7ac; outline-offset:2px; }
+.binding-key kbd { font:inherit; font-size:12px; overflow-wrap:anywhere; }
+.binding-empty { color:#52676d; font-size:11px; }
+.game-settings .binding-clear { width:36px; min-height:36px; padding:6px; background:#253337; color:#f18e91; border-color:#44565d; }
+.game-settings button:focus-visible { outline:2px solid #62e7ac; outline-offset:3px; }
+.binding-details { border-left:1px solid #324349; padding:12px 0 16px 24px; min-width:0; }
+.binding-details > svg { color:#62e7ac; margin-bottom:18px; }
+.binding-details h4 { font-size:20px; margin:0 0 12px; }
+.binding-detail-keys { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; font-size:13px; }
+.binding-detail-keys kbd { padding:6px 9px; background:#25383c; border:1px solid #47625e; border-radius:4px; font:inherit; }
+.game-settings .binding-listening { color:#9af0c1; margin-top:22px; }
+.controls-footer { flex-shrink:0; margin-top:22px; padding-top:18px; border-top:1px solid #324349; }
+.controls-status { min-height:42px; }
+.controls-actions { display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap; }
+.game-settings .controls-apply { background:#38795b; border-color:#62e7ac; min-width:100px; }
+.leaderboard-shortcut.settings-shortcut { border:3px solid #adb4bf; padding:10px; }
+@media(max-width:760px) {
+  .mobile-menu-dialog:has(.game-settings) { padding:16px; }
+  .controls-layout { grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); gap:12px; }
+  .binding-details { grid-row:1; height:144px; overflow-y:auto; border-left:0; border-bottom:1px solid #324349; padding:0 0 16px; }
+  .binding-details > svg,.binding-detail-keys { display:none; }
+  .binding-details h4 { font-size:16px; margin-bottom:6px; }
+  .game-settings .binding-listening { margin-top:8px; }
+  .keybinding-columns { display:none; }
+  .keybinding-row { grid-template-columns:minmax(0,1fr) 38px; gap:8px; padding:12px 8px; }
+  .keybinding-label { grid-column:1 / -1; }
+  .game-settings button { min-height:44px; }
+  .game-settings .binding-clear { width:38px; }
+  .controls-heading { padding-bottom:18px; }
+  .controls-actions { justify-content:stretch; }
+  .controls-actions button { flex:1 1 auto; }
+}
+@media(prefers-reduced-motion:reduce) { .keybinding-row { transition:none; } }
