@@ -84,9 +84,9 @@ export default function HangarLobby({
           {game.name} <span aria-hidden="true">⌄</span>
         </button>
         <span>{game.description}</span>
-        <span>
+        {mode !== "ranked" && <span>
           {room.members.length}/{game.max} pilots
-        </span>
+        </span>}
         <strong>{room.code ? `Room ${room.code}` : "Local lobby"}</strong>
         {onJoinRoom && <button type="button" aria-haspopup="dialog" onClick={onJoinRoom} disabled={busy || !open}>Join Room</button>}
         {invite && (
@@ -95,7 +95,7 @@ export default function HangarLobby({
           </button>
         )}
       </div>
-      <p className="hangar-connection sr-only" role="status">
+      <p className={mode === "ranked" ? "hangar-connection" : "hangar-connection sr-only"} role="status">
         {open ? (unavailable ? "Reconnecting to room…" : status) : "The host closed this room."}
       </p>
       <ul
@@ -209,9 +209,9 @@ export default function HangarLobby({
         <button aria-label="Leave room" disabled={busy} onClick={onLeave}>
           ← Leave room
         </button>
-        <strong>
+        {mode !== "ranked" && <strong>
           {ready}/{room.members.length} pilots ready
-        </strong>
+        </strong>}
         {room.host_id === player || allowMemberStart ? (
           <button
             aria-label={game.playable ? startLabel : "Coming soon"}
@@ -219,7 +219,7 @@ export default function HangarLobby({
             disabled={busy || !open || unavailable || !allReady || !connected || !game.playable}
             onClick={onStart}
           >
-            {game.playable ? "▶ Start match" : "Coming soon"}
+            {game.playable ? startLabel : "Coming soon"}
           </button>
         ) : (
           <span>Waiting for the host to start…</span>
@@ -284,7 +284,7 @@ export default function HangarLobby({
                 </div>
                 <strong>{item.name}</strong>
                 <span>
-                  {item.description} · {item.max} {item.max === 1 ? "pilot" : "pilots"}
+                  {item.description}{key !== "ranked" && ` \u00b7 ${item.max} ${item.max === 1 ? "pilot" : "pilots"}`}
                 </span>
                 <small>
                   {key === mode

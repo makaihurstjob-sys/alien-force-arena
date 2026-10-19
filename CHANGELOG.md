@@ -2,6 +2,8 @@
 
 ## 2026-10-19
 
+- Make Ranked search status and Cancel search visible, connect fallback lobbies to matchmaking, and hide Ranked lobby pilot counts.
+
 - Reformat keyboard settings as a binding table with separate key slots, clear controls, selected-action descriptions, and Apply / Restore defaults / Back actions. Preserve alternate bindings and allow saved unbound controls.
 - Remove the helper sentence beneath the lobby game chooser.
 - Prevent selecting or dragging the hangar logo and suppress its touch callout.
