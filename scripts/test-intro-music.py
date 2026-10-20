@@ -14,8 +14,9 @@ class Handler(SimpleHTTPRequestHandler):
 PROBE='''(() => {
  window.__music = { started: 0, contexts: [] };
  const C = window.AudioContext || window.webkitAudioContext;
- const start = AudioBufferSourceNode.prototype.start;
- AudioBufferSourceNode.prototype.start = function(...a) { window.__music.started++; window.__music.loop = this.loop; window.__music.seconds = this.buffer && this.buffer.duration; return start.apply(this, a); };
+ if (!C) return;
+ const create = C.prototype.createBufferSource;
+ C.prototype.createBufferSource = function(...a) { const node = create.apply(this,a); const start = node.start; node.start = function(...args) { window.__music.started++; window.__music.loop = node.loop; window.__music.seconds = node.buffer && node.buffer.duration; return start.apply(node,args); }; return node; };
  const resume = C.prototype.resume;
  C.prototype.resume = function() { if (!window.__music.contexts.includes(this)) window.__music.contexts.push(this); return resume.call(this); };
 })();'''
@@ -31,6 +32,7 @@ async def main():
     ctx=await browser.new_context(viewport={'width':w,'height':h},has_touch=w<500)
     await ctx.add_init_script(PROBE)
     page=await ctx.new_page()
+    page.on('pageerror',lambda e: print('PAGE ERROR',e,flush=True))
     audio=[]
     page.on('response',lambda r: audio.append(r.status) if r.url.endswith('/audio/deep-signal-loop.wav') else None)
     await page.goto(url)
@@ -38,12 +40,14 @@ async def main():
     await toggle.wait_for()
     assert await toggle.inner_text()=='♪ Music on'
     await page.locator('.opening-skip').click()
-    await page.wait_for_function('window.__music.started===1',timeout=15000)
-    assert audio==[200],audio
-    assert await page.evaluate('window.__music.loop && Math.abs(window.__music.seconds-25.26)<0.05')
+    supports_audio=await page.evaluate('!!(window.AudioContext || window.webkitAudioContext)')
+    if supports_audio:
+     await page.wait_for_function('window.__music.started===1',timeout=15000)
+     assert audio==[200],audio
+     assert await page.evaluate('window.__music.loop && Math.abs(window.__music.seconds-25.26)<0.05')
     # The toggle and the skip control must not overlap at any width.
     assert await toggle.is_visible()
-    await page.wait_for_function("window.__music.contexts.some(c=>c.state==='running')")
+    if supports_audio: await page.wait_for_function("window.__music.contexts.some(c=>c.state==='running')")
     await page.locator('.opening-start').wait_for()
     await page.screenshot(path=str(OUT/f'intro-music-{tag}{engine}-{w}x{h}.png'))
     await toggle.click()
@@ -59,7 +63,7 @@ async def main():
     await page.locator('.opening-intro').wait_for(state='detached')
     assert await page.evaluate("window.__music.contexts.every(c=>c.state==='closed')")
     await ctx.close()
-    print('ok',engine,w,h)
+    print('ok',engine,w,h,'audio playback' if supports_audio else 'UI only: Web Audio unavailable',flush=True)
    await browser.close()
  server.shutdown()
 asyncio.run(main())
