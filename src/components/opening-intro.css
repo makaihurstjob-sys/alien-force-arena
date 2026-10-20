@@ -33,3 +33,6 @@
   .opening-tagline { bottom: max(18%, env(safe-area-inset-bottom)); }
   .opening-title { padding: 20px; }
 }
+.opening-music { position: absolute; z-index: 1; top: max(16px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); min-height: 48px; padding: 12px 8px; border: 0; background: transparent; color: #d2e8f5; font: inherit; font-size: clamp(12px, 1.5vw, 16px); text-shadow: 0 2px 8px #000; cursor: pointer; }
+.opening-music:hover { color: #fff; }
+.opening-music[aria-pressed="false"] { color: #7f93a6; }

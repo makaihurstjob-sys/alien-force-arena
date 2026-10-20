@@ -210,3 +210,9 @@ See [CHANGELOG.md](./CHANGELOG.md) for patch notes on what's shipped so far.
 - The first Play click and the lobby game selector now share the same game cards, layout, and mode definitions.
 - Removed Ranked Ratings from the initial game choices; standings remain available in Career.
 - Choosing a game from Play opens its lobby; lobby selections keep host and room-capacity restrictions.
+
+### Deep Signal intro music
+
+- Added the selected 8-bit Deep Signal theme as a seamless opening-intro loop.
+- Music starts when browser audio permission allows it (typically the first tap or key), fades into the menu, and includes a saved Music on/off setting.
+

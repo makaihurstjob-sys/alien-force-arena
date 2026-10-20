@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useIntroMusic } from "@/hooks/use-intro-music";
 import spriteSheetUrl from "@/assets/classic/original-sprites.png?url";
 import "./opening-intro.css";
 
@@ -33,6 +34,7 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
   const [exiting, setExiting] = useState(false);
   const [motionOptIn, setMotionOptIn] = useState(false);
   const [motionSkipped, setMotionSkipped] = useState(false);
+  const { muted, toggleMuted } = useIntroMusic(exiting);
   useEffect(() => {
     if (!exiting) return;
     const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 420;
@@ -171,6 +173,9 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
   }, [ready, motionOptIn]);
   return <section className={"opening-intro " + (ready ? "is-ready " : "") + (exiting ? "is-exiting" : "")} aria-label="Alien Force Arena opening">
     <canvas ref={canvas} width={960} height={540} className="opening-battle" aria-hidden="true" />
+    <button className="opening-music" onClick={toggleMuted} aria-pressed={!muted} aria-label="Music">
+      {muted ? "♪ Music off" : "♪ Music on"}
+    </button>
     {!ready && <>
       <p className="opening-tagline">FIGHT. ADAPT. SURVIVE.</p>
       <button className="opening-skip" onClick={() => setReady(true)} aria-label="Skip intro">
