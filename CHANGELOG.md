@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-20
+
+- Add lobby radio music: Hangar Standby and Signal Lock alternate with crossfades, with a saved lobby Music on/off button.
+
 ## 2026-10-19
 
 - Show elapsed Ranked search time beside the lobby status, anchored to the queue timestamp and cleared when searching ends.

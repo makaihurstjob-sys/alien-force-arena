@@ -1,7 +1,7 @@
 .hangar-lobby { display: flex; flex-direction: column; min-height: calc(100svh - 100px); color: #edf6f3; font-family: 'Windows Bold', monospace; }
 .hangar-tabs { display:flex; align-items:center; gap:0; border-bottom:1px solid #45e4aa; background:#091416e8; min-height:56px; }
 .hangar-tabs > * { padding:12px 22px; border-right:1px solid #56676c; white-space:nowrap; }
-.hangar-tabs > :last-child { margin-left:auto; }
+.hangar-tabs > strong { margin-left:auto; }
 .hangar-lobby button,.hangar-selector button { border:1px solid #68838b; border-radius:4px; background:#102123; color:#eff7f5; padding:12px 18px; cursor:pointer; }
 .hangar-lobby button:hover:not(:disabled),.hangar-lobby button:focus-visible,.hangar-selector button:hover:not(:disabled),.hangar-selector button:focus-visible { outline:2px solid #42eca9; outline-offset:3px; }
 .hangar-lobby button:disabled,.hangar-selector button:disabled { opacity:.45; cursor:not-allowed; }
@@ -42,7 +42,7 @@
 .hangar-thumbnail { aspect-ratio:16/9; overflow:hidden; background:#202727; } .hangar-thumbnail canvas { width:100%; height:100%; object-fit:cover; }
 .hangar-selector > p { margin-top:20px; }
 @media(max-width:767px) {
- .hangar-tabs { flex-wrap:wrap; } .hangar-tabs > * { padding:10px; font-size:14px; } .hangar-tabs > :last-child { margin-left:0; }
+ .hangar-tabs { flex-wrap:wrap; } .hangar-tabs > * { padding:10px; font-size:14px; } .hangar-tabs > strong { margin-left:0; }
  .hangar-slots { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 10px; margin:22px 0; }
  .hangar-dock { height:clamp(96px,17dvh,150px); margin:0 4px 8px; } .hangar-plaque { font-size:14px; }
  .hangar-pilot-name { gap:4px; } .hangar-pilot-name strong { min-width:0; }

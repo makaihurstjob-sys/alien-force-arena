@@ -216,3 +216,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for patch notes on what's shipped so far.
 - Added the selected 8-bit Deep Signal theme as a seamless opening-intro loop.
 - Music starts when browser audio permission allows it (typically the first tap or key), fades into the menu, and includes a saved Music on/off setting.
 
+### Lobby radio
+
+- Lobbies play Hangar Standby and Signal Lock back to back like a radio station: each track loops twice, then crossfades into the other.
+- Added a Music on/off button to the lobby header; it shares the saved intro Music setting. Music fades out when a match starts or you leave the lobby.

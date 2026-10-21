@@ -3,6 +3,7 @@ import { QRCodeSVG } from "qrcode.react";
 import RankedProgress from "./RankedProgress";
 import { Crown } from "lucide-react";
 import GameChooser from "./GameChooser";
+import { useLobbyRadio } from "@/hooks/use-lobby-radio";
 import { ShipIcon } from "./ShipIcon";
 import type { BulletLobby } from "@/lib/bullet-lobby";
 import "./hangar-lobby.css";
@@ -53,6 +54,7 @@ export default function HangarLobby({
   mode?: LobbyMode;
   onModeChange?: ((mode: LobbyMode) => void) | undefined;
 }) {
+  const radio = useLobbyRadio();
   const [searchNow, setSearchNow] = useState(Date.now);
   const searchStart = searchStartedAt ? Date.parse(searchStartedAt) : NaN;
   useEffect(() => {
@@ -100,6 +102,9 @@ export default function HangarLobby({
             Copy invite
           </button>
         )}
+        <button type="button" className="hangar-music" onClick={radio.toggleMuted} aria-pressed={!radio.muted}>
+          Music {radio.muted ? "off" : "on"}
+        </button>
       </div>
       <p className={mode === "ranked" ? "hangar-connection" : "hangar-connection sr-only"} role="status">
         <span>{open ? (unavailable ? "Reconnecting to room…" : status) : "The host closed this room."}</span>
