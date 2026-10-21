@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-21
+
+- Fix random screeching in Deep Signal, Hangar Standby, and Signal Lock: band-limited pulse waves, filtered 22.05 kHz resampling, and sonar pings lowered an octave.
+
 ## 2026-10-20
 
 - Add lobby radio music: Hangar Standby and Signal Lock alternate with crossfades, with a saved lobby Music on/off button.

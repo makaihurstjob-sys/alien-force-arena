@@ -220,3 +220,4 @@ See [CHANGELOG.md](./CHANGELOG.md) for patch notes on what's shipped so far.
 
 - Lobbies play Hangar Standby and Signal Lock back to back like a radio station: each track loops twice, then crossfades into the other.
 - Added a Music on/off button to the lobby header; it shares the saved intro Music setting. Music fades out when a match starts or you leave the lobby.
+- Fixed random screeching in all three music loops by band-limiting the square-wave voices, filtering the 22.05 kHz downsample, and lowering the high sonar pings an octave.
