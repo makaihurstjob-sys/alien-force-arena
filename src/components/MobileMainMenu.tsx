@@ -9,6 +9,7 @@ import "./leaderboard-shortcut.css";
 import "./main-menu-overhaul.css";
 import { ShipIcon } from "./ShipIcon";
 import RoomEntry from "./RoomEntry";
+import { useMenuMusic } from "@/hooks/use-menu-music";
 import { lobbyModes, type LobbyMode } from "@/lib/lobby-modes";
 import GameChooser from "./GameChooser";
 import { animateLobbyExit } from "@/lib/lobby-exit";
@@ -131,6 +132,7 @@ export function MobileMainMenu() {
     return () => window.removeEventListener("hashchange", readInvite);
   }, []);
   const hangar = panel === 'lobby';
+  useMenuMusic(!hangar && !roomPlaying);
   const menuPage = panel === 'career' || panel === 'loadout' || panel === 'shop';
   const dialog = useRef<HTMLDialogElement>(null);
   const mode = lobbyModes[selected];

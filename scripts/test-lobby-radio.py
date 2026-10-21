@@ -25,8 +25,8 @@ PROBE='''(() => {
  };
  const start = AudioBufferSourceNode.prototype.start;
  AudioBufferSourceNode.prototype.start = function (when, ...rest) {
-  if (this.buffer && this.buffer.__track) window.__radio.starts.push({ track: this.buffer.__track, when });
-  window.__radio.ctx = this.context;
+  if (this.buffer && [36, 40].includes(this.buffer.__track)) window.__radio.starts.push({ track: this.buffer.__track, when });
+  if (this.buffer && [36, 40].includes(this.buffer.__track)) window.__radio.ctx = this.context;
   return start.call(this, when, ...rest);
  };
 })();'''

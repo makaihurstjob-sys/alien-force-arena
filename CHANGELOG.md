@@ -2,6 +2,7 @@
 
 ## 2026-10-21
 
+- Add Command Deck main-menu music: it takes over from the intro, pauses in place for lobbies and matches, and resumes afterward. Music on/off now stays in sync across intro, menu, and lobby.
 - Fix random screeching in Deep Signal, Hangar Standby, and Signal Lock: band-limited pulse waves, filtered 22.05 kHz resampling, and sonar pings lowered an octave.
 
 ## 2026-10-20

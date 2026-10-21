@@ -1,14 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { useMusicMuted } from "@/lib/music";
 
-const MUTED_KEY = "alien-force-music-muted";
 const VOLUME = 0.45;
 const GESTURES = ["pointerdown", "keydown", "touchend"] as const;
 
 /** Loops the Deep Signal intro theme gaplessly; browsers hold it until the first tap or key. */
 export function useIntroMusic(exiting: boolean) {
-  const [muted, setMuted] = useState(() => {
-    try { return localStorage.getItem(MUTED_KEY) === "true"; } catch { return false; }
-  });
+  const { muted, toggleMuted } = useMusicMuted();
   const gain = useRef<GainNode | null>(null);
   const mutedRef = useRef(muted);
   mutedRef.current = muted;
@@ -62,13 +60,6 @@ export function useIntroMusic(exiting: boolean) {
     output.gain.setValueAtTime(output.gain.value, now);
     output.gain.linearRampToValueAtTime(muted || exiting ? 0 : VOLUME, now + (exiting ? 0.4 : 0.15));
   }, [muted, exiting]);
-
-  const toggleMuted = useCallback(() => {
-    setMuted((value) => {
-      try { localStorage.setItem(MUTED_KEY, String(!value)); } catch { /* Keep the in-memory choice. */ }
-      return !value;
-    });
-  }, []);
 
   return { muted, toggleMuted };
 }

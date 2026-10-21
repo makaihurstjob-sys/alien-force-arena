@@ -61,7 +61,7 @@ async def main():
     await page.keyboard.press('Space')
     await page.locator('.opening-start').click()
     await page.locator('.opening-intro').wait_for(state='detached')
-    assert await page.evaluate("window.__music.contexts.every(c=>c.state==='closed')")
+    if supports_audio: assert await page.evaluate("window.__music.contexts[0].state==='closed'")  # the menu theme takes over in its own context
     await ctx.close()
     print('ok',engine,w,h,'audio playback' if supports_audio else 'UI only: Web Audio unavailable',flush=True)
    await browser.close()

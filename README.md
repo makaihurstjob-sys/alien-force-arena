@@ -221,3 +221,9 @@ See [CHANGELOG.md](./CHANGELOG.md) for patch notes on what's shipped so far.
 - Lobbies play Hangar Standby and Signal Lock back to back like a radio station: each track loops twice, then crossfades into the other.
 - Added a Music on/off button to the lobby header; it shares the saved intro Music setting. Music fades out when a match starts or you leave the lobby.
 - Fixed random screeching in all three music loops by band-limiting the square-wave voices, filtering the 22.05 kHz downsample, and lowering the high sonar pings an octave.
+
+### Command Deck menu music
+
+- The main menu loops the 8-bit Command Deck theme after the intro, including Career, Loadout, Shop, and Settings.
+- Opening a lobby hands off to the lobby radio and pauses the menu theme in place; it stays paused during matches and resumes where it left off when you return to the menu.
+- Intro, menu, and lobby share one saved Music on/off setting that updates everywhere at once.
