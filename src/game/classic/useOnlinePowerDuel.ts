@@ -50,7 +50,7 @@ export function useOnlinePowerDuel(lobby: Lobby | null, player: string | undefin
     let connected = false;
     let host: PowerDuelHost | null = null;
     let current: PowerDuelSnapshot | null = null;
-    let remote: { packet: PilotPacket; at: number } | null = null;
+    const remotes = new Map<string, { packet: PilotPacket; at: number }>();
     let vote = false;
     let returnFrom: string | null = null;
     let sequence = 0;
@@ -65,8 +65,11 @@ export function useOnlinePowerDuel(lobby: Lobby | null, player: string | undefin
     const retiredMatches = new Set<string>();
     const snapshotSequences = new Map<string, number>();
     const active = () => !document.hidden;
-    const opponentId = () =>
-      latestLobby.current?.members.find((m) => m.player_id !== player)?.player_id;
+    const remoteIds = () => latestLobby.current?.members.filter(m => m.player_id !== player).map(m => m.player_id) ?? [];
+    const remotesLive = (now: number) => remoteIds().length > 0 && remoteIds().every(id => {
+      const remote = remotes.get(id);
+      return !!remote && remote.packet.active && now - remote.at < PEER_TIMEOUT_MS;
+    });
     const send = (event: string, payload: unknown) => {
       // Never fall back to HTTP for simulation frames while disconnected.
       if (connected && channel)
@@ -108,15 +111,12 @@ export function useOnlinePowerDuel(lobby: Lobby | null, player: string | undefin
       return (
         !!room &&
         room.status === "open" &&
-        room.members.length === 2 &&
+        room.members.length >= 2 && room.members.length <= 4 &&
         room.members.every((m) => m.is_ready) &&
         connected &&
         !duplicate &&
         active() &&
-        !!remote &&
-        remote.packet.playerId === opponentId() &&
-        remote.packet.active &&
-        now - remote.at < PEER_TIMEOUT_MS
+        remotesLive(now)
       );
     };
     const start = () => {
@@ -126,7 +126,7 @@ export function useOnlinePowerDuel(lobby: Lobby | null, player: string | undefin
         randomId(),
         room.members.map((m) => ({
           id: m.player_id,
-          name: m.team === 0 ? "WHITE" : "ORANGE",
+          name: m.display_name,
           team: m.team === 0 ? 0 : 1,
         })),
       );
@@ -178,7 +178,7 @@ export function useOnlinePowerDuel(lobby: Lobby | null, player: string | undefin
         if (disposed) return;
         // A distinct topic from the plain Classic duel channel so packets from
         // one mode never get accepted by the other's transport.
-        channel = db.channel(`arcade-duel-v1:${roomId}`, {
+        channel = db.channel(`arcade-squad-v2:${roomId}`, {
           config: { broadcast: { self: false, ack: false }, presence: { key: player } },
         });
         channel.on("presence", { event: "sync" }, () => {
@@ -186,15 +186,17 @@ export function useOnlinePowerDuel(lobby: Lobby | null, player: string | undefin
           duplicate = own.length > 1;
         });
         channel.on("broadcast", { event: "pilot" }, ({ payload }) => {
-          if (!isPilotPacket(payload) || payload.playerId !== opponentId()) return;
+          if (!isPilotPacket(payload) || !remoteIds().includes(payload.playerId)) return;
+          const remote = remotes.get(payload.playerId);
           if (
             remote?.packet.instance === payload.instance &&
             remote.packet.sequence >= payload.sequence
           )
             return;
           if (current && payload.returnFrom === current.matchId) reset();
-          remote = { packet: payload, at: performance.now() };
-          host?.receive(payload, remote.at);
+          const at = performance.now();
+          remotes.set(payload.playerId, { packet: payload, at });
+          host?.receive(payload, at);
         });
         channel.on("broadcast", { event: "state" }, ({ payload }) => {
           if (isHost || payload?.hostId !== hostId) return;
@@ -208,14 +210,14 @@ export function useOnlinePowerDuel(lobby: Lobby | null, player: string | undefin
           show(snapshot, lastSnapshotAt);
         });
         channel.on("broadcast", { event: "return" }, ({ payload }) => {
-          if (payload?.playerId === opponentId() && payload.matchId === current?.matchId) reset();
+          if (remoteIds().includes(payload?.playerId) && payload.matchId === current?.matchId) reset();
         });
         channel.subscribe((status) => {
           if (disposed) return;
           connected = status === "SUBSCRIBED";
           if (connected) void channel?.track({ instance });
           setConnectionStatus(
-            connected ? "Waiting for the other player" : "Reconnecting to arena...",
+            connected ? "Waiting for all pilots" : "Reconnecting to arena...",
           );
         });
       })
@@ -249,7 +251,7 @@ export function useOnlinePowerDuel(lobby: Lobby | null, player: string | undefin
           host.match.game.matchWinner !== null &&
           !host.ended &&
           !host.paused &&
-          host.rematchVotes.length === 2
+          host.rematchVotes.length === host.players.length
         )
           start();
       } else accumulated = 0;
@@ -262,7 +264,7 @@ export function useOnlinePowerDuel(lobby: Lobby | null, player: string | undefin
         show(snapshot, now);
         send("state", { hostId: player, snapshot });
       }
-      const remoteLive = !!remote && remote.packet.active && now - remote.at < PEER_TIMEOUT_MS;
+      const remoteLive = remotesLive(now);
       setCanStart(readyToStart(now));
       setConnectionStatus(
         duplicate
@@ -270,8 +272,8 @@ export function useOnlinePowerDuel(lobby: Lobby | null, player: string | undefin
           : !connected
             ? "Reconnecting to arena..."
             : remoteLive
-              ? "Both players connected"
-              : "Waiting for the other player",
+              ? "All pilots connected"
+              : "Waiting for all pilots",
       );
       setStalled(
         duplicate || !connected || (!isHost && !!current && now - lastSnapshotAt > PEER_TIMEOUT_MS),

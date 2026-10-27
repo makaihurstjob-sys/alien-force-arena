@@ -28,3 +28,5 @@
 .bullet-page.bullet-embedded { min-height: 0; padding: 0; background: transparent; }
 .mobile-menu-dialog:has(.bullet-embedded) { width: min(1120px, 96vw); max-width: 96vw; }
 .bullet-embedded .bullet-lobby { max-width: 100%; }
+.bullet-touch-controls { align-items:center; justify-content:space-between; touch-action:none; }
+.bullet-touch-controls > button[aria-label="Fire"] { width:76px; height:76px; border-radius:50%; touch-action:none; }

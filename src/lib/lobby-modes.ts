@@ -1,5 +1,5 @@
 export const lobbyModes = {
-  solo: { name: "Classic", description: "Solo survival", min: 1, max: 1, playable: true },
+  solo: { name: "Adventure", description: "999 levels · Start at level 1", min: 1, max: 1, playable: true },
   duel: {
     name: "Versus",
     description: "Private duel \u00b7 Unranked",
@@ -24,9 +24,9 @@ export const lobbyModes = {
   },
   arcade: {
     name: "Arcade",
-    description: "Power-ups \u00b7 Private duel \u00b7 Unranked",
+    description: "Power-ups · 2–4 pilots · Team battle",
     min: 2,
-    max: 2,
+    max: 4,
     playable: true,
   },
 } as const;

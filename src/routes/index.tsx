@@ -13,7 +13,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "A retro top-down arena shooter with a one-shot-at-a-time rule. Play Classic, practice offline, or share a private room for an unranked online 1v1.",
+          "A retro top-down arena shooter with a one-shot-at-a-time rule. Play Adventure through 999 levels, practice offline, or invite friends for Arcade team battles.",
       },
       { property: "og:title", content: "Alien Force Arena" },
       {

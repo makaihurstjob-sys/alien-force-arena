@@ -136,6 +136,7 @@ export function OnlineArcadeDuel({
         renderPowerDuel(
           ctx,
           interpolatePowerDuel(frameState.previous, frameState.current, (now - frameState.at) / 50),
+          player,
         );
       frame = requestAnimationFrame(draw);
     };
@@ -149,7 +150,7 @@ export function OnlineArcadeDuel({
       window.removeEventListener("blur", reset);
       document.removeEventListener("visibilitychange", reset);
     };
-  }, [inputRef, display, updateInput, windowBlocked]);
+  }, [inputRef, display, updateInput, windowBlocked, player]);
   useEffect(() => {
     controllerInput.current = { direction: null, fire: false };
     dashPressed.current = false;
@@ -208,7 +209,7 @@ export function OnlineArcadeDuel({
                         ? "Press START to resume."
                         : "Waiting for the other player to resume or reconnect.")}
                   </p>
-                  {!snapshot.ended && <small>Keep the game visible on both devices.</small>}
+                  {!snapshot.ended && <small>Keep the game visible on all devices.</small>}
                 </div>
               )}
               {!windowBlocked && !snapshot.ended && !paused && youFrozen && (
@@ -292,9 +293,9 @@ export function OnlineArcadeDuel({
               {you.shots ? Math.round((you.hits / you.shots) * 100) : 0}% accuracy
             </p>
             <button disabled={duel.voted || paused} onClick={duel.rematch}>
-              {duel.voted ? "Waiting for opponent..." : "Rematch"}
+              {duel.voted ? "Waiting for pilots..." : "Rematch"}
             </button>
-            <p>{snapshot.rematch.length}/2 players want a rematch</p>
+            <p>{snapshot.rematch.length}/{game.ships.length} players want a rematch</p>
           </section>
         ) : (
           !snapshot.ended && (

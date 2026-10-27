@@ -159,7 +159,7 @@ export function stepPowerDuel(
 
   if (game.phase === 'playing') {
     for (const ship of game.ships) {
-      if (!ship.alive) continue;
+      if (!ship.alive || match.frozenUntil.has(ship.id)) continue;
       const input = inputs[ship.id];
       if (input?.dash && (match.teleportCharges.get(ship.id) ?? 0) > 0) {
         const direction = chosenDirection(input) ?? directionFromAngle(ship.angle);
@@ -191,16 +191,8 @@ export function stepPowerDuel(
     if (buff.kind === 'shield') protectedIds.add(id);
     if (buff.kind === 'speedBoost') speedMultiplier[id] = POWERUP.speedBoostMultiplier;
   }
-  // Protect the intended target of any in-flight freeze shot from being
-  // eliminated by it -- duel.ts doesn't know about freeze, it just won't
-  // find a target for this shot, same as it already does for Shield.
-  for (const shooterId of match.freezeInFlight) {
-    const opponent = game.ships.find((s) => s.id !== shooterId);
-    if (opponent) protectedIds.add(opponent.id);
-  }
-
   const frozenIds = new Set(match.frozenUntil.keys());
-  step(game, inputs, { roundsToWin: PVP_RULES.roundsToWinMatch, protectedIds, speedMultiplier, frozenIds });
+  step(game, inputs, { roundsToWin: PVP_RULES.roundsToWinMatch, protectedIds, speedMultiplier, frozenIds, nonlethalOwners: new Set([...match.freezeInFlight, ...armingFreeze]) });
 
   // A freeze buff ship that just fired launches its loaded shot; consume the buff now.
   for (const id of armingFreeze) {
@@ -210,32 +202,16 @@ export function stepPowerDuel(
     }
   }
 
-  // Resolve in-flight freeze shots: either they just landed near the
-  // protected opponent (apply the freeze, unless Shield blocks it), or the
-  // shooter's shot has resolved some other way (expired/out of bounds) --
-  // either way the association ends here.
-  for (const shooterId of [...match.freezeInFlight]) {
-    const shooter = game.ships.find((s) => s.id === shooterId);
-    const opponent = game.ships.find((s) => s.id !== shooterId);
-    if (!shooter || !opponent) {
-      match.freezeInFlight.delete(shooterId);
-      continue;
+  // Resolve the exact projectile hit, never grant global immunity to a target.
+  // This also handles any of the opponents in a four-pilot match.
+  for (const event of game.events) {
+    if (event.type === 'hit' && match.freezeInFlight.has(event.playerId)) {
+      match.frozenUntil.set(event.targetId, game.tick + ticksFor(POWERUP.freezeStunMs));
+      match.freezeInFlight.delete(event.playerId);
     }
-    const incoming = game.projectiles.find(
-      (p) => p.ownerId === shooterId && Math.hypot(opponent.x - p.x, opponent.y - p.y) < 9,
-    );
-    if (incoming) {
-      game.projectiles = game.projectiles.filter((p) => p.id !== incoming.id);
-      const opponentShield = match.buffs.get(opponent.id);
-      if (!(opponentShield?.kind === 'shield' && game.tick < opponentShield.untilTick)) {
-        match.frozenUntil.set(opponent.id, game.tick + ticksFor(POWERUP.freezeStunMs));
-        game.events.push({ type: 'hit', playerId: shooterId, targetId: opponent.id, tick: game.tick });
-      }
-      match.freezeInFlight.delete(shooterId);
-    } else if (shooter.canFire) {
-      // the shot resolved without reaching the opponent (expired or left the arena)
-      match.freezeInFlight.delete(shooterId);
-    }
+  }
+  for (const id of [...match.freezeInFlight]) {
+    if (!game.projectiles.some(shot => shot.ownerId === id)) match.freezeInFlight.delete(id);
   }
 
   if (match.pickup) {

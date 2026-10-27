@@ -131,7 +131,7 @@ export default function SharedRoom({
       ? {
           ...room,
           id: `${room.id}:${room.match_id}`,
-          members: room.members.map((member, team) => ({ ...member, team, is_ready: true })),
+          members: room.members.map((member, index) => ({ ...member, team: index % 2, is_ready: true })),
         }
       : null;
   const duel = useOnlineDuel(duelRoom, player);
@@ -140,7 +140,7 @@ export default function SharedRoom({
       ? {
           ...room,
           id: `${room.id}:${room.match_id}`,
-          members: room.members.map((member, team) => ({ ...member, team, is_ready: true })),
+          members: room.members.map((member, index) => ({ ...member, team: index % 2, is_ready: true })),
         }
       : null;
   const arcadeDuel = useOnlinePowerDuel(arcadeRoom, player);

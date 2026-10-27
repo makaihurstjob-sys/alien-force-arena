@@ -161,3 +161,40 @@
  .has-ranked-progress .hangar-rank-progress .rank-badge { width:24px; }
  .has-ranked-progress .hangar-host-crown { width:14px; }
 }
+/* Centered squad hangar; keeps the play action and sharing tools out of the stage. */
+.is-hangar .squad-hangar { max-width:1280px; margin-inline:auto; }
+.squad-hangar .hangar-slots { grid-template-columns:minmax(160px,1fr) minmax(280px,1.8fr) minmax(160px,1fr); gap:20px 32px; align-items:center; flex:1; }
+.squad-hangar .hangar-slot.is-self { grid-column:2; grid-row:1 / span 3; }
+.squad-hangar .hangar-slot:not(.is-self) { max-width:250px; justify-self:center; width:100%; }
+.squad-hangar.is-solo .hangar-slots { display:block; width:min(500px,100%); margin-inline:auto; }
+.squad-hangar .hangar-dock,.is-hangar .squad-hangar .hangar-dock { height:auto; min-height:70px; margin:0; border:0; background:transparent; box-shadow:none; }
+.squad-hangar .hangar-dock::before,.squad-hangar .hangar-dock::after { display:none; }
+.squad-hangar .hangar-plaque { height:auto; grid-template-rows:40px 38px; font-size:14px; }
+.squad-hangar .is-self .hangar-pilot-name { border-color:#5bfac386; }
+.squad-hangar .hangar-add-friend { width:64px; height:64px; padding:0; border:1px solid #93c9d7; background:#12283888; color:#b8fce5; font-size:40px; margin:24px 0; border-radius:3px; }
+.squad-hangar .hangar-slot.is-empty { opacity:.85; }.squad-hangar .hangar-slot.is-empty .hangar-plaque { font-size:12px; }
+.squad-hangar .hangar-team-hint,.squad-hangar .hangar-copy-status { font:12px/1.5 monospace; color:#b8dccf; margin:8px 0; text-align:center; }
+.squad-hangar .hangar-connection { justify-content:center; }
+.mobile-main-menu .squad-hangar .hangar-footer { padding-top:24px; }
+.squad-hangar .hangar-invite-qr { display:none; }
+.squad-hangar .hangar-invite { grid-template-columns:1fr; }
+.squad-hangar .hangar-invite label { font:11px monospace; color:#97aab7; }
+.squad-hangar .hangar-invite input { border:1px solid #365563; border-radius:4px; }
+.squad-hangar .hangar-actions { background:#091521cc; border-color:#56808b55; }
+.hangar-backdrop { background:radial-gradient(ellipse at 50% 65%,#24575a,#0a1524 65%)!important; }.hangar-backdrop canvas { opacity:.12; }
+@media(max-width:767px) {
+ .is-hangar .squad-hangar .hangar-slots { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+ .squad-hangar .hangar-slot.is-self { grid-column:1 / -1; grid-row:1; width:100%; }
+ .squad-hangar .hangar-slot:not(.is-self) { width:100%; }.squad-hangar .hangar-plaque { font-size:11px; grid-template-rows:auto 34px; gap:5px; }
+ .squad-hangar .hangar-pilot-name { padding:6px; }.squad-hangar .hangar-readiness { font-size:11px; }
+ .squad-hangar .hangar-add-friend { width:44px; height:44px; font-size:26px; margin:15px 0; }
+ .squad-hangar .hangar-slot.is-self .hangar-plaque { max-width:300px; margin-inline:auto; }
+ .is-hangar .squad-hangar.is-solo .hangar-slots { display:block; }
+}
+.hangar-team-label { display:block; color:#9cbac5; font:10px/1.3 monospace; margin-top:3px; }
+.squad-hangar .hangar-pilot-name { min-height:40px; }
+.squad-hangar .hangar-qr-tools { grid-column:2; grid-row:1; align-self:start; }
+.squad-hangar .hangar-qr-tools summary { cursor:pointer; padding:8px; color:#b6ecdc; border:1px solid #365563; border-radius:4px; font:12px monospace; }
+.squad-hangar .hangar-qr-tools .hangar-invite-qr { display:block; margin-top:8px; }
+.squad-hangar .hangar-invite { grid-template-columns:minmax(0,1fr) auto; }
+.squad-hangar .hangar-invite label { grid-column:1; grid-row:1; }

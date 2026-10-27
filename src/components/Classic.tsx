@@ -134,9 +134,9 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
   }, []);
-  const restart = (level = 1) => {
+  const restart = () => {
     void records.finish("restarted");
-    game.current = createClassic(level);
+    game.current = createClassic(1);
     input.current = { direction: null, fire: false };
     setPaused(false);
     resumeFromAway();
@@ -153,6 +153,7 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
       <div className="classic-shell mx-auto max-w-4xl space-y-4">
         {onReturn && <button onClick={() => { void records.finish("abandoned").finally(onReturn); }}>Return to lobby</button>}
         <ClassicWindow
+          adventure
           controllerRef={menuController}
           paused={simulationPaused}
           onPause={() => {
@@ -175,7 +176,7 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
             width={mobileArena ? 424 : 620}
             height={424}
             className="classic-canvas block w-full bg-black [image-rendering:pixelated]"
-            aria-label="Classic Alien Force playfield"
+            aria-label="Adventure Alien Force playfield"
           />
         </ClassicWindow>
         <div className="classic-mobile-stats" aria-label="Game status">

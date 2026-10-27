@@ -1,3 +1,4 @@
+import DronePreview from "./DronePreview";
 import GameSettings from "./GameSettings";
 import { useEffect, useRef, useState } from "react";
 import { ChevronRight, X, Trophy, Medal, Coins, Settings } from "lucide-react";
@@ -160,13 +161,17 @@ export function MobileMainMenu() {
         <span className="arena-wallet" title="Coin balance is not connected" aria-label="Coins: balance unavailable"><Coins size={20} /><span>—</span></span>
       </header>
       {menuPage ? panel === "career" ? <section aria-label="Career"><Career /></section> : panel === "shop" ? <ShopScreen /> : <LoadoutScreen /> : <>
-      <div className="arena-menu-center"><div aria-hidden="true"><ShipIcon size={120} /></div><MenuPilot /></div>
+      <div className="arena-menu-center arena-squad-stage">
+        <button className="arena-friend-slot" aria-label="Invite a friend to your lobby" onClick={() => enterMode(lobbyModes[selected].max > 1 ? selected : 'arcade')}><span>+</span><strong>Invite friend</strong><small>Create a room · Share the link</small></button>
+        <div className="arena-hero-drone"><MenuPilot /><DronePreview /><span className="arena-pilot-status">PILOT READY</span></div>
+        <button className="arena-friend-slot" aria-label="Join a friend's lobby" onClick={() => enterMode('arcade')}><span>+</span><strong>Play together</strong><small>Join with a room code</small></button>
+      </div>
       <section className="arena-play-dock" aria-label="Selected game">
         <button className="arena-selected-game" aria-label={`Choose game, current game: ${mode.name}`} aria-haspopup="dialog" onClick={(event) => { chooserTrigger.current = event.currentTarget; setPanel("games"); }}>
           <span className="arena-selected-copy"><strong>{mode.name}</strong><span>{mode.description}</span></span>
           <ChevronRight />
         </button>
-        <button className="arena-play-button" aria-haspopup="dialog" onClick={(event) => { chooserTrigger.current = event.currentTarget; setPanel("games"); }}>Play<ChevronRight /></button>
+        <button className="arena-play-button" aria-haspopup="dialog" onClick={() => enterMode(selected)}>Play<ChevronRight /></button>
       </section>
       <footer>Fight · Adapt · Survive</footer>
       </>}
@@ -198,7 +203,7 @@ export function MobileMainMenu() {
             <X />
           </button>
         </div>
-        {(panel === "leaderboard" || panel === "ratings") && <nav className="arena-record-tabs" aria-label="Leaderboard type"><button aria-pressed={panel === "leaderboard"} onClick={() => setPanel("leaderboard")}>Classic scores</button><button aria-pressed={panel === "ratings"} onClick={() => setPanel("ratings")}>Ranked ratings</button></nav>}
+        {(panel === "leaderboard" || panel === "ratings") && <nav className="arena-record-tabs" aria-label="Leaderboard type"><button aria-pressed={panel === "leaderboard"} onClick={() => setPanel("leaderboard")}>Adventure scores</button><button aria-pressed={panel === "ratings"} onClick={() => setPanel("ratings")}>Ranked ratings</button></nav>}
         {panel === "leaderboard" ? <ClassicLeaderboard /> : panel === "ratings" ? <RankedRatings /> : panel === "settings" ? (
           <GameSettings onBack={() => setPanel(null)} />
         ) : (

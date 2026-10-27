@@ -2,7 +2,7 @@ import { randomId } from "./random-id";
 import { connection } from "./multiplayer";
 import type { ClassicRun } from "./classic-records";
 import type { GameState } from "@/game/types";
-export const historyModes = { classic: "Classic", versus: "Versus", ranked: "Ranked", arcade: "Arcade", "arcade-practice": "Arcade Practice", bullet: "Bullet Run", practice: "Practice" } as const;
+export const historyModes = { classic: "Adventure", versus: "Versus", ranked: "Ranked", arcade: "Arcade", "arcade-practice": "Arcade Practice", bullet: "Bullet Run", practice: "Practice" } as const;
 export type HistoryMode = keyof typeof historyModes;
 export type HistoryOutcome = "win" | "loss" | "draw" | "completed" | "restarted" | "left" | "interrupted" | "disconnect";
 export type HistoryRecord = {
@@ -39,10 +39,10 @@ export function saveDeviceHistory(snapshot: HistorySnapshot, owner: string | nul
 }
 export function duelHistory(state: GameState, mode: HistoryMode, player: string, id = gameHistoryId(state), ended = false): HistorySnapshot | null {
   const you = state.ships.find(ship => ship.id === player); if (!you) return null;
-  const opponent = state.ships.find(ship => ship.id !== player);
+  const opponents = state.ships.filter(ship => ship.team !== you.team);
   return { id, mode, outcome: state.matchWinner === null ? ended ? "left" : "interrupted" : state.matchWinner === you.team ? "win" : "loss",
     durationMs: Math.round(state.tick * 1000 / 60), score: state.score[you.team], opponentScore: state.score[you.team === 0 ? 1 : 0],
-    opponent: opponent?.name, shots: you.shots, hits: you.hits, details: [{ label: "Rounds", value: state.round }] };
+    opponent: opponents.map(ship => ship.name).join(" / "), shots: you.shots, hits: you.hits, details: [{ label: "Rounds", value: state.round }] };
 }
 export function classicHistory(run: ClassicRun): HistoryRecord {
   return { id: `classic:${run.id}`, owner: run.player_id, mode: "classic", source: "account", recordedAt: run.recorded_at,
@@ -73,7 +73,7 @@ export async function getAccountHistory(owner: string, limit: number) {
   ]);
   const rows: HistoryRecord[] = []; const warnings: string[] = [];
   results.forEach((result,index) => {
-    const label = index === 0 ? "Classic account history" : "Online account history";
+    const label = index === 0 ? "Adventure account history" : "Online account history";
     if (result.status === "rejected" || result.value.error) { warnings.push(`${label} could not be loaded. Retry to check again.`); return; }
     if (index === 0) rows.push(...(result.value.data as unknown as ClassicRun[] ?? []).map(classicHistory));
     else for (const match of result.value.data as unknown as ServerMatch[] ?? []) { const row = serverHistory(match,owner); if (row) rows.push(row); }

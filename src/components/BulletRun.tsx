@@ -1,3 +1,4 @@
+import TouchJoystick from "./TouchJoystick";
 import { useMatchHistory } from "@/game/useMatchHistory";
 import { inputAction } from "@/lib/keybindings";
 import type { LobbyMode } from '@/lib/lobby-modes';
@@ -32,7 +33,7 @@ function draw(ctx: CanvasRenderingContext2D, state: State, self: string) {
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
     ctx.fillStyle = p.id === self ? '#4fffb8' : '#ff6464'; ctx.beginPath(); ctx.moveTo(19, 0); ctx.lineTo(-12, -12); ctx.lineTo(-8, 0); ctx.lineTo(-12, 12); ctx.closePath(); ctx.fill();
     if (p.shield) { ctx.strokeStyle = '#94e8ff'; ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.stroke(); }
-    ctx.restore(); ctx.font = '13px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText(p.name.slice(0, 20), p.x, p.y - 23);
+    ctx.restore(); ctx.font = '13px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; if (p.id === self) ctx.fillText(p.name.slice(0, 20), p.x, p.y - 23);
   }
 }
 function validInput(v: unknown): v is Input {
@@ -284,11 +285,13 @@ export default function BulletRun({ embedded = false, autoEnter = false, initial
           onPointerMove={e => aim(e.clientX, e.clientY)} onPointerDown={e => { aim(e.clientX, e.clientY); input.current.fire = true; }}
           onPointerUp={() => { input.current.fire = false; }} onPointerLeave={() => { input.current.fire = false; }} />
         <div className="bullet-touch-controls" aria-label="Touch game controls">
-          {(['up','left','down','right','fire'] as const).map(control => <button key={control}
-            onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); input.current[control] = true; }}
-            onPointerUp={() => { input.current[control] = false; }} onPointerCancel={() => { input.current[control] = false; }}>
-            {({ up: '↑', left: '←', down: '↓', right: '→', fire: 'FIRE' })[control]}
-          </button>)}
+          <TouchJoystick onChange={direction => {
+            input.current.up = direction === 'up'; input.current.down = direction === 'down';
+            input.current.left = direction === 'left'; input.current.right = direction === 'right';
+          }} />
+          <button aria-label="Fire" onPointerDown={event => { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); input.current.fire = true; }}
+            onPointerUp={() => { input.current.fire = false; }} onPointerCancel={() => { input.current.fire = false; }}
+            onLostPointerCapture={() => { input.current.fire = false; }}>FIRE</button>
         </div>
         <p role="status">{you?.respawn ? `Respawning in ${Math.ceil(you.respawn / 1000)}...` : state.lastKill || 'Battle in progress'}</p>
         <p>Move: WASD or arrows · Aim: mouse · Shoot: click or Space · New weapons unlock with kills</p>

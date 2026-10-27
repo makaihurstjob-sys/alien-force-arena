@@ -30,7 +30,7 @@ export default function Career() {
   return <div className="career-content">
     <nav className="arena-record-tabs" aria-label="Career sections">
       <button aria-pressed={tab === "history"} onClick={() => setTab("history")}>Match history</button>
-      <button aria-pressed={tab === "scores"} onClick={() => setTab("scores")}>Classic scores</button>
+      <button aria-pressed={tab === "scores"} onClick={() => setTab("scores")}>Adventure scores</button>
       <button aria-pressed={tab === "ranked"} onClick={() => setTab("ranked")}>Ranked ratings</button>
     </nav>
     {tab === "scores" ? <ClassicLeaderboard /> : tab === "ranked" ? <RankedRatings />
