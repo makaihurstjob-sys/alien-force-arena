@@ -171,7 +171,7 @@ export function MobileMainMenu() {
           <span className="arena-selected-copy"><strong>{mode.name}</strong><span>{mode.description}</span></span>
           <ChevronRight />
         </button>
-        <button className="arena-play-button" aria-haspopup="dialog" onClick={() => enterMode(selected)}>Play<ChevronRight /></button>
+        <button className="arena-play-button" aria-haspopup="dialog" onClick={(event) => { chooserTrigger.current = event.currentTarget; setPanel("games"); }}>Play<ChevronRight /></button>
       </section>
       <footer>Fight · Adapt · Survive</footer>
       </>}

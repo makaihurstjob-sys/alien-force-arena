@@ -53,7 +53,7 @@ async def main():
     # Opening a lobby hands off to the lobby radio; the menu pauses in place.
     await page.locator('.arena-play-button').click()
     chooser=page.locator('.hangar-selector[open]')
-    await chooser.get_by_role('button').filter(has=page.get_by_text('Classic',exact=True)).click()
+    await chooser.get_by_role('button').filter(has=page.get_by_text('Adventure',exact=True)).click()
     await page.locator('.hangar-lobby').wait_for()
     await page.wait_for_function('window.__song(35.6).length>=1 && window.__song(35.6)[0].ctx.state==="running"',timeout=15000)
     await page.wait_for_function(f'window.__song({MENU})[0].ctx.state==="suspended"',timeout=5000)
@@ -79,7 +79,7 @@ async def main():
     await page.locator('.opening-skip').click(); await page.locator('.opening-start').click()
     await page.wait_for_function(f'window.__song({MENU}).length===1 && window.__song({MENU})[0].ctx.state==="running"',timeout=15000)
     await page.locator('.arena-play-button').click()
-    await page.locator('.hangar-selector[open]').get_by_role('button').filter(has=page.get_by_text('Classic',exact=True)).click()
+    await page.locator('.hangar-selector[open]').get_by_role('button').filter(has=page.get_by_text('Adventure',exact=True)).click()
     await page.locator('.hangar-lobby').wait_for()
     await page.wait_for_function(f'window.__song({MENU})[0].ctx.state==="suspended"',timeout=5000)
     await page.get_by_role('button',name='Leave room',exact=True).click()

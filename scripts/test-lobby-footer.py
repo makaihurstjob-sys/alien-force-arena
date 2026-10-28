@@ -35,10 +35,10 @@ async def main():
     await page.locator('.hangar-footer').wait_for()
     await page.get_by_label('35 rating points',exact=True).wait_for()
     assert (await page.locator('.hangar-lobby').get_by_label('Your Ranked progress',exact=True).inner_text()).strip()=='35'
-    for count in [1,6]:
-     if count==6:
-      room['members'].extend([{'player_id':f'guest{i}','display_name':f'Pilot {i}','ready':False} for i in range(5)])
-      await page.wait_for_function("document.querySelectorAll('.hangar-slot').length===6")
+    for count in [1,2]:  # Ranked lobbies now show exactly two slots
+     if count==2:
+      room['members'].append({'player_id':'guest0','display_name':'Pilot 0','ready':False})
+      await page.wait_for_function("document.querySelectorAll('.hangar-slot:not(.is-empty)').length===2")
      metrics=await page.evaluate('''() => {
       const dialog=document.querySelector('.is-hangar'), footer=document.querySelector('.hangar-footer'), slots=document.querySelector('.hangar-slots');
       const qr=document.querySelector('.hangar-invite-qr'),svg=qr.querySelector('svg'),cap=qr.querySelector('figcaption');
@@ -62,7 +62,7 @@ async def main():
       await page.locator('.is-hangar').evaluate('(e)=>e.scrollTop=0')
       await page.screenshot(path=str(OUT/f'lobby-alignment-{engine}-{w}x{h}.png'))
 
-    print(f'PASS {engine} {w}x{h}: 1/6 pilots, QR left/centered, badge/rating beside name, footer gap, no overflow/clipping, reachable controls',flush=True)
+    print(f'PASS {engine} {w}x{h}: 1/2 pilots, QR left/centered, badge/rating beside name, footer gap, no overflow/clipping, reachable controls',flush=True)
     await page.close()
    await browser.close()
 asyncio.run(main())

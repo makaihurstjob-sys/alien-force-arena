@@ -82,3 +82,9 @@
 .arena-friend-slot > span { position:relative; border:0; transform:none; }
 .arena-friend-slot > span::before { content:''; position:absolute; inset:0; border:1px solid #9cd4e6; transform:rotate(45deg); }
 .home-menu .desktop-arena { opacity:.3; }
+/* Phones and short screens: stack the Play dock under the squad stage so they never overlap. */
+@media(max-width:767px),(max-height:700px) {
+ .mobile-main-menu .arena-squad-stage { margin-bottom:16px; }
+ .mobile-main-menu .arena-play-dock { position:relative; left:auto; bottom:auto; width:min(430px,calc(100% - 32px)); margin:0 16px 16px; }
+ .mobile-main-menu .arena-play-dock ~ footer { position:static; margin:0 16px; padding-bottom:96px; }
+}

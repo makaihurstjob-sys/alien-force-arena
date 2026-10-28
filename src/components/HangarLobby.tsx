@@ -194,7 +194,7 @@ export default function HangarLobby({
       <footer className="hangar-footer" aria-label="Room sharing and match controls">
         {invite && (
           <div className="hangar-invite">
-            <details className="hangar-qr-tools"><summary>QR invite</summary><figure className="hangar-invite-qr">
+            <figure className="hangar-invite-qr">
               <QRCodeSVG
                 value={invite}
                 size={144}
@@ -205,7 +205,7 @@ export default function HangarLobby({
                 title="Scan to join this room"
               />
               <figcaption>Scan to join on mobile</figcaption>
-            </figure></details>
+            </figure>
             <label>
               Invite link
               <input

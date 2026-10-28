@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-28
+
+- Review of PRs #9/#10: Play opens the shared game chooser again; the lobby QR card is visible to the left of the invite link again; the main-menu squad stage no longer overlaps the Adventure card and Play button on phones and short screens; wider lobby footer gap on landscape phones.
+
 ## 2026-10-21
 
 - Add Command Deck main-menu music: it takes over from the intro, pauses in place for lobbies and matches, and resumes afterward. Music on/off now stays in sync across intro, menu, and lobby.

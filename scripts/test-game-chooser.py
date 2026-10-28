@@ -39,7 +39,7 @@ async def main():
     await play.click()
     chooser=page.locator('.hangar-selector[open]')
     await chooser.wait_for()
-    names=['Classic','Versus','Bullet Run','Practice','Ranked','Arcade']
+    names=['Adventure','Versus','Bullet Run','Practice','Ranked','Arcade']
     assert await chooser.locator('.hangar-game-cards strong').all_text_contents()==names
     assert 'Ranked Ratings' not in await chooser.inner_text()
     assert await chooser.evaluate('(e)=>e.scrollWidth<=e.clientWidth+1')
@@ -68,7 +68,7 @@ async def main():
     room['members'].extend([{'player_id':f'guest{i}','display_name':f'Pilot {i}','ready':False} for i in range(2)])
     await page.wait_for_function("document.querySelectorAll('.hangar-slot:not(.is-empty)').length===3")
     await page.locator('.hangar-game-selector').click()
-    assert await chooser.get_by_role('button').filter(has=page.get_by_text('Classic',exact=True)).is_disabled()
+    assert await chooser.get_by_role('button').filter(has=page.get_by_text('Adventure',exact=True)).is_disabled()
     await page.get_by_role('button',name='Close game selector',exact=True).click()
     room['host_id']='other'
     await page.wait_for_timeout(2200)

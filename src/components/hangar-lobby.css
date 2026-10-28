@@ -175,7 +175,7 @@
 .squad-hangar .hangar-slot.is-empty { opacity:.85; }.squad-hangar .hangar-slot.is-empty .hangar-plaque { font-size:12px; }
 .squad-hangar .hangar-team-hint,.squad-hangar .hangar-copy-status { font:12px/1.5 monospace; color:#b8dccf; margin:8px 0; text-align:center; }
 .squad-hangar .hangar-connection { justify-content:center; }
-.mobile-main-menu .squad-hangar .hangar-footer { padding-top:24px; }
+.mobile-main-menu .squad-hangar .hangar-footer { padding-top:32px; }
 .squad-hangar .hangar-invite-qr { display:none; }
 .squad-hangar .hangar-invite { grid-template-columns:1fr; }
 .squad-hangar .hangar-invite label { font:11px monospace; color:#97aab7; }
@@ -193,8 +193,7 @@
 }
 .hangar-team-label { display:block; color:#9cbac5; font:10px/1.3 monospace; margin-top:3px; }
 .squad-hangar .hangar-pilot-name { min-height:40px; }
-.squad-hangar .hangar-qr-tools { grid-column:2; grid-row:1; align-self:start; }
-.squad-hangar .hangar-qr-tools summary { cursor:pointer; padding:8px; color:#b6ecdc; border:1px solid #365563; border-radius:4px; font:12px monospace; }
-.squad-hangar .hangar-qr-tools .hangar-invite-qr { display:block; margin-top:8px; }
-.squad-hangar .hangar-invite { grid-template-columns:minmax(0,1fr) auto; }
-.squad-hangar .hangar-invite label { grid-column:1; grid-row:1; }
+/* QR card stays visible to the left of the invite link. */
+.squad-hangar .hangar-invite { grid-template-columns:auto minmax(0,1fr); align-items:center; }
+.squad-hangar .hangar-invite-qr { grid-column:1; grid-row:1; }
+.squad-hangar .hangar-invite label { grid-column:2; grid-row:1; }
