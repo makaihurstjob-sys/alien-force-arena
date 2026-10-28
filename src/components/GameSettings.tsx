@@ -4,10 +4,10 @@ import { defaults, keyLabel, loadBindings, saveBindings, type Action } from "@/l
 import "./game-settings.css";
 
 const controls: Record<Action, { label: string; description: string }> = {
-  thrust: { label: "Move up / thrust", description: "Move up in Classic, or thrust forward in Arcade and Practice." },
-  reverse: { label: "Move down / reverse", description: "Move down in Classic, or reverse thrust in Arcade and Practice." },
-  left: { label: "Move left", description: "Move left in Classic, or steer left in Arcade and Practice." },
-  right: { label: "Move right", description: "Move right in Classic, or steer right in Arcade and Practice." },
+  thrust: { label: "Move up / thrust", description: "Move up in Adventure and Arcade, or thrust forward in Practice." },
+  reverse: { label: "Move down / reverse", description: "Move down in Adventure and Arcade, or reverse thrust in Practice." },
+  left: { label: "Move left", description: "Move left in Adventure and Arcade, or steer left in Practice." },
+  right: { label: "Move right", description: "Move right in Adventure and Arcade, or steer right in Practice." },
   fire: { label: "Fire", description: "Fire your weapon. Another shot becomes available when the current shot clears." },
   turnaround: { label: "Turn around", description: "Reverse your ship's heading." },
   dash: { label: "Dash / teleport", description: "Use a dash or teleport when available in Arcade modes." },

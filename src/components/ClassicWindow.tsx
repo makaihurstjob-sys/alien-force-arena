@@ -19,6 +19,7 @@ type Props = {
   menuHref: string;
   level: number;
   onLevelChange: (level: number) => void;
+  adventure?: boolean;
   online?: { onReturn: () => void; onLeave: () => void; busy: boolean };
 };
 export default function ClassicWindow({
@@ -32,6 +33,7 @@ export default function ClassicWindow({
   level,
   onLevelChange,
   online,
+  adventure = false,
 }: Props) {
   const [mode, setMode] = useState<"normal" | "minimized" | "maximized">("normal");
   const [menu, setMenu] = useState<string | null>(null);
@@ -73,9 +75,9 @@ export default function ClassicWindow({
     move: (direction) => {
       if (!menu && !dialog) return;
       if (!dialog && (direction === "left" || direction === "right")) {
-        const names = ["Game", "Options", "Help"];
+        const names = adventure ? ["Game", "Help"] : ["Game", "Options", "Help"];
         setMenu(
-          names[(Math.max(0, names.indexOf(menu!)) + (direction === "right" ? 1 : 2)) % 3] ??
+          names[(Math.max(0, names.indexOf(menu!)) + (direction === "right" ? 1 : names.length - 1)) % names.length] ??
             "Game",
         );
         return;
@@ -160,7 +162,7 @@ export default function ClassicWindow({
           className="classic-caption"
           onDoubleClick={() => changeMode(mode === "maximized" ? "normal" : "maximized")}
         >
-          {online ? "Alien Force 1v1" : "Alien Force"}
+          {adventure ? "Alien Force Adventure" : online ? "Alien Force Arena" : "Alien Force"}
         </div>
         <button
           className="classic-caption-button"
@@ -238,7 +240,7 @@ export default function ClassicWindow({
       )}
       <div hidden={mode === "minimized"}>
         <nav className="classic-menubar" aria-label="Game menu bar">
-          {["Game", "Options", "Help"].map((name) => (
+          {(adventure ? ["Game", "Help"] : ["Game", "Options", "Help"]).map((name) => (
             <div className="classic-menu-anchor" key={name}>
               <button
                 aria-label={name}

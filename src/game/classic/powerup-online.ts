@@ -59,6 +59,7 @@ export function isPowerDuelSnapshot(value: unknown, players: string[]): value is
   const p = value as PowerDuelSnapshot;
   const s = p.game;
   return (
+    players.length >= 2 && players.length <= 4 && new Set(players).size === players.length &&
     typeof p.matchId === "string" &&
     Number.isSafeInteger(p.sequence) &&
     p.sequence >= 0 &&
@@ -85,9 +86,9 @@ export function isPowerDuelSnapshot(value: unknown, players: string[]): value is
     s.score.length === 2 &&
     s.score.every((n) => Number.isSafeInteger(n) && n >= 0) &&
     Array.isArray(s.ships) &&
-    s.ships.length === 2 &&
+    s.ships.length === players.length &&
     s.ships.every((ship) => !!ship) &&
-    new Set(s.ships.map((ship) => ship.id)).size === 2 &&
+    new Set(s.ships.map((ship) => ship.id)).size === players.length &&
     s.ships.every(
       (ship) =>
         players.includes(ship.id) &&

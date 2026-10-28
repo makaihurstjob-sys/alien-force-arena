@@ -25,7 +25,7 @@ function RunRow({ run }: { run: ClassicRun }) {
   return <details className={`tracker-run ${eligible ? "eligible" : ""}`}>
     <summary>
       <div className="tracker-run-title"><span className="tracker-ship"><ShipIcon size={32} /></span>
-        <div><small>{new Date(run.recorded_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · Classic</small>
+        <div><small>{new Date(run.recorded_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · Adventure</small>
           <strong>{resultLabel[run.outcome]}</strong><span className="tracker-badge">{run.start_level !== 1 ? `Custom start · Level ${run.start_level}` : eligible ? "Leaderboard run" : "History only"}</span></div>
       </div>
       <dl className="tracker-run-stats">
@@ -86,15 +86,15 @@ export default function ClassicLeaderboard({ accountId }: { accountId?: string }
   };
   const visibleRuns = history.slice(0, 20);
   const dates = [...new Set(visibleRuns.map(run => new Date(run.recorded_at).toLocaleDateString()))];
-  return <section className="classic-tracker" aria-label="Classic score tracker">
+  return <section className="classic-tracker" aria-label="Adventure score tracker">
     <div className="tracker-toolbar">
-      {accountId ? <span><Clock3 size={18} />Your Classic career</span> : player ? <button onClick={() => selectPlayer(null)}><ChevronLeft size={17} />Leaderboard</button> : <span><Trophy size={18} />Classic · All time</span>}
+      {accountId ? <span><Clock3 size={18} />Your Adventure career</span> : player ? <button onClick={() => selectPlayer(null)}><ChevronLeft size={17} />Leaderboard</button> : <span><Trophy size={18} />Adventure · All time</span>}
       <button aria-label="Refresh records" disabled={loading} onClick={() => setRevision(value => value + 1)}><RefreshCw size={17} />Refresh</button>
     </div>
     <header className="tracker-header">
       <div><span className="tracker-eyebrow">{accountId ? "ALIEN FORCE / CAREER" : "ALIEN FORCE / COMMUNITY SCORES"}</span>
         <h3 ref={heading} tabIndex={-1}>{player && <PlayerFlag code={profile?.flag_code} />} {player ? profile?.display_name ?? "Player card" : "Global Leaderboard"}</h3>
-        {player && <p>{accountId ? "Your account stats and game history" : "Public Classic stats and game history"}</p>}
+        {player && <p>{accountId ? "Your account stats and game history" : "Public Adventure stats and game history"}</p>}
       </div>
       {player && <button className="tracker-share" onClick={() => {
         void navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}${window.location.search}#player=${player}`).then(() => setCopied(true)).catch(() => setError("Could not copy the link. Copy the address from your browser."));
@@ -113,13 +113,13 @@ export default function ClassicLeaderboard({ accountId }: { accountId?: string }
       </dl>
       <div className="tracker-history-heading"><h4>Game history</h4><span><Clock3 size={15} />Newest first</span></div>
       <p className="tracker-note">Totals include all saved runs, including restarts and custom starting levels. Accuracy uses total hits and total shots.</p>
-      {!history.length && <p className="tracker-empty">No saved Classic games yet.</p>}
+      {!history.length && <p className="tracker-empty">No saved Adventure games yet.</p>}
       {dates.map(date => <section key={date} className="tracker-day" aria-label={`Games on ${date}`}>
         <h5>{date}</h5>{visibleRuns.filter(run => new Date(run.recorded_at).toLocaleDateString() === date).map(run => <RunRow key={run.id} run={run} />)}
       </section>)}
     </> : <>
-      {!board.length ? <div className="tracker-empty"><Crosshair size={32} /><h4>The first score is waiting.</h4><p>Finish a Classic game from level 1 to appear here. Choose a display name from your player profile.</p></div> : <div className="tracker-table-scroll"><table>
-        <caption className="sr-only">Classic best scores. Select a player to view their public card.</caption>
+      {!board.length ? <div className="tracker-empty"><Crosshair size={32} /><h4>The first score is waiting.</h4><p>Finish an Adventure game from level 1 to appear here. Choose a display name from your player profile.</p></div> : <div className="tracker-table-scroll"><table>
+        <caption className="sr-only">Adventure best scores. Select a player to view their public card.</caption>
         <thead><tr><th>Rank</th><th>Player</th><th>Best score</th><th>Level</th><th>Accuracy</th><th>Shots</th><th>Crashes</th></tr></thead>
         <tbody>{board.slice(0, 25).map(row => <tr key={row.player_id}>
           <td className="tracker-rank">#{row.rank}</td><td><button className="tracker-player-link" onClick={() => selectPlayer(row.player_id)}><PlayerFlag code={row.flag_code} />{row.display_name}<ChevronRight size={15} /></button></td>

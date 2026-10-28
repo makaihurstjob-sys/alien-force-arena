@@ -67,3 +67,18 @@
 
 /* Ship artwork keeps its native proportions in narrow previews. */
 .arena-selected-preview canvas,.arena-game-preview canvas { object-fit:contain; }
+/* Squad stage: your drone is always the focal point, invitations flank it. */
+.mobile-main-menu .arena-squad-stage { position:relative; inset:auto; transform:none; display:grid; grid-template-columns:minmax(140px,1fr) minmax(260px,1.8fr) minmax(140px,1fr); align-items:center; width:min(1000px,90vw); margin:4vh auto 240px; gap:24px; z-index:1; pointer-events:auto; }
+.arena-hero-drone { min-width:0; text-align:center; }.arena-hero-drone .arena-pilot { position:static; display:flex; justify-content:center; transform:none; font-size:18px; }
+.arena-pilot-status { color:#8fffd0; font-size:11px; letter-spacing:3px; }
+.mobile-main-menu .arena-friend-slot { display:grid; justify-items:center; gap:14px; padding:24px 12px; min-height:170px; color:#bdcdd7; background:linear-gradient(#142432aa,#0a142388); border:1px solid #7191ac44; border-radius:3px; box-shadow:none; }
+.arena-friend-slot > span { display:grid; place-items:center; width:50px; height:50px; border:1px solid #9cd4e6; transform:rotate(45deg); font-size:32px; color:#9fffe1; }.arena-friend-slot small { font:11px/1.5 monospace; color:#8fa5b8; }
+.arena-friend-slot:hover { border-color:#8fffd0; background:#183a42aa; }
+@media(max-width:767px) {
+ .mobile-main-menu .arena-squad-stage { width:100%; grid-template-columns:1fr 1fr; gap:12px; margin:16px auto 190px; padding:0 16px; box-sizing:border-box; }
+ .arena-squad-stage .arena-hero-drone { grid-column:1 / -1; grid-row:1; }
+ .mobile-main-menu .arena-friend-slot { min-height:96px; padding:12px 8px; gap:8px; font-size:12px; }.arena-friend-slot > span { width:30px; height:30px; font-size:22px; }.arena-friend-slot small { font-size:10px; }
+}
+.arena-friend-slot > span { position:relative; border:0; transform:none; }
+.arena-friend-slot > span::before { content:''; position:absolute; inset:0; border:1px solid #9cd4e6; transform:rotate(45deg); }
+.home-menu .desktop-arena { opacity:.3; }

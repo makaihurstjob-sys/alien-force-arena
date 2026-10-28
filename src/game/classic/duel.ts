@@ -11,9 +11,9 @@ export const directionFromAngle = (angle: number): Direction =>
 
 function spawn(state: GameState, players: PlayerSeed[]) {
   const previous = new Map(state.ships.map(s => [s.id, s]));
-  state.ships = players.map(p => ({
+  state.ships = players.map((p, index) => ({
     ...p, x: CLASSIC.margin + (p.team === 0 ? 0 : CLASSIC.cells * CLASSIC.spacing),
-    y: CLASSIC.margin + CLASSIC.cells * CLASSIC.spacing,
+    y: CLASSIC.margin + (players.slice(0, index).some(other => other.team === p.team) ? 0 : CLASSIC.cells * CLASSIC.spacing),
     angle: p.team === 0 ? 0 : Math.PI, vx: 0, vy: 0,
     alive: true, canFire: true, shots: previous.get(p.id)?.shots ?? 0,
     hits: previous.get(p.id)?.hits ?? 0,
@@ -36,7 +36,7 @@ export function startRound(state: GameState, players: PlayerSeed[]) {
 }
 
 /** Classic's lane movement and shot physics, with two human pilots and round scoring. */
-export function step(state: GameState, inputs: Record<string, PlayerInput>, rules: { roundsToWin?: number; protectedIds?: ReadonlySet<string>; speedMultiplier?: Record<string, number>; frozenIds?: ReadonlySet<string> } = {}) {
+export function step(state: GameState, inputs: Record<string, PlayerInput>, rules: { roundsToWin?: number; protectedIds?: ReadonlySet<string>; speedMultiplier?: Record<string, number>; frozenIds?: ReadonlySet<string>; nonlethalOwners?: ReadonlySet<string> } = {}) {
   state.tick++;
   state.events = [];
   state.phaseTimerMs = Math.max(0, state.phaseTimerMs - TICK_MS);
@@ -84,30 +84,34 @@ export function step(state: GameState, inputs: Record<string, PlayerInput>, rule
       shot.x += shot.vx / CLASSIC.bulletSpeed * distance;
       shot.y += shot.vy / CLASSIC.bulletSpeed * distance;
       if (shot.x < 0 || shot.y < 0 || shot.x > CLASSIC.size || shot.y > CLASSIC.size) return false;
-      const target = state.ships.find(s => s.alive && !rules.protectedIds?.has(s.id) && s.id !== shot.ownerId && Math.hypot(s.x - shot.x, s.y - shot.y) < 9);
+      const target = state.ships.find(s => s.alive && !rules.protectedIds?.has(s.id) && s.team !== shot.team && s.id !== shot.ownerId && Math.hypot(s.x - shot.x, s.y - shot.y) < 9);
       if (target) {
-        eliminated.add(target.id);
+        if (!rules.nonlethalOwners?.has(shot.ownerId)) eliminated.add(target.id);
         const owner = state.ships.find(s => s.id === shot.ownerId)!;
         owner.hits++;
-        state.events.push({ type: 'hit', playerId: owner.id, targetId: target.id, tick: state.tick },
-          { type: 'elimination', playerId: target.id, byId: owner.id, tick: state.tick });
+        state.events.push({ type: 'hit', playerId: owner.id, targetId: target.id, tick: state.tick });
+        if (!rules.nonlethalOwners?.has(shot.ownerId)) state.events.push({ type: 'elimination', playerId: target.id, byId: owner.id, tick: state.tick });
         return false;
       }
     }
     return true;
   });
-  const [a, b] = state.ships;
-  if (a?.alive && b?.alive && !rules.protectedIds?.has(a.id) && !rules.protectedIds?.has(b.id) && Math.hypot(a.x - b.x, a.y - b.y) < 12) {
-    eliminated.add(a.id);
-    eliminated.add(b.id);
+  for (let i = 0; i < state.ships.length; i++) {
+    for (const b of state.ships.slice(i + 1)) {
+      const a = state.ships[i]!;
+      if (a.team !== b.team && a.alive && b.alive && !rules.protectedIds?.has(a.id) && !rules.protectedIds?.has(b.id) && Math.hypot(a.x - b.x, a.y - b.y) < 12) {
+        eliminated.add(a.id); eliminated.add(b.id);
+      }
+    }
   }
   for (const ship of state.ships) {
     if (eliminated.has(ship.id)) ship.alive = false;
     ship.canFire = !state.projectiles.some(p => p.ownerId === ship.id);
   }
   const alive = state.ships.filter(s => s.alive);
-  if (alive.length === 2 && state.phaseTimerMs > 0) return;
-  const winner = alive.length === 1 ? alive[0]!.team : null;
+  const teams = new Set(alive.map(ship => ship.team));
+  if (teams.size > 1 && state.phaseTimerMs > 0) return;
+  const winner = teams.size === 1 ? alive[0]!.team : null;
   state.phase = 'round_over';
   state.phaseTimerMs = 2000;
   state.lastRoundWinner = winner;

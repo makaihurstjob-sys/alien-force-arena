@@ -45,8 +45,8 @@ function drawSnowflake(ctx: CanvasRenderingContext2D, x: number, y: number, r: n
   ctx.restore();
 }
 
-export function renderPowerDuel(ctx: CanvasRenderingContext2D, match: PowerDuelMatch) {
-  renderClassicDuel(ctx, match.game);
+export function renderPowerDuel(ctx: CanvasRenderingContext2D, match: PowerDuelMatch, viewerId?: string) {
+  renderClassicDuel(ctx, match.game, viewerId);
 
   if (match.pickup) {
     const { x, y, kind } = match.pickup;
