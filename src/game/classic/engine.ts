@@ -24,9 +24,20 @@ export const vectors: Record<Direction, [number, number]> = {
   right: [1, 0],
 };
 export type Actor = { id: number; x: number; y: number; direction: Direction };
-export type Enemy = Actor & { canFire?: boolean; health?: number; maxHealth?: number; lastDecision?: string };
+export type Enemy = Actor & {
+  canFire?: boolean;
+  health?: number;
+  maxHealth?: number;
+  boss?: boolean;
+  lastDecision?: string;
+};
 type Shot = Actor & { owner: number };
 export type ClassicState = {
+  adventure?: boolean;
+  scene?: "origin" | "boarding" | "transfer" | undefined;
+  shipColor?: string | undefined;
+  previousShipColor?: string | undefined;
+  completed?: boolean;
   player: Actor;
   playerMoving: boolean;
   queuedDirection?: Direction | null;
@@ -74,12 +85,33 @@ function shuffledIds(random: () => number) {
   }
   return ids;
 }
-function wave(level: number, random: () => number): Enemy[] {
+function wave(level: number, random: () => number, adventure = false): Enemy[] {
+  if (adventure && level % 20 === 0) {
+    const health = 8 + Math.floor(level / 20) * 2;
+    return [
+      {
+        id: 1,
+        x: lane(5),
+        y: lane(0),
+        direction: "down",
+        canFire: true,
+        boss: true,
+        health,
+        maxHealth: health,
+      },
+    ];
+  }
   const { shooters, armorHits } = classicDifficulty(level);
   const shooterIds = shooters ? new Set(shuffledIds(random).slice(0, shooters)) : new Set<number>();
   const armorIds = armorHits ? shuffledIds(random) : [];
-  const health = new Map<number, number>(armorIds.map((id, index): [number, number] =>
-    [id, 1 + Math.floor(armorHits / CLASSIC.enemyCount) + Number(index < armorHits % CLASSIC.enemyCount)]));
+  const health = new Map<number, number>(
+    armorIds.map((id, index): [number, number] => [
+      id,
+      1 +
+        Math.floor(armorHits / CLASSIC.enemyCount) +
+        Number(index < armorHits % CLASSIC.enemyCount),
+    ]),
+  );
   return Array.from({ length: CLASSIC.enemyCount }, (_, i) => ({
     id: i + 1,
     x: lane(i),
@@ -90,14 +122,21 @@ function wave(level: number, random: () => number): Enemy[] {
     maxHealth: health.get(i + 1) ?? 1,
   }));
 }
-export function createClassic(level = 1, random: () => number = Math.random): ClassicState {
+export function createClassic(
+  level = 1,
+  random: () => number = Math.random,
+  adventure = false,
+): ClassicState {
   if (!Number.isInteger(level) || level < 1 || level > 999)
     throw new RangeError("Level must be between 1 and 999");
   return {
+    adventure,
+    scene: adventure && level === 1 ? "origin" : undefined,
+    shipColor: SHIP_COLORS[Math.floor((level - 1) / 20) % SHIP_COLORS.length],
     player: { id: 0, x: lane(10), y: lane(10), direction: "left" },
     playerMoving: false,
     queuedDirection: null,
-    enemies: wave(level, random),
+    enemies: wave(level, random, adventure),
     shots: [],
     score: 0,
     lives: CLASSIC.lives,
@@ -157,13 +196,18 @@ function loseLife(s: ClassicState, cause: "crash" | "shot", directionHeld: boole
   }
   // Choose the closest safe crossing to where the pilot died. The damaged drones stay
   // exactly where they were; brief invulnerability protects the resumed run.
-  const crossings = Array.from({ length: 121 }, (_, i) => ({ x: lane(i % 11), y: lane(Math.floor(i / 11)) }));
+  const crossings = Array.from({ length: 121 }, (_, i) => ({
+    x: lane(i % 11),
+    y: lane(Math.floor(i / 11)),
+  }));
   const clearance = ({ x, y }: { x: number; y: number }) =>
-    Math.min(...s.enemies.map(e => Math.hypot(e.x - x, e.y - y)));
-  const safe = crossings.filter(point => clearance(point) >= CLASSIC.spacing * 2);
-  const distance = ({ x, y }: { x: number; y: number }) => Math.hypot(x - s.player.x, y - s.player.y);
-  const spawn = (safe.length ? safe : crossings).sort((a, b) =>
-    (safe.length ? 0 : clearance(b) - clearance(a)) || distance(a) - distance(b))[0]!;
+    Math.min(...s.enemies.map((e) => Math.hypot(e.x - x, e.y - y)));
+  const safe = crossings.filter((point) => clearance(point) >= CLASSIC.spacing * 2);
+  const distance = ({ x, y }: { x: number; y: number }) =>
+    Math.hypot(x - s.player.x, y - s.player.y);
+  const spawn = (safe.length ? safe : crossings).sort(
+    (a, b) => (safe.length ? 0 : clearance(b) - clearance(a)) || distance(a) - distance(b),
+  )[0]!;
   s.player = { id: 0, ...spawn, direction: "left" };
   s.playerMoving = false;
   s.queuedDirection = null;
@@ -179,7 +223,7 @@ export function tickClassic(
   dt = 1 / 60,
   random: () => number = Math.random,
 ) {
-  if (s.phase === "game_over") return;
+  if (s.phase === "game_over" || s.scene || s.completed) return;
   if (s.phase === "waiting") {
     if (s.awaitDirectionRelease) {
       if (!input.direction) s.awaitDirectionRelease = false;
@@ -189,17 +233,26 @@ export function tickClassic(
     s.phase = "playing";
   }
   if (s.phase === "level_clear") {
-    s.timer -= dt;
-    if (s.timer <= 0) {
-      s.level = Math.min(999, s.level + 1);
-      s.enemies = wave(s.level, random);
-      s.shots = [];
-      s.phase = "waiting";
-      s.waitingReason = "next_level";
-      s.awaitDirectionRelease = Boolean(input.direction);
-      s.playerMoving = false;
-      s.queuedDirection = null;
-      s.invulnerable = CLASSIC.invulnerability;
+    if (s.adventure) {
+      // The open door is on the top lane. Clearing combat never advances by itself.
+      if (input.direction) {
+        s.playerMoving = true;
+        s.queuedDirection = input.direction;
+      }
+      if (
+        s.playerMoving &&
+        moveActor(
+          s.player,
+          s.queuedDirection ?? null,
+          Math.max(90, classicDifficulty(s.level).playerSpeed) * dt,
+        )
+      )
+        s.queuedDirection = null;
+      if (Math.hypot(s.player.x - EXIT_DOOR.x, s.player.y - EXIT_DOOR.y) < 10)
+        advanceClassic(s, input, random);
+    } else {
+      s.timer -= dt;
+      if (s.timer <= 0) advanceClassic(s, input, random);
     }
     return;
   }
@@ -219,7 +272,14 @@ export function tickClassic(
     s.queuedDirection = input.direction;
   }
   const difficulty = classicDifficulty(s.level);
-  if (s.playerMoving && moveActor(s.player, input.reverse ? null : s.queuedDirection ?? null, difficulty.playerSpeed * dt))
+  if (
+    s.playerMoving &&
+    moveActor(
+      s.player,
+      input.reverse ? null : (s.queuedDirection ?? null),
+      difficulty.playerSpeed * dt,
+    )
+  )
     s.queuedDirection = null;
   if (input.fire) fire(s, s.player);
   for (const enemy of s.enemies) {
@@ -275,7 +335,7 @@ export function tickClassic(
       remaining -= distance;
       if (distance > 1e-7) delete enemy.lastDecision;
     }
-    if (enemy.canFire && random() < dt * difficulty.fireRate) fire(s, enemy);
+    if (enemy.canFire && random() < dt * difficulty.fireRate * (enemy.boss ? 3 : 1)) fire(s, enemy);
   }
   // Substeps keep fast shots from skipping a ship between simulation ticks.
   const survivors: Shot[] = [];
@@ -314,6 +374,64 @@ export function tickClassic(
     s.levelsCleared++;
     s.phase = "level_clear";
     s.timer = CLASSIC.transition;
+    if (s.adventure) {
+      s.playerMoving = false;
+      s.queuedDirection = null;
+    }
     s.shots = [];
   }
+}
+
+export const EXIT_DOOR = { x: 212, y: 12 };
+export const SHIP_COLORS = ["#e8f5ff", "#ffad42", "#57e5cc", "#bc8bff", "#ff779f", "#67baff"];
+export function adventureSector(level: number) {
+  const number = Math.floor((level - 1) / 20) + 1;
+  const names = [
+    "Sol's Last Light",
+    "Ember Reach",
+    "Jade Nebula",
+    "Violet Rift",
+    "Crimson Frontier",
+    "Azure Expanse",
+    "Silent Armada",
+    "Eclipse Gate",
+    "Starforge",
+    "The Core",
+  ];
+  return {
+    number,
+    name:
+      names[(number - 1) % names.length] +
+      (number > 10 ? ` · Cycle ${Math.ceil(number / 10)}` : ""),
+    bossLevel: number * 20,
+  };
+}
+export function finishAdventureScene(s: ClassicState) {
+  s.scene = s.scene === "origin" ? "boarding" : undefined;
+  s.playerMoving = false;
+  s.queuedDirection = null;
+  s.awaitDirectionRelease = true;
+}
+function advanceClassic(s: ClassicState, input: ClassicInput, random: () => number) {
+  if (s.adventure && s.level === 999) {
+    s.completed = true;
+    s.phase = "game_over";
+    return;
+  }
+  const bossCleared = s.adventure && s.level % 20 === 0;
+  s.level = Math.min(999, s.level + 1);
+  if (bossCleared) {
+    s.previousShipColor = s.shipColor;
+    s.shipColor = SHIP_COLORS[Math.floor((s.level - 1) / 20) % SHIP_COLORS.length];
+    s.scene = "transfer";
+  }
+  s.enemies = wave(s.level, random, s.adventure);
+  s.shots = [];
+  s.phase = "waiting";
+  s.waitingReason = "next_level";
+  s.awaitDirectionRelease = Boolean(input.direction);
+  s.playerMoving = false;
+  s.queuedDirection = null;
+  if (s.adventure) s.player = { id: 0, x: lane(5), y: lane(10), direction: "up" };
+  s.invulnerable = CLASSIC.invulnerability;
 }

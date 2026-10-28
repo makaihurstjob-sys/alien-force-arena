@@ -1,10 +1,14 @@
 import { inputAction, matches, keyboardHelp } from "@/lib/keybindings";
+import AdventureCinematic from "./AdventureCinematic";
 import ClassicController from "./ClassicController";
 import ClassicWindow, { type MenuController } from "./ClassicWindow";
 import spriteSheetUrl from "@/assets/classic/original-sprites.png?url";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   createClassic,
+  finishAdventureScene,
+  adventureSector,
+  type ClassicState,
   tickClassic,
   type ClassicInput,
   type Direction,
@@ -12,7 +16,13 @@ import {
 import "@/routes/classic-controls.css";
 import { renderClassic } from "@/game/classic/render";
 import { useClassicRecords } from "@/game/useClassicRecords";
-export default function Classic({ menuHref = "/", onReturn }: { menuHref?: string; onReturn?: () => void }) {
+export default function Classic({
+  menuHref = "/",
+  onReturn,
+}: {
+  menuHref?: string;
+  onReturn?: () => void;
+}) {
   const [mobileArena, setMobileArena] = useState(false);
   useEffect(() => {
     const query = window.matchMedia("(pointer: coarse)");
@@ -23,7 +33,7 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
   }, []);
   const menuController = useRef<MenuController>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
-  const game = useRef(createClassic());
+  const game = useRef(createClassic(1, Math.random, true));
   const records = useClassicRecords(game);
   const input = useRef<ClassicInput>({ direction: null, fire: false });
   const [paused, setPaused] = useState(false);
@@ -46,6 +56,11 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
     lives: 3,
     over: false,
     shotInPlay: false,
+    scene: "origin" as ClassicState["scene"],
+    color: "#e8f5ff",
+    previousColor: undefined as string | undefined,
+    exitOpen: false,
+    completed: false,
   });
   useEffect(() => {
     const held = new Map<string, Direction>();
@@ -54,12 +69,21 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
       input.current = { direction: null, fire: false };
     };
     const down = (e: KeyboardEvent) => {
-      if (windowBlocked) return;
+      if (windowBlocked || game.current.scene) return;
       if ((e.target as HTMLElement).closest("input,textarea,select,[contenteditable=true]")) return;
       if ((e.target as HTMLElement).closest("button,a") && ["Space", "Enter"].includes(e.code))
         return;
       const action = inputAction(e.code);
-      const d: Direction | undefined = action === "thrust" ? "up" : action === "reverse" ? "down" : action === "left" ? "left" : action === "right" ? "right" : undefined;
+      const d: Direction | undefined =
+        action === "thrust"
+          ? "up"
+          : action === "reverse"
+            ? "down"
+            : action === "left"
+              ? "left"
+              : action === "right"
+                ? "right"
+                : undefined;
       if (d || matches("fire", e.code)) e.preventDefault();
       if (d || matches("fire", e.code) || matches("turnaround", e.code)) resumeFromAway();
       if (d) {
@@ -126,6 +150,11 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
           lives: s.lives,
           over: s.phase === "game_over",
           shotInPlay: s.shots.some((shot) => shot.owner === 0),
+          scene: s.scene,
+          color: s.shipColor ?? "#e8f5ff",
+          previousColor: s.previousShipColor,
+          exitOpen: s.phase === "level_clear",
+          completed: !!s.completed,
         });
         hud = now;
       }
@@ -136,22 +165,50 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
   }, []);
   const restart = () => {
     void records.finish("restarted");
-    game.current = createClassic(1);
+    game.current = createClassic(1, Math.random, true);
     input.current = { direction: null, fire: false };
     setPaused(false);
     resumeFromAway();
     canvas.current?.focus();
   };
   return (
-    <main className="min-h-screen bg-background p-4 font-mono text-foreground" onClickCapture={event => {
-      const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a");
-      if (link?.getAttribute("href") === menuHref && !event.ctrlKey && !event.metaKey) {
-        event.preventDefault();
-        void records.finish("abandoned").finally(() => onReturn ? onReturn() : window.location.assign(menuHref));
-      }
-    }}>
-      <div className="classic-shell mx-auto max-w-4xl space-y-4">
-        {onReturn && <button onClick={() => { void records.finish("abandoned").finally(onReturn); }}>Return to lobby</button>}
+    <main
+      className="min-h-screen bg-background p-4 font-mono text-foreground"
+      onClickCapture={(event) => {
+        const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a");
+        if (link?.getAttribute("href") === menuHref && !event.ctrlKey && !event.metaKey) {
+          event.preventDefault();
+          void records
+            .finish("abandoned")
+            .finally(() => (onReturn ? onReturn() : window.location.assign(menuHref)));
+        }
+      }}
+    >
+      {stats.scene && (
+        <AdventureCinematic
+          scene={stats.scene}
+          level={stats.level}
+          color={stats.color}
+          previousColor={stats.previousColor}
+          onFinish={() => {
+            finishAdventureScene(game.current);
+            input.current = { direction: null, fire: false };
+            setStats((previous) => ({ ...previous, scene: game.current.scene }));
+            resumeFromAway();
+            if (!game.current.scene) canvas.current?.focus();
+          }}
+        />
+      )}
+      <div inert={!!stats.scene} className="classic-shell mx-auto max-w-4xl space-y-4">
+        {onReturn && (
+          <button
+            onClick={() => {
+              void records.finish("abandoned").finally(onReturn);
+            }}
+          >
+            Return to lobby
+          </button>
+        )}
         <ClassicWindow
           adventure
           controllerRef={menuController}
@@ -192,30 +249,67 @@ export default function Classic({ menuHref = "/", onReturn }: { menuHref?: strin
             ))}
           </span>
           <span className="classic-shot-status">
-            {stats.over ? "GAME OVER" : stats.shotInPlay ? "SHOT IN PLAY" : "SHOT READY"}
+            {stats.completed
+              ? "UNIVERSE SAVED"
+              : stats.over
+                ? "GAME OVER"
+                : stats.shotInPlay
+                  ? "SHOT IN PLAY"
+                  : "SHOT READY"}
           </span>
         </div>
-        <ClassicController input={input} menuController={menuController}
-          windowBlocked={windowBlocked} resumeFromAway={resumeFromAway}
-          paused={paused || awayPaused} onStart={() => {
+        <ClassicController
+          input={input}
+          menuController={menuController}
+          windowBlocked={windowBlocked || !!stats.scene}
+          resumeFromAway={resumeFromAway}
+          paused={paused || awayPaused}
+          onStart={() => {
             if (away.current) resumeFromAway();
-            else setPaused(p => !p);
+            else setPaused((p) => !p);
             canvas.current?.focus();
-          }} />
+          }}
+        />
+        <p aria-live="polite" className="text-sm">
+          Sector {adventureSector(stats.level).number}: {adventureSector(stats.level).name} ·{" "}
+          {stats.level % 20 === 0
+            ? "Drone commander encounter"
+            : adventureSector(stats.level).bossLevel > 999
+              ? "Final approach · Save the universe at level 999"
+              : `Commander at level ${adventureSector(stats.level).bossLevel}`}
+          {stats.exitOpen && " · Exit open! Steer to the glowing door at the top center."}
+          {stats.completed && " · Universe saved. Ari's mission is complete."}
+        </p>
         <p className="classic-desktop-stats">
           Level {stats.level} | Score {stats.score} | Lives {stats.lives}
-          {stats.over ? " | Game over - select New game to retry." : ""}
+          {stats.completed
+            ? " | Mission complete - universe saved."
+            : stats.over
+              ? " | Game over - select New game to retry."
+              : ""}
         </p>
-        <p className="classic-keyboard-instructions text-sm">
-          {keyboardHelp()}
-        </p>
+        <p className="classic-keyboard-instructions text-sm">{keyboardHelp()}</p>
         <div className="classic-record-status text-sm" aria-live="polite">
           <p>{records.message}</p>
-          {records.failed && <button className="underline" onClick={records.retry}>Retry saving history</button>}
-          {records.playerId && <a className="underline" href={`${menuHref}#player=${records.playerId}`}
-            onClick={event => { event.preventDefault(); void records.finish("abandoned").finally(() => {
-              window.location.assign(`${menuHref}#player=${records.playerId}`);
-            }); }}>View my public player card</a>}
+          {records.failed && (
+            <button className="underline" onClick={records.retry}>
+              Retry saving history
+            </button>
+          )}
+          {records.playerId && (
+            <a
+              className="underline"
+              href={`${menuHref}#player=${records.playerId}`}
+              onClick={(event) => {
+                event.preventDefault();
+                void records.finish("abandoned").finally(() => {
+                  window.location.assign(`${menuHref}#player=${records.playerId}`);
+                });
+              }}
+            >
+              View my public player card
+            </a>
+          )}
         </div>
       </div>
     </main>

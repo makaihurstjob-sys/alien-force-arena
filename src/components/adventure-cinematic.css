@@ -1,0 +1,313 @@
+.adventure-film {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #02050df5;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  color: #eaf7ff;
+  font-family: monospace;
+  overflow: auto;
+}
+.film-frame {
+  width: min(800px, 100%);
+  border: 1px solid #36576c;
+  background: #07121e;
+  box-shadow: 0 0 80px #17618044;
+}
+.film-kicker {
+  padding: 16px;
+  color: #77dce9;
+  font-size: 12px;
+  letter-spacing: 2px;
+  display: flex;
+  justify-content: space-between;
+}
+.film-stage {
+  height: clamp(180px, 35vh, 320px);
+  overflow: hidden;
+  position: relative;
+  background:
+    radial-gradient(ellipse at 30% 30%, #274162, transparent 60%),
+    radial-gradient(circle, #9ecbff 1px, transparent 2px);
+  background-size:
+    auto,
+    39px 43px;
+  border-block: 1px solid #264457;
+}
+.film-planet {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  top: 15%;
+  left: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #67b7c4, #133655 60%, #030811);
+  box-shadow: 0 0 40px #68bfff33;
+}
+.film-gate {
+  position: absolute;
+  width: 60px;
+  height: 100px;
+  right: 15%;
+  top: 25%;
+  border: 8px solid #6ce8d8;
+  box-shadow:
+    0 0 28px #6ce8d8,
+    inset 0 0 25px #6ce8d8;
+  transform: perspective(400px) rotateY(-25deg);
+}
+.film-ship {
+  position: absolute;
+  left: 40%;
+  top: 40%;
+  font-size: 90px;
+  line-height: 1;
+  filter: drop-shadow(0 0 15px currentColor);
+  animation: film-arrive 3s ease-out both;
+}
+.film-ship i {
+  display: block;
+  width: 12px;
+  height: 28px;
+  background: #71dfff;
+  margin: -10px auto 0;
+  box-shadow: 0 10px 20px #1bbaff;
+}
+.film-floor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 27%;
+  background:
+    repeating-linear-gradient(90deg, #122433 0 1px, transparent 1px 70px),
+    linear-gradient(#1b3646, #09141f);
+  border-top: 2px solid #64889b;
+}
+.film-pilot {
+  position: absolute;
+  bottom: 17%;
+  left: 12%;
+  width: 20px;
+  height: 47px;
+  animation: film-board 4s 1s ease-in-out both;
+}
+.film-pilot b {
+  display: block;
+  width: 13px;
+  height: 13px;
+  background: #f9bd8b;
+  border-radius: 50%;
+  margin: auto;
+}
+.film-pilot i {
+  display: block;
+  width: 18px;
+  height: 21px;
+  background: #f28b3d;
+  border-radius: 5px;
+}
+.film-pilot span {
+  display: inline-block;
+  height: 13px;
+  width: 6px;
+  background: #c5d7e0;
+  margin: 0 2px;
+}
+.film-reserve {
+  position: absolute;
+  right: 12%;
+  top: 40%;
+  font-size: 85px;
+  filter: drop-shadow(0 0 12px currentColor);
+}
+.film-scene-label {
+  position: absolute;
+  bottom: 10px;
+  left: 14px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #88b5c9;
+}
+.film-copy {
+  padding: 22px 26px;
+  min-height: 175px;
+}
+.film-copy h2 {
+  font-size: clamp(18px, 3vw, 25px);
+  margin: 0 0 14px;
+  color: #a2f1ef;
+}
+.film-copy p {
+  font: 15px/1.8 system-ui;
+  margin: 0;
+  max-width: 65ch;
+}
+.film-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 26px 22px;
+}
+.film-actions button {
+  border: 1px solid #49758d;
+  padding: 12px 18px;
+  background: #142d40;
+  color: #d8f7ff;
+  cursor: pointer;
+}
+.film-actions button:last-child {
+  background: #a2f1ef;
+  color: #082029;
+}
+.film-actions button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+.scene-origin .film-pilot {
+  display: none;
+}
+.scene-transfer.beat-1 .film-ship {
+  color: #64717a !important;
+  animation: film-shudder 0.18s infinite alternate;
+}
+.damaged:after {
+  content: "☁";
+  position: absolute;
+  color: #acb5bb;
+  left: 40px;
+  top: -35px;
+  animation: film-smoke 2s infinite;
+}
+.scene-transfer.beat-1 .film-pilot {
+  animation: film-escape 3s both;
+}
+.scene-transfer.beat-2 .film-ship {
+  opacity: 0.3;
+  animation: none;
+}
+.film-pilot.to-new-ship {
+  animation: film-transfer 4s both;
+}
+.scene-boarding .film-gate {
+  opacity: 0.2;
+}
+.scene-boarding.beat-1 .film-pilot {
+  opacity: 0;
+  animation: none;
+}
+.scene-boarding.beat-1 .film-ship {
+  animation: film-launch 4s both;
+}
+@keyframes film-arrive {
+  from {
+    transform: translate(-230px, -80px) rotate(90deg);
+  }
+  to {
+    transform: translate(0, 0) rotate(0);
+  }
+}
+@keyframes film-board {
+  to {
+    left: 46%;
+    bottom: 32%;
+    opacity: 0;
+  }
+}
+@keyframes film-escape {
+  from {
+    left: 46%;
+    bottom: 32%;
+  }
+  to {
+    left: 60%;
+    bottom: 17%;
+  }
+}
+@keyframes film-transfer {
+  from {
+    left: 60%;
+  }
+  to {
+    left: 80%;
+    bottom: 32%;
+    opacity: 0;
+  }
+}
+@keyframes film-shudder {
+  to {
+    transform: translate(2px, 2px);
+  }
+}
+@keyframes film-smoke {
+  to {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+}
+@keyframes film-launch {
+  to {
+    transform: translateY(-300px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .adventure-film * {
+    animation: none !important;
+  }
+}
+@media (max-width: 480px) {
+  .film-copy {
+    padding: 18px;
+    min-height: 220px;
+  }
+  .film-copy p {
+    font-size: 14px;
+  }
+  .film-actions {
+    padding: 0 18px 18px;
+  }
+  .film-actions button {
+    padding: 12px;
+  }
+  .film-planet {
+    width: 120px;
+    height: 120px;
+  }
+}
+.scene-transfer.beat-0 .film-ship {
+  animation: film-gate-transit 4s both;
+}
+.scene-transfer.beat-0 .film-floor,
+.scene-transfer.beat-0 .film-pilot {
+  display: none;
+}
+@keyframes film-gate-transit {
+  from {
+    left: 15%;
+    transform: rotate(90deg);
+  }
+  to {
+    left: 76%;
+    transform: rotate(90deg) scale(0.25);
+    opacity: 0;
+  }
+}
+.film-ship,
+.film-reserve {
+  width: 96px;
+  height: 104px;
+  font-size: initial;
+}
+.film-ship svg,
+.film-reserve svg {
+  width: 100%;
+  height: 100%;
+}
+.film-ship i {
+  margin: -7px auto 0;
+}
+.scene-transfer.beat-1 .film-ship svg {
+  opacity: 0.5;
+}

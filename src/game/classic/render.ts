@@ -9,8 +9,13 @@ function getSpriteSheet() {
   }
   return spriteSheet?.complete && spriteSheet.naturalWidth > 0 ? spriteSheet : null;
 }
-import { CLASSIC, type Actor, type ClassicState } from "./engine";
-export function renderClassic(ctx: CanvasRenderingContext2D, s: ClassicState, paused: boolean, showPlayer = true) {
+import { CLASSIC, type Actor, type ClassicState, EXIT_DOOR, adventureSector } from "./engine";
+export function renderClassic(
+  ctx: CanvasRenderingContext2D,
+  s: ClassicState,
+  paused: boolean,
+  showPlayer = true,
+) {
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, 620, 424);
   ctx.strokeStyle = "#ccc";
@@ -19,9 +24,57 @@ export function renderClassic(ctx: CanvasRenderingContext2D, s: ClassicState, pa
   for (let y = 0; y < 10; y++)
     for (let x = 0; x < 10; x++)
       ctx.fillRect(22 + x * 40, 22 + y * 40, CLASSIC.block, CLASSIC.block);
+  if (s.adventure) {
+    const sector = adventureSector(s.level);
+    ctx.fillStyle = "#132637";
+    ctx.fillRect(24, 24, 376, 18);
+    ctx.fillStyle = "#a8e8ff";
+    ctx.font = "10px monospace";
+    ctx.fillText(
+      `${sector.number} · ${sector.name} · ${s.level % 20 === 0 ? "BOSS" : sector.bossLevel > 999 ? "Final approach" : `Boss at ${sector.bossLevel}`}`,
+      28,
+      37,
+    );
+    const boss = s.enemies.find((e) => e.boss);
+    if (boss) {
+      ctx.fillStyle = "#572437";
+      ctx.fillRect(85, 46, 254, 8);
+      ctx.fillStyle = "#ff486d";
+      ctx.fillRect(85, 46, (254 * (boss.health ?? 1)) / (boss.maxHealth ?? 1), 8);
+    }
+    const open = s.phase === "level_clear";
+    ctx.fillStyle = open ? "#63ffce" : "#344555";
+    ctx.fillRect(EXIT_DOOR.x - 13, 1, 26, 20);
+    ctx.fillStyle = "#07131d";
+    ctx.fillRect(EXIT_DOOR.x - 9, 3, 18, 16);
+    if (open) {
+      ctx.fillStyle = "#63ffce";
+      ctx.font = "11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("↑ EXIT OPEN · FLY TO THE DOOR ↑", 212, 400);
+      ctx.textAlign = "left";
+    }
+  }
   const sprites = getSpriteSheet();
   ctx.imageSmoothingEnabled = false;
   const ship = (a: Actor) => {
+    if (s.adventure && a.id === 0) {
+      ctx.save();
+      ctx.translate(a.x, a.y);
+      ctx.rotate({ up: 0, right: Math.PI / 2, down: Math.PI, left: -Math.PI / 2 }[a.direction]);
+      ctx.fillStyle = s.shipColor ?? "white";
+      ctx.beginPath();
+      ctx.moveTo(0, -8);
+      ctx.lineTo(8, 7);
+      ctx.lineTo(0, 4);
+      ctx.lineTo(-8, 7);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#163b60";
+      ctx.fillRect(-2, -2, 4, 5);
+      ctx.restore();
+      return;
+    }
     if (!sprites) return;
     const column = { up: 0, left: 1, down: 2, right: 3 }[a.direction];
     // Half-size maps the original 32px artwork to the existing 20px lanes.
@@ -39,11 +92,17 @@ export function renderClassic(ctx: CanvasRenderingContext2D, s: ClassicState, pa
   };
   for (const e of s.enemies) {
     ship(e);
+    if (e.boss) {
+      ctx.strokeStyle = "#ff486d";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(e.x - 11, e.y - 11, 22, 22);
+      ctx.lineWidth = 1;
+    }
     if ((e.maxHealth ?? 1) > 1) {
       ctx.fillStyle = "#ffcf53";
       ctx.fillRect(Math.round(e.x) + 5, Math.round(e.y) - 13, 12, 11);
       ctx.fillStyle = "#171717";
-      ctx.font = '9px monospace';
+      ctx.font = "9px monospace";
       ctx.textAlign = "center";
       ctx.fillText(String(e.health ?? 1), Math.round(e.x) + 11, Math.round(e.y) - 4);
       ctx.textAlign = "left";
@@ -65,13 +124,19 @@ export function renderClassic(ctx: CanvasRenderingContext2D, s: ClassicState, pa
   }
   const message =
     s.phase === "game_over"
-      ? "GAME OVER"
+      ? s.completed
+        ? "UNIVERSE SAVED"
+        : "GAME OVER"
       : paused
         ? "PAUSED"
         : s.phase === "level_clear"
-          ? "LEVEL CLEAR"
+          ? s.adventure
+            ? null
+            : "LEVEL CLEAR"
           : s.phase === "waiting"
-            ? s.waitingReason === "respawn" ? "MOVE TO RESUME" : "MOVE TO START"
+            ? s.waitingReason === "respawn"
+              ? "MOVE TO RESUME"
+              : "MOVE TO START"
             : null;
   if (message) {
     ctx.fillStyle = "rgba(0,0,0,0.8)";

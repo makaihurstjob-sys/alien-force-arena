@@ -1,0 +1,11 @@
+# Adventure campaign
+
+Adventure has 999 levels grouped into named 20-level sectors. Drone commanders appear exactly at levels 20, 40, …, 980. Each commander has a visible health bar, increasing armor, and triple the normal firing probability. The last sector contains levels 981–999 and ends with the universe-saved result.
+
+Clearing all enemies opens the small glowing door at the top center (212, 12). Fly along the existing lanes into it to advance. No timeout advances Adventure automatically; scoring and cleared-level telemetry are awarded once. The exit phase removes hostile projectiles and stops combat. Exit travel has a minimum speed of 90 units/second. Ordinary level changes retain the current ship; every boss exit changes its color.
+
+Entering Adventure plays a three-part origin story for pilot Ari Vega and the Sentinel drone uprising, followed by a two-part boarding/launch sequence for the original white Last Light ship. Every boss exit plays gate transit, reactor failure/pilot evacuation, and boarding a differently colored reserve craft. Six colors cycle across sectors; consecutive craft always differ, and the gameplay ship uses the selected color. The scenes use animated SVG/CSS illustrations with captions and manual Continue/Skip controls. They are stylized scenes, not rendered video or voiced cutscenes. Reduced-motion preferences disable movement, and the dialog traps keyboard focus while making gameplay controls inert. Combat and input remain stopped until the scene finishes and movement is released/repressed.
+
+The Adventure component explicitly opts into campaign rules. Existing Classic engine callers (including practice/multiplayer simulations) retain their previous progression. New game restarts the story and white ship at level 1. No database migration is part of this change.
+
+Validation: 136 Vitest tests pass, including 12 campaign checks for cinematic input gating, boss cadence, manual door entry, repeated score prevention, ship swaps, sector boundaries, and completion at 999. TypeScript and the Pages production build pass. Browser visual QA was attempted through the managed preview, but the existing Vite host allowlist rejects terminal.local; visual/mobile QA remains unverified.
