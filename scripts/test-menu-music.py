@@ -48,7 +48,8 @@ async def main():
     state=lambda s: page.evaluate(f'window.__song({s})[0] && window.__song({s})[0].ctx.state')
     await page.wait_for_function(f'window.__song({MENU}).length===1 && window.__song({MENU})[0].ctx.state==="running"',timeout=15000)
     assert await page.evaluate(f'window.__song({MENU})[0].loop'),'menu theme should loop'
-    assert await page.evaluate('window.__music.starts[0].ctx.state')=='closed','intro music should stop'
+    # Over a slow network the intro may never start before Skip; any intro song that did start must be closed.
+    assert await page.evaluate('window.__song(25.3).every(x => x.ctx.state === "closed")'),'intro music should stop'
     await page.screenshot(path=str(OUT/f'menu-music-{tag}{engine}-{w}x{h}.png'))
     # Opening a lobby hands off to the lobby radio; the menu pauses in place.
     await page.locator('.arena-play-button').click()
