@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { adventureSector, type ClassicState } from "@/game/classic/engine";
+import { adventureStory, type FilmScene } from "./adventure-story";
+import AdventureFilmArt from "./AdventureFilmArt";
 import "./adventure-cinematic.css";
 
 type Props = {
-  scene: NonNullable<ClassicState["scene"]>;
+  scene: FilmScene;
   level: number;
   color: string;
   previousColor?: string | undefined;
@@ -16,143 +17,148 @@ export default function AdventureCinematic({
   previousColor,
   onFinish,
 }: Props) {
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, []);
+  const story = adventureStory(scene, level);
   const [beat, setBeat] = useState(0);
-  const nextButton = useRef<HTMLButtonElement>(null);
+  const [progress, setProgress] = useState(0);
+  const next = useRef<HTMLButtonElement>(null);
+  const finish = useRef(onFinish);
+  finish.current = onFinish;
+  const current = story[Math.min(beat, story.length - 1)]!;
+  const finalBeat = beat >= story.length - 1;
+  const confirmation = finalBeat && scene !== "origin";
   useEffect(() => {
     setBeat(0);
-    nextButton.current?.focus();
-  }, [scene]);
-  const story =
-    scene === "origin"
-      ? [
-          [
-            "THE LAST PILOT",
-            "Before the war, pilot Ari Vega guided supply ships between peaceful worlds. Then the Sentinel network turned every defense drone against the people it was built to protect.",
-          ],
-          [
-            "A PROMISE IN THE DARK",
-            "Ari's home vanished behind the drone blockade. One final message escaped: the network is spreading toward the universe's star gates. If it reaches the Core, no world will be safe.",
-          ],
-          [
-            "OPERATION LAST LIGHT",
-            "Ari takes the last flyable ship. Break through each sector, destroy its drone commander, and reach the Core before the network consumes the universe. Every open door is one world closer to freedom.",
-          ],
-        ]
-      : scene === "boarding"
-        ? [
-            [
-              "HANGAR 01 · ORIGINAL SHIP",
-              "Ari crosses the empty hangar toward the original white ship, Last Light. The cockpit opens. There is no fleet coming to help.",
-            ],
-            [
-              "CLEAR FOR LAUNCH",
-              "Harness locked. Engines online. Ari climbs aboard: ‘For everyone still out there.’ First destination: Sol's Last Light. Move to begin level 1.",
-            ],
-          ]
-        : [
-            [
-              `GATE TRANSIT · LEVEL ${level}`,
-              "The commander falls. Last Light slips through the exit door into the next sector's emergency hangar.",
-            ],
-            [
-              "WARNING · REACTOR FAILURE",
-              "The battle has taken its toll. The damaged ship shudders to a halt, smoke spilling from its engines. Ari opens the canopy and climbs out before the reactor fails.",
-            ],
-            [
-              "A NEW SHIP · THE SAME PROMISE",
-              `A different-colored reserve ship waits across the hangar. Ari runs to it, climbs aboard, and powers up. Next destination: ${adventureSector(level).name}. The mission continues.`,
-            ],
-          ];
-  const finalBeat = beat === story.length - 1;
-  const replacement = scene === "transfer" && beat === 2;
-  const shipArt = (
-    <svg viewBox="0 0 120 130" fill="none">
-      <path
-        d="M60 5 74 44 109 84 109 105 76 93 69 114 51 114 44 93 11 105 11 84 46 44Z"
-        fill="currentColor"
-        stroke="#d5edff"
-        strokeWidth="2"
-      />
-      <path d="m60 24 9 36-9 17-9-17Z" fill="#103f63" stroke="#7ce9ff" strokeWidth="2" />
-      <path d="M26 87h18m32 0h18M49 102h22" stroke="#294f69" strokeWidth="5" />
-      <path d="M52 115 60 130 68 115" fill="#79e8ff" />
-    </svg>
-  );
+    setProgress(0);
+    next.current?.focus();
+  }, [scene, level]);
+  useEffect(() => {
+    setProgress(0);
+    if (!current.duration) return;
+    let frame = 0,
+      elapsed = 0,
+      last: number | null = null,
+      painted = 0;
+    const tick = (now: number) => {
+      if (document.hidden) last = null;
+      else {
+        if (last !== null) elapsed += Math.min(100, now - last);
+        last = now;
+        if (elapsed >= current.duration) {
+          if (finalBeat) finish.current();
+          else setBeat((value) => value + 1);
+          return;
+        }
+        if (now - painted >= 100) {
+          setProgress(elapsed / current.duration);
+          painted = now;
+        }
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [scene, beat, current.duration, finalBeat]);
+  const continueStory = () => {
+    if (finalBeat) finish.current();
+    else setBeat((value) => value + 1);
+  };
+  // Skipping narration still lands on the mission confirmation; it never starts combat.
+  const skip = () => {
+    if (scene === "origin") finish.current();
+    else setBeat(story.length - 1);
+  };
   return (
     <div
-      className={`adventure-film scene-${scene} beat-${beat}`}
+      className="adventure-film"
       role="dialog"
       aria-modal="true"
       aria-label="Adventure story cinematic"
-      onKeyDown={(e) => {
-        e.stopPropagation();
-        if (e.key === "Escape") onFinish();
-        if (e.key === "Tab") {
-          const buttons = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>("button"));
-          if (e.shiftKey && document.activeElement === buttons[0]) {
-            e.preventDefault();
+      data-scene={scene}
+      data-beat={beat}
+      onKeyDown={(event) => {
+        event.stopPropagation();
+        if (event.key === "Escape" && !confirmation) {
+          event.preventDefault();
+          skip();
+        }
+        if (event.key === "Tab") {
+          const buttons = Array.from(
+            event.currentTarget.querySelectorAll<HTMLButtonElement>("button"),
+          );
+          if (event.shiftKey && document.activeElement === buttons[0]) {
+            event.preventDefault();
             buttons.at(-1)?.focus();
-          } else if (!e.shiftKey && document.activeElement === buttons.at(-1)) {
-            e.preventDefault();
+          } else if (!event.shiftKey && document.activeElement === buttons.at(-1)) {
+            event.preventDefault();
             buttons[0]?.focus();
           }
         }
       }}
     >
-      <div className="film-frame">
-        <div className="film-kicker">
-          ALIEN FORCE / ADVENTURE{" "}
+      <section className="film-frame">
+        <header className="film-kicker">
           <span>
-            {beat + 1} / {story.length}
+            ALIEN FORCE ARENA <b>/ ADVENTURE</b>
           </span>
-        </div>
-        <div className="film-stage" key={`${scene}-${beat}`} aria-hidden="true">
-          <div className="film-planet" />
-          <div className="film-gate" />
-          <div
-            className={`film-ship ${scene === "transfer" && beat === 1 ? "damaged" : ""}`}
-            style={{ color: scene === "transfer" ? previousColor : color }}
-          >
-            {shipArt}
-            <i />
-          </div>
-          {scene !== "origin" && (
-            <>
-              <div className="film-floor" />
-              <div className={`film-pilot ${replacement ? "to-new-ship" : ""}`}>
-                <b />
-                <i />
-                <span />
-                <span />
-              </div>
-            </>
-          )}
-          {scene === "transfer" && beat > 0 && (
-            <div className="film-reserve" style={{ color }}>
-              {shipArt}
-            </div>
-          )}
-          <div className="film-scene-label">
+          <span>
             {scene === "origin"
-              ? "SENTINEL BLOCKADE"
+              ? "PROLOGUE"
               : scene === "boarding"
-                ? "LAST LIGHT / HANGAR 01"
-                : replacement
-                  ? "RESERVE CRAFT / READY"
-                  : "EMERGENCY DOCK"}
-          </div>
+                ? "MISSION 001"
+                : `SECTOR TRANSIT / ${level}`}
+          </span>
+        </header>
+        <div className="film-stage" key={`${scene}-${beat}`}>
+          <AdventureFilmArt art={current.art} color={color} previousColor={previousColor} />
+          <div className="film-letterbox" aria-hidden="true" />
         </div>
-        <div className="film-copy" aria-live="polite">
-          <h2>{story[beat]?.[0]}</h2>
-          <p>{story[beat]?.[1]}</p>
+        <div className="film-copy" aria-live="polite" aria-atomic="true">
+          <span className="film-eyebrow">
+            {confirmation ? "YOUR MISSION AWAITS" : "ARI VEGA / OPERATION LAST LIGHT"}
+          </span>
+          <h2>{current.title}</h2>
+          <p>{current.text}</p>
         </div>
-        <div className="film-actions">
-          <button onClick={onFinish}>Skip {scene === "origin" ? "story" : "cinematic"}</button>
-          <button ref={nextButton} onClick={() => (finalBeat ? onFinish() : setBeat(beat + 1))}>
-            {finalBeat ? (scene === "origin" ? "Meet your ship →" : "Launch →") : "Continue →"}
+        <div className="film-chapters" aria-label={`Scene ${beat + 1} of ${story.length}`}>
+          {story.map((_, index) => (
+            <span key={index} className={index < beat ? "is-complete" : ""}>
+              <i
+                style={{
+                  transform: `scaleX(${index < beat ? 1 : index === beat ? (confirmation ? 1 : progress) : 0})`,
+                }}
+              />
+            </span>
+          ))}
+        </div>
+        <footer className="film-actions">
+          {confirmation ? (
+            <button className="film-secondary" onClick={() => setBeat(0)}>
+              Replay scene
+            </button>
+          ) : (
+            <button className="film-secondary" onClick={skip}>
+              Skip narration
+            </button>
+          )}
+          <button ref={next} className="film-primary" onClick={continueStory}>
+            {confirmation
+              ? scene === "boarding"
+                ? "Start Protecting"
+                : "Continue Mission"
+              : finalBeat
+                ? "Board Last Light"
+                : "Next scene"}
+            <span aria-hidden="true"> ↗</span>
           </button>
-        </div>
-      </div>
+        </footer>
+      </section>
     </div>
   );
 }
