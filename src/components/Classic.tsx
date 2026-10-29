@@ -23,6 +23,12 @@ export default function Classic({
   menuHref?: string;
   onReturn?: () => void;
 }) {
+  useEffect(() => {
+    if (!onReturn) return;
+    const previous = document.body.classList.contains("online-match-active");
+    document.body.classList.add("online-match-active");
+    return () => { if (!previous) document.body.classList.remove("online-match-active"); };
+  }, [onReturn]);
   const [mobileArena, setMobileArena] = useState(false);
   useEffect(() => {
     const query = window.matchMedia("(pointer: coarse)");
@@ -186,6 +192,7 @@ export default function Classic({
     >
       {stats.scene && (
         <AdventureCinematic
+          key={`${stats.scene}-${stats.level}`}
           scene={stats.scene}
           level={stats.level}
           color={stats.color}
@@ -199,7 +206,7 @@ export default function Classic({
           }}
         />
       )}
-      <div inert={!!stats.scene} className="classic-shell mx-auto max-w-4xl space-y-4">
+      <div hidden={!!stats.scene} inert={!!stats.scene} className="classic-shell mx-auto max-w-4xl space-y-4">
         {onReturn && (
           <button
             onClick={() => {

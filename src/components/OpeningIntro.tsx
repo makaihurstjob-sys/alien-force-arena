@@ -27,10 +27,10 @@ function TitleShip() {
   return <canvas ref={canvas} width={100} height={100} role="img" aria-label="Alien Force logo" className="opening-logo" />;
 }
 
-export default function OpeningIntro({ onStart }: { onStart: () => void }) {
+export default function OpeningIntro({ onStart, animate = false }: { onStart: () => void; animate?: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const startButton = useRef<HTMLButtonElement>(null);
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(!animate);
   const [exiting, setExiting] = useState(false);
   const [motionOptIn, setMotionOptIn] = useState(false);
   const [motionSkipped, setMotionSkipped] = useState(false);
@@ -187,7 +187,7 @@ export default function OpeningIntro({ onStart }: { onStart: () => void }) {
       <TitleShip />
       <h1>ALIEN FORCE <span>ARENA</span></h1>
       <p>Fight · Adapt · Survive</p>
-      {motionSkipped && <button className="opening-replay" onClick={() => { setMotionOptIn(true); setMotionSkipped(false); setReady(false); }}>Play intro</button>}
+      {animate && motionSkipped && <button className="opening-replay" onClick={() => { setMotionOptIn(true); setMotionSkipped(false); setReady(false); }}>Play intro</button>}
       <button ref={startButton} className="opening-start" disabled={exiting} onClick={() => setExiting(true)}>START</button>
     </div>}
     <span className="sr-only" role="status">{ready ? "Intro complete. Select START to enter the main menu." : "Opening battle animation. You can skip the intro."}</span>
