@@ -9,7 +9,7 @@ function getSpriteSheet() {
   }
   return spriteSheet?.complete && spriteSheet.naturalWidth > 0 ? spriteSheet : null;
 }
-import { CLASSIC, type Actor, type ClassicState, EXIT_DOOR, adventureSector } from "./engine";
+import { CLASSIC, type Actor, type ClassicState, EXIT_DOOR } from "./engine";
 export function renderClassic(
   ctx: CanvasRenderingContext2D,
   s: ClassicState,
@@ -25,16 +25,6 @@ export function renderClassic(
     for (let x = 0; x < 10; x++)
       ctx.fillRect(22 + x * 40, 22 + y * 40, CLASSIC.block, CLASSIC.block);
   if (s.adventure) {
-    const sector = adventureSector(s.level);
-    ctx.fillStyle = "#132637";
-    ctx.fillRect(24, 24, 376, 18);
-    ctx.fillStyle = "#a8e8ff";
-    ctx.font = "10px monospace";
-    ctx.fillText(
-      `${sector.number} · ${sector.name} · ${s.level % 20 === 0 ? "BOSS" : sector.bossLevel > 999 ? "Final approach" : `Boss at ${sector.bossLevel}`}`,
-      28,
-      37,
-    );
     const boss = s.enemies.find((e) => e.boss);
     if (boss) {
       ctx.fillStyle = "#572437";

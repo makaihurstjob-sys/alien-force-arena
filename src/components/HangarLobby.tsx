@@ -68,6 +68,7 @@ export default function HangarLobby({
     try {
       await navigator.clipboard.writeText(invite);
       setCopied(true);
+      window.setTimeout(() => setCopied(false), 3000);
     } catch {
       inviteInput.current?.focus();
       inviteInput.current?.select();

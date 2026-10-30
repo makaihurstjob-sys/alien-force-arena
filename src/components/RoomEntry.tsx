@@ -15,17 +15,20 @@ export default function RoomEntry({
   onBusyChange,
   onMatchChange,
   onLeave,
+  openJoin = false,
 }: {
   initialCode?: string | undefined;
   initialMode?: LobbyMode | undefined;
   onLeave: () => void;
   onBusyChange: (busy: boolean) => void;
   onMatchChange: (playing: boolean) => void;
+  /** Opens the room-code box as soon as the lobby is ready ("Play together"). */
+  openJoin?: boolean;
 }) {
   const [entryCode, setEntryCode] = useState(initialCode);
   const [joinCode, setJoinCode] = useState("");
   const [joining, setJoining] = useState(false);
-  const [showJoin, setShowJoin] = useState(false);
+  const [showJoin, setShowJoin] = useState(openJoin);
   const [playing, setPlaying] = useState(false);
   const [joinError, setJoinError] = useState("");
   const [revision, setRevision] = useState(0);

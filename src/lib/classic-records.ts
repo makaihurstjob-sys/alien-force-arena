@@ -38,7 +38,7 @@ export async function classicPlayer(): Promise<string> {
     if (result.error) throw result.error;
     user = result.data.user ?? undefined;
   }
-  if (!user) throw new Error("Sign in to save your Classic history.");
+  if (!user) throw new Error("Sign in to save your Adventure history.");
   const profile = await db.from("profiles").select("id").eq("id", user.id).maybeSingle();
   if (profile.error) throw profile.error;
   if (!profile.data) {

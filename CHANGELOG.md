@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-30
+
+- Restore the animated opening battle intro on the title screen (it was turned off with the Adventure cinematic update).
+- "Play together" opens the room-code box; "Invite copied" resets to "Copy invite" after 3 seconds.
+- Remove the Adventure sector banner from the playfield (it covered the top lane); the sector line under the game remains. Record messages now say Adventure instead of Classic.
+
 ## 2026-10-28
 
 - Review of PRs #9/#10: Play opens the shared game chooser again; the lobby QR card is visible to the left of the invite link again; the main-menu squad stage no longer overlaps the Adventure card and Play button on phones and short screens; wider lobby footer gap on landscape phones.

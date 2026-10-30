@@ -101,8 +101,9 @@ export function MobileMainMenu() {
   const [roomPlaying, setRoomPlaying] = useState(false);
   const [inviteCode, setInviteCode] = useState<string>();
   const [lobbyMode, setLobbyMode] = useState<LobbyMode>('solo');
-  const enterMode = (mode: LobbyMode) => {
-    setSelected(mode); setInviteCode(undefined); setLobbyMode(mode); setPanel('lobby');
+  const [joinOnOpen, setJoinOnOpen] = useState(false);
+  const enterMode = (mode: LobbyMode, join = false) => {
+    setJoinOnOpen(join); setSelected(mode); setInviteCode(undefined); setLobbyMode(mode); setPanel('lobby');
   };
   const leaveLobby = () => {
     animateLobbyExit(dialog.current);
@@ -164,7 +165,7 @@ export function MobileMainMenu() {
       <div className="arena-menu-center arena-squad-stage">
         <button className="arena-friend-slot" aria-label="Invite a friend to your lobby" onClick={() => enterMode(lobbyModes[selected].max > 1 ? selected : 'arcade')}><span>+</span><strong>Invite friend</strong><small>Create a room · Share the link</small></button>
         <div className="arena-hero-drone"><MenuPilot /><DronePreview /><span className="arena-pilot-status">PILOT READY</span></div>
-        <button className="arena-friend-slot" aria-label="Join a friend's lobby" onClick={() => enterMode('arcade')}><span>+</span><strong>Play together</strong><small>Join with a room code</small></button>
+        <button className="arena-friend-slot" aria-label="Join a friend's lobby" onClick={() => enterMode('arcade', true)}><span>+</span><strong>Play together</strong><small>Join with a room code</small></button>
       </div>
       <section className="arena-play-dock" aria-label="Selected game">
         <button className="arena-selected-game" aria-label={`Choose game, current game: ${mode.name}`} aria-haspopup="dialog" onClick={(event) => { chooserTrigger.current = event.currentTarget; setPanel("games"); }}>
@@ -215,6 +216,7 @@ export function MobileMainMenu() {
               onLeave={leaveLobby}
               onBusyChange={setRoomBusy}
               onMatchChange={setRoomPlaying}
+              openJoin={joinOnOpen}
             />
           )
         )}

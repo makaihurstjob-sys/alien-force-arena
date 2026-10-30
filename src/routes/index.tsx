@@ -59,7 +59,7 @@ export function Home() {
       clearTimeout(revealTimer);
     };
   }, []);
-  if (!entered) return <OpeningIntro onStart={() => setEntered(true)} />;
+  if (!entered) return <OpeningIntro animate onStart={() => setEntered(true)} />;
   return (
     <main
       aria-busy={loading}

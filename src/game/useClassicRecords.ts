@@ -25,7 +25,7 @@ export function useClassicRecords(game: RefObject<ClassicState>) {
   const waiting = useRef(new Map<string, { state: ClassicState; outcome: RunOutcome }>());
   const flushing = useRef(false);
   const mounted = useRef(false);
-  const [message, setMessage] = useState("Completed Classic runs and gameplay stats are public.");
+  const [message, setMessage] = useState("Completed Adventure runs and gameplay stats are public.");
   const [failed, setFailed] = useState(false);
   const [playerId, setPlayerId] = useState<string>();
   const player = useCallback(() => {
@@ -43,12 +43,12 @@ export function useClassicRecords(game: RefObject<ClassicState>) {
       }
       for (const run of readPending()) if (run.player_id === id) pending.current.set(run.id, run);
       if (!pending.current.size) return;
-      if (mounted.current) { setMessage("Saving Classic history…"); setFailed(false); }
+      if (mounted.current) { setMessage("Saving Adventure history…"); setFailed(false); }
       for (const [key, run] of pending.current) {
         await submitClassicRun(run);
         pending.current.delete(key); forget(key);
       }
-      if (mounted.current) setMessage("Classic history saved to your public player card.");
+      if (mounted.current) setMessage("Adventure history saved to your public player card.");
     } catch (error) {
       if (mounted.current) {
         setFailed(true);
