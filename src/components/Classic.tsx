@@ -219,10 +219,10 @@ export default function Classic({
         <ClassicWindow
           adventure
           controllerRef={menuController}
-          paused={simulationPaused}
+          paused={paused || awayPaused}
           onPause={() => {
             resumeFromAway();
-            setPaused(!simulationPaused);
+            setPaused(!(paused || awayPaused));
           }}
           onInteractionChange={setWindowBlocked}
           onRestart={() => restart()}

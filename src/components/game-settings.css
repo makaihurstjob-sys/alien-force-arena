@@ -52,4 +52,11 @@
   .controls-actions { justify-content:stretch; }
   .controls-actions button { flex:1 1 auto; }
 }
+@media(max-height:650px) {
+  .mobile-menu-dialog[open]:has(.game-settings) { display:block; height:auto; overflow-y:auto; }
+  .game-settings { display:block; }
+  .controls-layout { grid-template-rows:auto; }
+  .keybinding-list { max-height:45svh; min-height:180px; }
+  .binding-details { height:auto; }
+}
 @media(prefers-reduced-motion:reduce) { .keybinding-row { transition:none; } }
