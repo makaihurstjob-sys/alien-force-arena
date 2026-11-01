@@ -1,3 +1,5 @@
+import AdventureRouteMap from "./AdventureRouteMap";
+import AdventureTransit from "./AdventureTransit";
 import { inputAction, matches, keyboardHelp } from "@/lib/keybindings";
 import AdventureCinematic from "./AdventureCinematic";
 import ClassicController from "./ClassicController";
@@ -50,7 +52,8 @@ export default function Classic({
     setAwayPaused(false);
   }, []);
   const [windowBlocked, setWindowBlocked] = useState(false);
-  const simulationPaused = paused || awayPaused || windowBlocked;
+  const [showMap, setShowMap] = useState(false);
+  const simulationPaused = paused || awayPaused || windowBlocked || showMap;
   const pauseRef = useRef(simulationPaused);
   useEffect(() => {
     pauseRef.current = simulationPaused;
@@ -75,7 +78,7 @@ export default function Classic({
       input.current = { direction: null, fire: false };
     };
     const down = (e: KeyboardEvent) => {
-      if (windowBlocked || game.current.scene) return;
+      if (windowBlocked || showMap || game.current.scene) return;
       if ((e.target as HTMLElement).closest("input,textarea,select,[contenteditable=true]")) return;
       if ((e.target as HTMLElement).closest("button,a") && ["Space", "Enter"].includes(e.code))
         return;
@@ -129,7 +132,7 @@ export default function Classic({
       window.removeEventListener("blur", blur);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [windowBlocked, resumeFromAway]);
+  }, [windowBlocked, showMap, resumeFromAway]);
   useEffect(() => {
     input.current = { direction: null, fire: false };
     let raf = 0,
@@ -177,6 +180,13 @@ export default function Classic({
     resumeFromAway();
     canvas.current?.focus();
   };
+  const finishScene = () => {
+    finishAdventureScene(game.current);
+    input.current = { direction: null, fire: false };
+    setStats(previous => ({...previous,scene:game.current.scene}));
+    resumeFromAway();
+    if (!game.current.scene) canvas.current?.focus();
+  };
   return (
     <main
       className="min-h-screen bg-background p-4 font-mono text-foreground"
@@ -190,23 +200,18 @@ export default function Classic({
         }
       }}
     >
-      {stats.scene && (
-        <AdventureCinematic
+      {(stats.scene === "route" || showMap) ? <AdventureRouteMap level={stats.level} onContinue={() => {
+        input.current = { direction: null, fire: false };
+        if (stats.scene === "route") finishScene(); else { setShowMap(false); canvas.current?.focus(); }
+      }} {...(showMap ? {onClose: () => { input.current = {direction:null,fire:false}; setShowMap(false); }} : {})} /> : stats.scene === "travel" || stats.scene === "arrival" ? <AdventureTransit key={`${stats.scene}-${stats.level}`} scene={stats.scene} game={game.current} onFinish={finishScene} /> : stats.scene ? <AdventureCinematic
           key={`${stats.scene}-${stats.level}`}
           scene={stats.scene}
           level={stats.level}
           color={stats.color}
           previousColor={stats.previousColor}
-          onFinish={() => {
-            finishAdventureScene(game.current);
-            input.current = { direction: null, fire: false };
-            setStats((previous) => ({ ...previous, scene: game.current.scene }));
-            resumeFromAway();
-            if (!game.current.scene) canvas.current?.focus();
-          }}
-        />
-      )}
-      <div hidden={!!stats.scene} inert={!!stats.scene} className="classic-shell mx-auto max-w-4xl space-y-4">
+          onFinish={finishScene}
+        /> : null}
+      <div hidden={!!stats.scene || showMap} inert={!!stats.scene || showMap} className="classic-shell mx-auto max-w-4xl space-y-4">
         {onReturn && (
           <button
             onClick={() => {
@@ -216,6 +221,7 @@ export default function Classic({
             Return to lobby
           </button>
         )}
+        <button className="text-sm text-primary underline" onClick={() => {input.current = {direction:null,fire:false};setShowMap(true);}}>View star route · Level {stats.level}</button>
         <ClassicWindow
           adventure
           controllerRef={menuController}

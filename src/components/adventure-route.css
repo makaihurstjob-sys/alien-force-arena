@@ -1,0 +1,142 @@
+.adventure-route {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: auto;
+  background: #030a14f7;
+  color: #e9f5ff;
+  font-family: system-ui, sans-serif;
+}
+.route-frame {
+  width: min(1000px, 100%);
+  border: 1px solid #59869a75;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #091726;
+  box-shadow: 0 0 90px #2b89a91f;
+}
+.route-frame header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 30px;
+}
+.route-frame small {
+  font: 9px monospace;
+  color: #8bddcb;
+  letter-spacing: 2px;
+}
+.route-frame h1 {
+  font-size: clamp(22px, 3vw, 34px);
+  margin: 8px 0;
+}
+.route-frame p {
+  font-size: 12px;
+  color: #94b5c9;
+}
+.route-frame header > strong {
+  font: 12px monospace;
+  padding: 12px;
+  border: 1px solid #72c9b779;
+  color: #a4f5d9;
+  white-space: nowrap;
+}
+.route-galaxy {
+  display: block;
+  width: 100%;
+  max-height: 58svh;
+  background: #06101f;
+  border-block: 1px solid #45647766;
+}
+.route-node.is-locked {
+  opacity: 0.48;
+}
+.route-node.is-current .route-orbit {
+  animation: route-pulse 2s ease-in-out infinite alternate;
+}
+.route-frame footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 30px;
+}
+.route-frame footer p {
+  flex: 1;
+  min-width: 180px;
+  line-height: 1.6;
+}
+.route-frame nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.route-frame button {
+  min-height: 44px;
+  border: 1px solid #476a7d;
+  border-radius: 4px;
+  padding: 10px 15px;
+  background: #102536;
+  color: #c0dbe7;
+  font: 12px system-ui;
+  cursor: pointer;
+}
+.route-frame button:disabled {
+  opacity: 0.35;
+}
+.route-frame .route-launch {
+  background: #9df0d4;
+  color: #082e27;
+  font-weight: bold;
+  border-color: #b9ffe7;
+}
+.route-frame button:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 3px;
+}
+@keyframes route-pulse {
+  to {
+    opacity: 0.3;
+    r: 43;
+  }
+}
+@media (max-width: 600px) {
+  .adventure-route {
+    padding: 10px;
+  }
+  .route-frame header {
+    padding: 18px;
+    gap: 10px;
+  }
+  .route-frame small {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .route-frame header > strong {
+    font-size: 10px;
+    padding: 9px;
+  }
+  .route-galaxy {
+    min-height: 280px;
+  }
+  .route-frame footer {
+    padding: 16px;
+    gap: 10px;
+  }
+  .route-frame footer p {
+    flex-basis: 100%;
+  }
+  .route-launch {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-orbit {
+    animation: none !important;
+  }
+}

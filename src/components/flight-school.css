@@ -1,0 +1,245 @@
+.flight-school {
+  min-height: 100svh;
+  box-sizing: border-box;
+  padding: 28px max(18px, 4vw);
+  color: #e9f5fc;
+  background: radial-gradient(ellipse at 30% 25%, #183b50, #060e1c 70%);
+  font-family: system-ui, sans-serif;
+}
+.school-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1300px;
+  margin: 0 auto 24px;
+}
+.school-header small,
+.school-header > span {
+  color: #83cfc6;
+  font: 11px monospace;
+  letter-spacing: 2px;
+}
+.school-header h1 {
+  font-size: clamp(22px, 3vw, 36px);
+  letter-spacing: 2px;
+  margin: 8px 0;
+}
+.school-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr);
+  max-width: 1300px;
+  margin: auto;
+  border: 1px solid #4e788d6b;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 30px 90px #0008;
+}
+.school-range {
+  position: relative;
+  min-height: 340px;
+  background: #060e18;
+  display: grid;
+  place-items: center;
+}
+.school-range canvas {
+  width: 100%;
+  max-height: 65vh;
+  object-fit: contain;
+  aspect-ratio: 1;
+}
+.school-range-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: #06111dc9;
+  color: #8ef3d6;
+  text-align: center;
+  padding: 20px;
+  font: 700 clamp(15px, 2vw, 25px) monospace;
+  pointer-events: none;
+}
+.school-range-overlay button {
+  pointer-events: auto;
+}
+.school-range-label {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  padding: 8px;
+  background: #06121ce8;
+  font: 10px monospace;
+  color: #8ef3d6;
+  pointer-events: none;
+}
+.school-instructor {
+  padding: 28px;
+  background: #0a1827;
+}
+.school-npc {
+  width: 135px;
+  margin: 0 auto 10px;
+  animation: instructor-hover 4s ease-in-out infinite alternate;
+}
+.school-trainer-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #8fead6;
+}
+.school-trainer-name strong {
+  font-size: 24px;
+}
+.school-trainer-name span {
+  font: 9px monospace;
+  letter-spacing: 2px;
+}
+.school-instructor h2 {
+  font-size: 24px;
+  line-height: 1.2;
+  margin: 20px 0 12px;
+}
+.school-caption {
+  color: #c2d7e5;
+  font-size: 14px;
+  line-height: 1.8;
+  min-height: 112px;
+}
+.school-objective {
+  display: grid;
+  gap: 8px;
+  background: #173247;
+  border-left: 3px solid #7be9d1;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.school-objective b {
+  font: 10px monospace;
+  letter-spacing: 1px;
+  color: #86ebd4;
+}
+.school-objective.is-complete {
+  background: #113c35;
+}
+.flight-school button {
+  min-height: 44px;
+  border: 1px solid #85f1d4;
+  border-radius: 4px;
+  background: #98efd6;
+  color: #092b28;
+  padding: 10px 16px;
+  font: 600 12px system-ui;
+  cursor: pointer;
+}
+.flight-school button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.flight-school button:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 3px;
+}
+.school-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0 12px;
+}
+.flight-school .school-secondary {
+  color: #b3cbd9;
+  background: transparent;
+  border-color: #496c80;
+}
+.school-voice-note {
+  color: #6f93a7;
+  font-size: 10px;
+}
+.school-controls {
+  max-width: 1300px;
+  margin: 18px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.school-action-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.school-controls > p {
+  flex: 1;
+  min-width: 220px;
+  color: #96b3c6;
+  font: 11px/1.7 monospace;
+}
+.school-controls .touch-joystick {
+  width: 120px;
+  height: 120px;
+}
+@keyframes instructor-hover {
+  to {
+    transform: translateY(-7px);
+  }
+}
+@media (max-width: 760px) {
+  .flight-school {
+    padding: 16px 12px;
+  }
+  .school-header {
+    align-items: start;
+    gap: 10px;
+  }
+  .school-header > span {
+    max-width: 100px;
+    font-size: 9px;
+    text-align: right;
+  }
+  .school-layout {
+    grid-template-columns: 1fr;
+  }
+  .school-range {
+    min-height: 260px;
+  }
+  .school-range canvas {
+    max-height: 48svh;
+  }
+  .school-instructor {
+    padding: 18px;
+  }
+  .school-npc {
+    width: 75px;
+    float: right;
+    margin: 0 0 8px 10px;
+  }
+  .school-caption {
+    min-height: 0;
+  }
+  .school-instructor h2 {
+    font-size: 21px;
+  }
+  .school-controls {
+    gap: 12px;
+  }
+  .school-action-buttons {
+    flex: 1;
+  }
+  .school-action-buttons button {
+    padding: 10px;
+    flex: 1 1 70px;
+    font-size: 10px;
+  }
+  .school-controls > p {
+    flex-basis: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .school-npc {
+    animation: none;
+  }
+}
