@@ -9,7 +9,7 @@ function getSpriteSheet() {
   }
   return spriteSheet?.complete && spriteSheet.naturalWidth > 0 ? spriteSheet : null;
 }
-import { CLASSIC, type Actor, type ClassicState, EXIT_DOOR } from "./engine";
+import { CLASSIC, type Actor, type ClassicState, EXIT_DOOR, ENTRY_DOOR } from "./engine";
 export function renderClassic(
   ctx: CanvasRenderingContext2D,
   s: ClassicState,
@@ -32,6 +32,10 @@ export function renderClassic(
       ctx.fillStyle = "#ff486d";
       ctx.fillRect(85, 46, (254 * (boss.health ?? 1)) / (boss.maxHealth ?? 1), 8);
     }
+    ctx.fillStyle = "#466e84";
+    ctx.fillRect(ENTRY_DOOR.x + 1, ENTRY_DOOR.y - 14, 11, 26);
+    ctx.fillStyle = "#061d2d";
+    ctx.fillRect(ENTRY_DOOR.x + 3, ENTRY_DOOR.y - 10, 7, 18);
     const open = s.phase === "level_clear";
     ctx.fillStyle = open ? "#63ffce" : "#344555";
     ctx.fillRect(EXIT_DOOR.x - 13, 1, 26, 20);
@@ -112,6 +116,7 @@ export function renderClassic(
     ctx.font = '12px \"Windows Bold\", monospace';
     ctx.fillText(s.shots.some((b) => b.owner === 0) ? "SHOT IN PLAY" : "SHOT READY", 450, 390);
   }
+  if (s.adventure && s.phase === "level_clear") renderFireworks(ctx, s.celebrationTime ?? 0);
   const message =
     s.phase === "game_over"
       ? s.completed
@@ -137,4 +142,25 @@ export function renderClassic(
     ctx.fillText(message, 210, 212);
     ctx.textAlign = "left";
   }
+}
+
+function renderFireworks(ctx: CanvasRenderingContext2D, time: number) {
+  const reduced = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (time > 3.6) return;
+  ctx.save();
+  const colors = ["#9bffe0", "#ffcd70", "#97baff"];
+  for (let burst = 0; burst < 3; burst++) {
+    const age = reduced ? .55 : time - burst * .55;
+    if (age < 0 || age > 2) continue;
+    const x = 82 + burst * 130, y = 100 - (burst % 2) * 35;
+    ctx.globalAlpha = Math.max(0, 1 - age / 2);
+    ctx.fillStyle = colors[burst]!;
+    for (let spark = 0; spark < 22; spark++) {
+      const angle = spark * Math.PI * 2 / 22;
+      const radius = age * (30 + spark % 3 * 10);
+      const sx = x + Math.cos(angle) * radius, sy = y + Math.sin(angle) * radius + age * age * 12;
+      ctx.fillRect(sx - 1.5, sy - 1.5, 3, 3);
+    }
+  }
+  ctx.restore();
 }

@@ -1,0 +1,162 @@
+.adventure-transit {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  padding: 20px;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  background: #030a14fa;
+  color: #e9f5ff;
+  font-family: system-ui, sans-serif;
+  box-sizing: border-box;
+}
+.adventure-transit > section {
+  width: min(850px, 100%);
+  background: #0a1929;
+  border: 1px solid #4a738b;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.adventure-transit header {
+  padding: 24px 30px;
+}
+.adventure-transit small {
+  font: 10px monospace;
+  color: #94e8d3;
+  letter-spacing: 2px;
+}
+.adventure-transit h2 {
+  font-size: clamp(23px, 3vw, 33px);
+  margin: 10px 0;
+}
+.adventure-transit p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #9bb8cc;
+}
+.transit-space {
+  height: clamp(240px, 36vh, 360px);
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(ellipse, #1d4a63, #050d20 70%);
+}
+.transit-nebula {
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(ellipse, #8f65dd33, transparent 55%);
+  transform: rotate(-20deg);
+}
+.transit-stars {
+  position: absolute;
+  inset: -100%;
+  background-image: radial-gradient(#d1f0ff 1px, transparent 2px);
+  background-size: 55px 47px;
+  translate: calc(var(--flight-progress) * -300px) 0;
+}
+.transit-gate {
+  position: absolute;
+  top: 25%;
+  width: 40px;
+  height: 50%;
+  border: 7px solid #8bf2db;
+  border-radius: 50%;
+  background: #63f3d515;
+  box-shadow:
+    0 0 35px #65edc955,
+    inset 0 0 30px #5febd44a;
+}
+.transit-gate.departure {
+  left: 8%;
+  opacity: 0.4;
+}
+.transit-gate.destination {
+  right: 8%;
+}
+.transit-ship {
+  position: absolute;
+  top: 50%;
+  filter: drop-shadow(0 10px 12px #81dcf367);
+}
+.transit-ship .ship-icon {
+  margin: 0;
+}
+.transit-ship i {
+  position: absolute;
+  left: 40px;
+  top: 80px;
+  width: 20px;
+  height: 75px;
+  background: linear-gradient(#d4ffff, #53e3ff77, transparent);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.transit-coordinates {
+  position: absolute;
+  bottom: 18px;
+  left: 25px;
+  font: 11px monospace;
+  letter-spacing: 2px;
+  color: #90cadc;
+}
+.adventure-transit canvas {
+  display: block;
+  margin: auto;
+  width: min(424px, 100%);
+  height: auto;
+  image-rendering: pixelated;
+}
+.transit-progress {
+  height: 3px;
+  background: #223d50;
+}
+.transit-progress i {
+  display: block;
+  height: 100%;
+  background: #95f1d8;
+  transform-origin: left;
+}
+.adventure-transit footer {
+  padding: 18px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  font: 11px monospace;
+  color: #90b6c9;
+}
+.adventure-transit button {
+  min-height: 44px;
+  padding: 10px 15px;
+  background: #173248;
+  border: 1px solid #7db7c6;
+  border-radius: 4px;
+  color: #d7f6ee;
+  cursor: pointer;
+}
+.adventure-transit button:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .adventure-transit {
+    padding: 10px;
+  }
+  .adventure-transit header {
+    padding: 20px;
+  }
+  .adventure-transit footer {
+    padding: 16px;
+  }
+  .transit-space {
+    height: 250px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .transit-stars {
+    translate: 0 !important;
+  }
+  .transit-ship {
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(90deg) !important;
+  }
+}

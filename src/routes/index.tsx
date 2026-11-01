@@ -1,3 +1,5 @@
+import { useFirstFlight } from "@/hooks/use-first-flight";
+import { Practice } from "./practice";
 import { createFileRoute } from "@tanstack/react-router";
 import { EnemyShipBackdrop } from "@/components/EnemyShipBackdrop";
 import OpeningIntro from "@/components/OpeningIntro";
@@ -30,6 +32,7 @@ export const Route = createFileRoute("/")({
 export function Home() {
   const [loading, setLoading] = useState(true);
   const [entered, setEntered] = useState(false);
+  const firstFlight = useFirstFlight(entered);
   useEffect(() => {
     const bypassIntro = () => {
       const hash = new URLSearchParams(window.location.hash.slice(1));
@@ -60,6 +63,8 @@ export function Home() {
     };
   }, []);
   if (!entered) return <OpeningIntro animate onStart={() => setEntered(true)} />;
+  if (firstFlight.status === "checking") return <main className="flight-school"><h1>Flight systems online</h1><p role="status">Checking your pilot record…</p></main>;
+  if (firstFlight.status === "required") return <Practice tutorial onTutorialComplete={firstFlight.finish} />;
   return (
     <main
       aria-busy={loading}

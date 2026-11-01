@@ -1,3 +1,4 @@
+import FlightSchool from "@/components/FlightSchool";
 import { useMatchHistory } from "@/game/useMatchHistory";
 import { duelHistory } from "@/lib/match-history";
 import { matches, keyboardHelp } from "@/lib/keybindings";
@@ -34,7 +35,12 @@ const PLAYERS: PlayerSeed[] = [
   { id: "bot", name: "BOT", team: 1 },
 ];
 
-export function Practice({ onReturn }: { onReturn?: () => void } = {}) {
+export function Practice({ onReturn, tutorial = false, onTutorialComplete }: { onReturn?: (() => void) | undefined; tutorial?: boolean; onTutorialComplete?: () => void } = {}) {
+  const [training, setTraining] = useState(false);
+  if (tutorial || training) return <FlightSchool onComplete={tutorial ? onTutorialComplete ?? (() => {}) : () => setTraining(false)} {...(!tutorial ? {onReturn: () => setTraining(false)} : {})} />;
+  return <PracticeArena onReturn={onReturn} onTraining={() => setTraining(true)} />;
+}
+function PracticeArena({ onReturn, onTraining }: { onReturn?: (() => void) | undefined; onTraining: () => void }) {
   const [paused, setPaused] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [layoutIndex, setLayoutIndex] = useState(0);
@@ -129,6 +135,7 @@ export function Practice({ onReturn }: { onReturn?: () => void } = {}) {
           </span>
         </div>
 
+        <button className="text-sm text-primary underline" onClick={onTraining}>Train with AX-7 · Controls and power-ups</button>
         <GameBoyShell
           inputRef={inputRef}
           onStart={restart}

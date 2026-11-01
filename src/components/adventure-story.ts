@@ -1,5 +1,5 @@
 import { adventureSector, type ClassicState } from "../game/classic/engine";
-export type FilmScene = NonNullable<ClassicState["scene"]>;
+export type FilmScene = Extract<ClassicState["scene"], "origin" | "boarding" | "transfer">;
 export type StoryBeat = {
   title: string;
   text: string;

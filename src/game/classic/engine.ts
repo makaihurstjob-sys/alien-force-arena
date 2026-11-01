@@ -34,7 +34,9 @@ export type Enemy = Actor & {
 type Shot = Actor & { owner: number };
 export type ClassicState = {
   adventure?: boolean;
-  scene?: "origin" | "boarding" | "transfer" | undefined;
+  scene?: "origin" | "boarding" | "transfer" | "travel" | "route" | "arrival" | undefined;
+  transferPending?: boolean;
+  celebrationTime?: number;
   shipColor?: string | undefined;
   previousShipColor?: string | undefined;
   completed?: boolean;
@@ -131,7 +133,8 @@ export function createClassic(
     throw new RangeError("Level must be between 1 and 999");
   return {
     adventure,
-    scene: adventure && level === 1 ? "origin" : undefined,
+    scene: adventure ? level === 1 ? "origin" : "arrival" : undefined,
+    celebrationTime: 0,
     shipColor: SHIP_COLORS[Math.floor((level - 1) / 20) % SHIP_COLORS.length],
     player: { id: 0, x: lane(10), y: lane(10), direction: "left" },
     playerMoving: false,
@@ -234,6 +237,7 @@ export function tickClassic(
   }
   if (s.phase === "level_clear") {
     if (s.adventure) {
+      s.celebrationTime = (s.celebrationTime ?? 0) + dt;
       // The open door is on the top lane. Clearing combat never advances by itself.
       if (input.direction) {
         s.playerMoving = true;
@@ -374,6 +378,7 @@ export function tickClassic(
     s.levelsCleared++;
     s.phase = "level_clear";
     s.timer = CLASSIC.transition;
+    s.celebrationTime = 0;
     if (s.adventure) {
       s.playerMoving = false;
       s.queuedDirection = null;
@@ -383,6 +388,7 @@ export function tickClassic(
 }
 
 export const EXIT_DOOR = { x: 212, y: 12 };
+export const ENTRY_DOOR = { x: 412, y: 412 };
 export const SHIP_COLORS = ["#e8f5ff", "#ffad42", "#57e5cc", "#bc8bff", "#ff779f", "#67baff"];
 export function adventureSector(level: number) {
   const number = Math.floor((level - 1) / 20) + 1;
@@ -407,7 +413,10 @@ export function adventureSector(level: number) {
   };
 }
 export function finishAdventureScene(s: ClassicState) {
-  s.scene = s.scene === "origin" ? "boarding" : undefined;
+  const next = { origin: "boarding", boarding: "arrival", travel: s.transferPending ? "transfer" : "route", transfer: "route", route: "arrival", arrival: undefined } as const;
+  s.scene = s.scene ? next[s.scene] : undefined;
+  if (s.scene !== "transfer") s.transferPending = false;
+  s.shots = [];
   s.playerMoving = false;
   s.queuedDirection = null;
   s.awaitDirectionRelease = true;
@@ -423,7 +432,7 @@ function advanceClassic(s: ClassicState, input: ClassicInput, random: () => numb
   if (bossCleared) {
     s.previousShipColor = s.shipColor;
     s.shipColor = SHIP_COLORS[Math.floor((s.level - 1) / 20) % SHIP_COLORS.length];
-    s.scene = "transfer";
+    s.transferPending = true;
   }
   s.enemies = wave(s.level, random, s.adventure);
   s.shots = [];
@@ -432,6 +441,10 @@ function advanceClassic(s: ClassicState, input: ClassicInput, random: () => numb
   s.awaitDirectionRelease = Boolean(input.direction);
   s.playerMoving = false;
   s.queuedDirection = null;
-  if (s.adventure) s.player = { id: 0, x: lane(5), y: lane(10), direction: "up" };
+  if (s.adventure) {
+    s.scene = "travel";
+    s.player = { id: 0, ...ENTRY_DOOR, direction: "left" };
+    s.celebrationTime = 0;
+  }
   s.invulnerable = CLASSIC.invulnerability;
 }

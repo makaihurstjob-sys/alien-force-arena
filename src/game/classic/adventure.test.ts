@@ -25,6 +25,8 @@ describe("Adventure campaign", () => {
     finishAdventureScene(s);
     expect(s.scene).toBe("boarding");
     finishAdventureScene(s);
+    expect(s.scene).toBe("arrival");
+    finishAdventureScene(s);
     expect(s.scene).toBeUndefined();
     tickClassic(s, { direction: "left", fire: false });
     expect(s.phase).toBe("waiting");
@@ -50,7 +52,7 @@ describe("Adventure campaign", () => {
     s.player = { ...s.player, x: EXIT_DOOR.x, y: 52, direction: "up" };
     for (let i = 0; i < 30; i++) tickClassic(s, { direction: "up", fire: false });
     expect(s.level).toBe(2);
-    expect(s.scene).toBeUndefined();
+    expect(s.scene).toBe("travel");
     expect(s.enemies).toHaveLength(10);
   });
   it.each([20, 40, 120, 980])(
@@ -61,6 +63,8 @@ describe("Adventure campaign", () => {
       s.player = { ...s.player, ...EXIT_DOOR };
       tickClassic(s, idle);
       expect(s.level).toBe(level + 1);
+      expect(s.scene).toBe("travel");
+      finishAdventureScene(s);
       expect(s.scene).toBe("transfer");
       expect(s.previousShipColor).toBe(old);
       expect(s.shipColor).not.toBe(old);
@@ -85,4 +89,17 @@ describe("Adventure campaign", () => {
     expect(adventureSector(21).number).toBe(2);
     expect(adventureSector(999).number).toBe(50);
   });
+});
+
+it("gates every level through travel, route and bottom-right arrival without starting combat",()=>{
+ const s=clear(3);s.player={...s.player,...EXIT_DOOR};tickClassic(s,idle);
+ expect(s.scene).toBe("travel");const before=s.elapsed;
+ tickClassic(s,{direction:"left",fire:true},10);expect(s.elapsed).toBe(before);
+ finishAdventureScene(s);expect(s.scene).toBe("route");finishAdventureScene(s);expect(s.scene).toBe("arrival");
+ expect(s.player).toMatchObject({x:412,y:412,direction:"left"});finishAdventureScene(s);expect(s.scene).toBeUndefined();
+ tickClassic(s,{direction:"left",fire:true});expect(s.phase).toBe("waiting");tickClassic(s,idle);tickClassic(s,{direction:"left",fire:false});expect(s.phase).toBe("playing");
+});
+it("celebration is visual and never changes the cleared level's combat result",()=>{
+ const s=clear(4);const score=s.score;for(let i=0;i<180;i++)tickClassic(s,idle);
+ expect(s.celebrationTime).toBeGreaterThan(2);expect(s.level).toBe(4);expect(s.score).toBe(score);expect(s.shots).toEqual([]);
 });
