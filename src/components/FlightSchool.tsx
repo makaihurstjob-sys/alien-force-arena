@@ -11,9 +11,11 @@ import "./flight-school.css";
 export default function FlightSchool({
   onComplete,
   onReturn,
+  onSkip,
 }: {
   onComplete: () => void;
   onReturn?: () => void;
+  onSkip?: () => void;
 }) {
   const [welcomed, setWelcomed] = useState(false);
   const [index, setIndex] = useState(0);
@@ -305,6 +307,11 @@ export default function FlightSchool({
             {onReturn && (
               <button className="school-secondary" onClick={onReturn}>
                 Return to Practice
+              </button>
+            )}
+            {onSkip && !graduated && (
+              <button className="school-secondary" onClick={onSkip}>
+                Skip training
               </button>
             )}
           </div>

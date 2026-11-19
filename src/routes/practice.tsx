@@ -37,7 +37,7 @@ const PLAYERS: PlayerSeed[] = [
 
 export function Practice({ onReturn, tutorial = false, onTutorialComplete }: { onReturn?: (() => void) | undefined; tutorial?: boolean; onTutorialComplete?: () => void } = {}) {
   const [training, setTraining] = useState(false);
-  if (tutorial || training) return <FlightSchool onComplete={tutorial ? onTutorialComplete ?? (() => {}) : () => setTraining(false)} {...(!tutorial ? {onReturn: () => setTraining(false)} : {})} />;
+  if (tutorial || training) return <FlightSchool onComplete={tutorial ? onTutorialComplete ?? (() => {}) : () => setTraining(false)} {...(!tutorial ? {onReturn: () => setTraining(false)} : {})} {...(tutorial && onTutorialComplete ? {onSkip: onTutorialComplete} : {})} />;
   return <PracticeArena onReturn={onReturn} onTraining={() => setTraining(true)} />;
 }
 function PracticeArena({ onReturn, onTraining }: { onReturn?: (() => void) | undefined; onTraining: () => void }) {
